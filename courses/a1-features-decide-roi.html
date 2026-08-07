@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leader session 1 · Why features decide ROI before models do - learn feature engineering with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-feature-engineering-with-phoebe</a> / Leader session 1 of 6</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn Feature Engineering with Phoebe · Leader track · Session 1 of 6</div>
+    <h1>Why features decide ROI <span class="accent">before models do</span></h1>
+    <p class="sub">Most stalled machine-learning projects are stuck on the wrong question. The room argues about which model to try next, while the return sits one layer down, in how the columns were shaped before any model saw them. Tonight you watch that happen live: on Lumen's checkout data, held-out AUC climbs from 0.500 to 0.813 while the algorithm never changes once. No code on this track. Just the decisions you fund, the questions you ask, and the numbers you can quote back.</p>
+    <div class="chip-row">
+      <span class="chip level">🟢 Leader track</span>
+      <span class="chip audience">Data leads · PMs · DS managers</span>
+      <span class="chip audience">No code, decisions only</span>
+      <span class="chip time">Start here</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Welcome</span>
+      <span class="a2" style="flex:5">3-18 · Where the time and the return actually go</span>
+      <span class="a3" style="flex:8">18-42 · Live: watch features carry a model</span>
+      <span class="a4" style="flex:1">42-45 · Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ INTRO ============ -->
+  <section class="section" id="intro">
+    <div class="section-kicker">
+      <span class="klabel">Part 0</span>
+      <h2>How the leader track works</h2>
+    </div>
+    <p class="lede">Six sessions, forty-five minutes each, and every one of them ends the same way: a short list of <strong>decisions you now own</strong> and <strong>questions you can ask on Monday</strong>. There is no code on this track and no homework you need a Python environment for. a1 sets the economics, a2 covers the one failure mode that arrives disguised as success, a3 turns data quality into a budget line, a4 handles governance and feature stores, a5 draws the line between hand-crafted and learned features, and a6 hands you the review checklist your team should be able to answer without preparing.</p>
+    <p class="lede">Everything runs on one shared case: <strong>Lumen Skincare's checkout data</strong> - 40,000 sessions, a 3.2% conversion rate, and a pile of raw columns that look, at first glance, entirely unremarkable. Your practitioner colleagues are on a parallel ten-session track building exactly what you are learning to fund and review. Same case, same numbers, different job. When they say "we one-hot encoded channel and it bought us nine points," you will know what that sentence cost and what it was worth.</p>
+    <div class="legend">
+      <span class="pill solid">Live - presented in session</span>
+      <span class="pill light">Self-study - read after class</span>
+      <span class="pill peach">▶ Live workbench - a real model, trained in your browser</span>
+      <span class="pill inkpill">Official sources covered</span>
+    </div>
+    <div class="callout win">
+      <strong>★ What you walk out with today</strong>
+      A defensible answer to "why is our model not getting better," the one chart that shows where return actually comes from, the six-rung ladder you can quote in a budget conversation, and five questions that reframe a stalled project from "which model?" to "which columns?"
+    </div>
+  </section>
+
+  <!-- ============ PART 1: THE BUDGET ============ -->
+  <section class="section" id="where-time-goes">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · covers Google MLCC data modules, Rules of ML 17 and 19-22</span>
+      <h2>The unglamorous truth about where the time goes <span class="tag concept">7 min live</span></h2>
+    </div>
+    <p class="lede">Google's Machine Learning Crash Course states it without any hedging: <em>"ML practitioners spend far more time evaluating, cleaning, and transforming data than building models."</em> That sentence is written for practitioners, but it is really a budget statement, and it is aimed at you. If most of the effort lives in the data layer, then most of the funding decisions live there too - and if your project plan has a line for "model selection" and no line for "feature work," the plan is describing the smaller half of the job.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two funding paths compared on one chart: swapping the model leaves held-out AUC flat at 0.500, while building the features climbs to 0.813.">
+        <style>
+          .f1T { font: 700 13px Inter, sans-serif; fill: #FFFFFF; }
+          .f1S { font: 400 11.5px Inter, sans-serif; fill: #FFFFFF; opacity: .93; }
+          .f1I { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+          .f1X { font: 400 12px Inter, sans-serif; fill: #64748B; }
+          .f1N { font: 600 13px Inter, sans-serif; fill: #7C2D12; }
+          .f1Up { stroke: #4D7C0F; stroke-width: 3; fill: none; }
+          .f1Flat { stroke: #B45309; stroke-width: 3; fill: none; stroke-dasharray: 7 5; }
+          .f1Wire { stroke: #4D7C0F; stroke-width: 2.5; fill: none; marker-end: url(#f1Hd); }
+        </style>
+        <defs>
+          <marker id="f1Hd" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+            <path d="M0,0 L9,4.5 L0,9 z" fill="#4D7C0F"/>
+          </marker>
+        </defs>
+
+        <rect x="70" y="60" width="570" height="210" rx="10" fill="#F7FEE7" stroke="#84CC16" stroke-width="2"/>
+        <text class="f1I" x="88" y="82">HELD-OUT AUC</text>
+
+        <path class="f1Up" d="M100,240 L202,168 L304,138 L406,122 L508,112 L610,104"/>
+        <circle cx="100" cy="240" r="4.5" fill="#3F6212"/>
+        <circle cx="202" cy="168" r="4.5" fill="#3F6212"/>
+        <circle cx="304" cy="138" r="4.5" fill="#3F6212"/>
+        <circle cx="406" cy="122" r="4.5" fill="#3F6212"/>
+        <circle cx="508" cy="112" r="4.5" fill="#3F6212"/>
+        <circle cx="610" cy="104" r="4.5" fill="#3F6212"/>
+        <path class="f1Flat" d="M100,240 L610,238"/>
+
+        <text class="f1X" x="88" y="262">0.500 · a coin flip</text>
+        <text class="f1I" x="200" y="206">every point is a column decision</text>
+
+        <rect x="662" y="72" width="178" height="80" rx="10" fill="#3F6212"/>
+        <text class="f1T" x="680" y="96">PATH B</text>
+        <text class="f1S" x="680" y="116">build the features</text>
+        <text class="f1S" x="680" y="136">0.813 held-out AUC</text>
+
+        <rect x="662" y="196" width="178" height="80" rx="10" fill="#B45309"/>
+        <text class="f1T" x="680" y="220">PATH A</text>
+        <text class="f1S" x="680" y="240">swap the model</text>
+        <text class="f1S" x="680" y="260">0.500 stays 0.500</text>
+
+        <path class="f1Wire" d="M616,104 L656,110"/>
+        <path class="f1Wire" d="M616,238 L656,230"/>
+
+        <text class="f1X" x="70" y="292">effort and attention spent, left to right  →</text>
+
+        <rect x="70" y="308" width="14" height="14" rx="3" fill="#B45309"/>
+        <text class="f1N" x="94" y="320">Path A is visible: benchmarks, vendor demos, a new model name. It feels like progress.</text>
+        <rect x="70" y="334" width="14" height="14" rx="3" fill="#4D7C0F"/>
+        <text class="f1N" x="94" y="346">Path B is invisible: decisions about columns. It is where the return actually lives.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - two funding paths, one of them much easier to put on a slide</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>Why the visible half eats the budget<span class="mini">4 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Model-shopping is legible. It has vendor names, benchmark tables, a demo, and a clean before-and-after slide. Feature work has none of that. It produces a sentence like "we split signup_date into tenure and weekend," which sounds like housekeeping and reads on a status report as no progress at all. So the budget drifts toward the legible half, and the return stays in the invisible one.</p>
+        <p>Three consequences worth naming out loud in your own org:</p>
+        <ul>
+          <li><strong>The stalled-project pattern.</strong> A team that has tried four models in six weeks and moved the metric by nothing is almost never model-limited. They are input-limited, and no fifth model fixes that.</li>
+          <li><strong>The invisible-win pattern.</strong> The person who quietly re-encoded a category and bought nine points of AUC gets less credit than the person who ran the model bake-off. Notice who is actually producing the return.</li>
+          <li><strong>The reporting gap.</strong> If your status template has no row for feature decisions, your team has no way to report the work that matters, so they report the work that fits the template.</li>
+        </ul>
+        <div class="callout example">
+          <span class="ex-pill">Real world</span>
+          <p><strong>The planning meeting that ate the quarter.</strong> The recognisable version: three weeks of debate over gradient boosting versus a neural net, a decision, then a result that lands within noise of where it started. The afternoon nobody scheduled - sorting which columns the model can actually read - was worth more than the three weeks. This is not a criticism of the team. It is a criticism of how the work was framed and funded.</p>
+        </div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Google's feature doctrine, in leader language<span class="mini">4 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Google's "Rules of Machine Learning" is written for engineers, but five of its rules are really operating principles for whoever holds the budget. Read them as constraints on what you should approve:</p>
+        <ul>
+          <li><strong>Rule 17:</strong> <em>"Start with directly observed and reported features as opposed to learned features."</em> Translation: hand-crafted, explainable inputs first. Embeddings and learned representations are a later, more expensive step, not a starting position (that is a5).</li>
+          <li><strong>Rule 19:</strong> <em>"Use very specific features when you can."</em> Specific beats clever. A proposal that leads with sophistication rather than specificity deserves a second look.</li>
+          <li><strong>Rule 20:</strong> <em>"Combine and modify existing features to create new features in human-understandable ways."</em> If your team cannot explain a feature in one sentence to you, that is a warning, not a sign of depth.</li>
+          <li><strong>Rule 21:</strong> <em>"The number of feature weights you can learn in a linear model is roughly proportional to the amount of data you have."</em> More columns is not free. Adding inputs without adding data spends a budget you did not know you had.</li>
+          <li><strong>Rule 22:</strong> <em>"Clean up features you are no longer using."</em> Feature debt is real debt, and it is paid by whoever maintains the pipeline after the original author moves teams.</li>
+        </ul>
+        <div class="callout tip">
+          <strong>The one-line version</strong>
+          Fund specific, observable, explainable inputs before you fund a bigger model - and retire the inputs nobody uses, because every one of them is a thing that can break at 3am.
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 2: THE LADDER ============ -->
+  <section class="section" id="the-ladder">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · the number to take into your next budget conversation</span>
+      <h2>What the ladder proves <span class="tag concept">6 min live</span></h2>
+    </div>
+    <p class="lede">Below is the whole argument of this course as a table. Six rungs on Lumen's checkout data, 3,000 sessions split 1,800 for training and 1,200 held out. Each rung switches on one more group of feature decisions. The algorithm - a plain logistic regression - is <strong>identical at every rung</strong>. Nobody tunes it, nobody replaces it, nobody buys a bigger one.</p>
+
+    <table class="clean">
+      <thead>
+        <tr><th>Rung</th><th>What was switched on</th><th>Held-out AUC</th><th>Gain</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>0</strong></td><td>Nothing. No features at all</td><td><strong>0.500</strong></td><td>coin flip</td></tr>
+        <tr><td><strong>1</strong></td><td>Raw numerics - numbers already in the table</td><td><strong>0.696</strong></td><td>+0.196</td></tr>
+        <tr><td><strong>2</strong></td><td>+ Encoding - categories the model could not read</td><td><strong>0.785</strong></td><td>+0.089</td></tr>
+        <tr><td><strong>3</strong></td><td>+ Datetime - what was hidden inside a timestamp</td><td><strong>0.806</strong></td><td>+0.021</td></tr>
+        <tr><td><strong>4</strong></td><td>+ Interactions - relationships no column holds alone</td><td><strong>0.812</strong></td><td>+0.006</td></tr>
+        <tr><td><strong>5</strong></td><td>+ Selection - removing a known noise column</td><td><strong>0.813</strong></td><td>+0.001</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout win">
+      <strong>★ The leader reading of this table</strong>
+      Every single point of that climb came from a decision about columns. Not one of them required a bigger model, a GPU budget, or a new vendor. All of them were fundable with people you already have, in work that already sits inside your team's week - if somebody protects the time for it.
+    </div>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Read the shape, not just the total<span class="mini">4 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>The total is memorable, but the shape is what you fund against:</p>
+        <ul>
+          <li><strong>The first rung is nearly free.</strong> Raw numerics buy 0.196 and they were already in the table. If a project has not done this, it has not started.</li>
+          <li><strong>The biggest single jump is encoding, at +0.089.</strong> That is worth sitting with. Encoding is a <em>translation</em> problem, not a modelling problem: those columns held real signal all along and the model simply could not read them. Nobody sells a product for this. It is craft, and it is the largest single line on the board.</li>
+          <li><strong>The later rungs get small, and that is normal.</strong> Datetime buys 0.021, interactions 0.006, selection 0.001. Diminishing returns are not failure - they are the signal that the input layer is close to exhausted and it may finally be time to talk about the model.</li>
+          <li><strong>Selection barely moves the score, and is still worth doing.</strong> It buys simplicity and stability rather than accuracy: fewer columns to maintain, fewer things to break, less to explain in an audit.</li>
+        </ul>
+        <p>If someone shows you a project with a flat metric and a long model-comparison table, ask which of these five rungs they have actually climbed. In my experience the honest answer is often "one."</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>What AUC means when you are not the one building<span class="mini">3 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>You do not need the maths, but you do need the scale, because these numbers will be quoted at you:</p>
+        <ul>
+          <li><strong>0.5 is random.</strong> A coin flip. The model has learned nothing.</li>
+          <li><strong>1.0 is perfect,</strong> and on real business data it means somebody made a mistake. Which is exactly the subject of a2.</li>
+          <li><strong>0.8 on a rare event is genuinely useful.</strong> Lumen converts at 3.2%. Ranking that well enough to score 0.813 is a real, spendable business capability.</li>
+        </ul>
+        <p>One more habit worth building now: every score in this course comes as a <strong>pair</strong>. A training score answers "did the model fit what it already saw," and it is always available and always flattering. A held-out score answers "will this work on rows it has never met," and it is the only one connected to your P&amp;L. If a team reports one number without saying which it is, that is your cue to ask.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ DEMO ============ -->
+  <section class="section" id="demo">
+    <div class="section-kicker">
+      <span class="klabel">Live demo</span>
+      <h2>Watch features carry a model <span class="tag demo">★ 14 min · everyone runs it</span></h2>
+    </div>
+    <p class="lede">The workbench below is not a picture. It trains a real logistic regression in your browser on 1,800 Lumen sessions and scores it on 1,200 it has never seen. Start with every lever off, then switch groups on one at a time and press <strong>Score on held-out</strong> after each. You are watching a model get better without anyone touching the model.</p>
+
+    <div class="steps">
+      <div class="step"><p>Start with <strong>all levers off</strong>. Press Score on held-out: <strong>0.500</strong>. A coin flip. Everything above this line is something a person builds, not something the algorithm finds on its own.</p></div>
+      <div class="step"><p>Switch on <strong>raw numerics</strong>, score again: <strong>0.696</strong>. Spend and pages viewed were already in the table. The only cost was deciding to use them.</p></div>
+      <div class="step"><p>Add <strong>encoding</strong>: <strong>0.785</strong>. Note the size of this one - <strong>+0.089</strong>, the biggest single jump on the whole board. It is a translation problem, not a modelling one: the model previously could not read those columns at all.</p></div>
+      <div class="step"><p>Add <strong>datetime</strong>: <strong>0.806</strong>. Tenure and weekend were sitting inside a single signup timestamp the entire time, invisible until somebody decided to take it apart.</p></div>
+      <div class="step"><p>Add <strong>interactions</strong>: <strong>0.812</strong>, then <strong>selection</strong>: <strong>0.813</strong>. The returns shrink. That shrinking is information, not disappointment.</p></div>
+      <div class="step"><p>Now scroll back up and look at the algorithm. It never changed. Not once. That is the entire pitch of this course, and it is the number to carry into your next planning conversation.</p></div>
+    </div>
+
+    <div class="febox" data-mode="ladder" data-levers=""></div>
+
+    <div class="callout tip">
+      <strong>Leave the dashed lever alone tonight</strong>
+      There is a sixth lever drawn with a dashed border, labelled target leakage. It is not a feature group - it is the failure mode that session a2 is entirely about, and pressing it out of context teaches the wrong lesson. We press it together next session, deliberately, with the numbers in front of us.
+    </div>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>What to do with this in your own org.</strong> Take one stalled model your team owns and ask them to draw its ladder - which of the five groups are actually switched on today, and what the held-out score was before and after each. Most teams have never drawn it. The exercise usually finds an unclimbed rung within an hour, and it costs you nothing but the meeting.</p>
+    </div>
+  </section>
+
+  <!-- ============ PART 3: FIVE QUESTIONS ============ -->
+  <section class="section" id="five-questions">
+    <div class="section-kicker">
+      <span class="klabel">Part 3 · self-study</span>
+      <h2>Five questions that reframe a stalled project <span class="tag exercise">◐ 5 min read</span></h2>
+    </div>
+    <p class="lede">You will not out-argue your data scientists on modelling, and you should not try. What you can do is change which question the room is answering. These five move a conversation from "which model?" to "which columns?" without requiring you to write a line of code - and every one of them has an answer your team can give in under a minute if the work is healthy.</p>
+
+    <div class="steps">
+      <div class="step"><p><strong>1 · "Which of the five feature groups are switched on right now?"</strong> Raw numerics, encoding, datetime, interactions, selection. If the answer is vague, the ladder has not been climbed and the model is not the constraint.</p></div>
+      <div class="step"><p><strong>2 · "What did the held-out score do the last three times we changed something?"</strong> This separates teams tracking real movement from teams tracking activity. If the last three changes were all model swaps and the metric is flat, you have your answer.</p></div>
+      <div class="step"><p><strong>3 · "Which columns can the model not currently read?"</strong> Categories held as text, timestamps left whole, free text ignored entirely. Each one is unclaimed return sitting in a table you already pay to store.</p></div>
+      <div class="step"><p><strong>4 · "What would you build if I gave you two weeks and forbade you from changing the model?"</strong> The best question on this list. A good team lights up. A team that has nothing to say has been working on the wrong layer.</p></div>
+      <div class="step"><p><strong>5 · "Which features are we maintaining that nothing uses?"</strong> Rule 22, in your voice. Feature debt shows up as pipeline fragility long before anyone calls it that.</p></div>
+    </div>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>How to hear the answers<span class="mini">3 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>A few patterns worth recognising in the responses:</p>
+        <ul>
+          <li><strong>"We threw all the columns in and let the model figure it out."</strong> Common, and rarely true in the way it sounds. Categories held as raw text or integer codes are either dropped or actively misread - Google's crash course notes that a model handed indexed categories treats them as continuous numbers and would "consider 'purple' six times more likely than 'orange.'" That is arithmetic on nonsense, not a shortcut.</li>
+          <li><strong>"The next model should fix it."</strong> Ask what the last one was supposed to fix. Two of these in a row is a pattern, not a plan.</li>
+          <li><strong>"We are blocked on data quality."</strong> This is often correct and often under-funded, because it does not present as machine-learning work. It is session a3.</li>
+          <li><strong>"The training score is great."</strong> Ask for the held-out number and watch what happens next. That reflex is the whole of session a2.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>What this changes in how you fund<span class="mini">3 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Three concrete shifts, all of them cheap:</p>
+        <ul>
+          <li><strong>Put feature work on the plan as its own line.</strong> Not "data prep," not "cleanup." Name it, size it, and let people report progress against it. Work that has no row on the plan gets done in the gaps or not at all.</li>
+          <li><strong>Ask for the ladder, not the leaderboard.</strong> A model-comparison table tells you what was tried. A ladder tells you where the return came from. Only one of those helps you decide what to fund next quarter.</li>
+          <li><strong>Reward the invisible half.</strong> The encoding decision that bought 0.089 deserves the same visibility as the model that bought 0.004. If your recognition only tracks the legible work, your team will keep producing legible work.</li>
+        </ul>
+        <p>None of this needs new headcount. It needs the plan to describe the job accurately.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ HOMEWORK ============ -->
+  <section class="section" id="exercise">
+    <div class="section-kicker">
+      <span class="klabel">Before session 2</span>
+      <h2>Three things to do this week <span class="tag exercise">◐ 20 min total</span></h2>
+    </div>
+    <ul>
+      <li>Pick one model your org depends on. Ask its owner for the ladder: which feature groups are on, and what held-out score each one bought. Note how long it takes them to answer.</li>
+      <li>Open your current project plan and look for the line that funds feature work. If there is not one, write the sentence you would use to add it.</li>
+      <li>Ask any model owner for a single number: the held-out score. If they give you the training score instead, notice it and bring it to session a2 - that is exactly the gap next session is about.</li>
+    </ul>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Source material</span>
+      <h2>Official sources covered</h2>
+    </div>
+    <p class="lede">This track teaches the decision-making core of the canonical feature-engineering sources - Google's crash-course data modules and Rules of Machine Learning, sklearn's pitfalls and selection guides, Kaggle Learn's feature-engineering course - with a live workbench where the numbers are computed rather than illustrated. Certificates and graded exercises stay with the official providers, linked each session. This page covers:</p>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Google MLCC data modules - where practitioner time actually goes</span><span class="note">Part 1 · the budget framing · numeric and categorical craft sits on the practitioner track</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Google "Rules of Machine Learning" - rules 17, 19, 20, 21, 22</span><span class="note">Part 1 · read as funding constraints · Rule 29 and training-serving skew land in a4</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">fe-live ladder canon - 0.500 to 0.813 on held-out Lumen data</span><span class="note">Part 2 and the demo · computed live in-browser, not illustrated</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Kaggle Learn "Feature Engineering" - lesson 1, What Is Feature Engineering</span><span class="note">The column-versus-feature frame in leader language · the full lesson set is practitioner b1</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Lumen canon (learn-intro-ml) - the dataset and the model under improvement</span><span class="note">Reused, never re-derived · this course adds postal_code, signup_date, support_note</span></div>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions before you go 🎯 <span class="tag exercise">◐ 90 seconds</span></h2>
+    </div>
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">1 · According to Google's crash course, where do machine-learning practitioners spend most of their time?</p>
+      <button class="qopt" type="button">A · Selecting and tuning models, which is why model choice dominates project plans</button>
+      <button class="qopt" type="button">B · Evaluating, cleaning, and transforming data - far more than building models</button>
+      <button class="qopt" type="button">C · Waiting on infrastructure and compute allocation</button>
+      <p class="qwhy">The wording is direct: "ML practitioners spend far more time evaluating, cleaning, and transforming data than building models." Read as a budget statement, it says most of the funding decisions live in the data layer, not the model layer.</p>
+    </div>
+    <div class="quiz-q" data-answer="2">
+      <p class="qtext">2 · On the ladder, held-out AUC climbed from 0.500 to 0.813. What is the leader takeaway?</p>
+      <button class="qopt" type="button">A · Logistic regression is stronger than most teams assume, so simpler models deserve more funding</button>
+      <button class="qopt" type="button">B · AUC is unreliable on rare-event data and should be replaced with a business metric</button>
+      <button class="qopt" type="button">C · Every point came from decisions about columns while the algorithm never changed - all of it fundable without a bigger model</button>
+      <p class="qwhy">Same estimator, same rows, same split at every rung. The climb is entirely attributable to how the inputs were shaped, which means it is work you can staff and schedule rather than hardware or vendors you have to buy.</p>
+    </div>
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">3 · A team proposes starting with learned representations rather than hand-built features. Which of Google's rules speaks to this?</p>
+      <button class="qopt" type="button">A · Rule 17 - "Start with directly observed and reported features as opposed to learned features"</button>
+      <button class="qopt" type="button">B · Rule 21 - feature weights learnable are roughly proportional to the amount of data</button>
+      <button class="qopt" type="button">C · Rule 22 - clean up features you are no longer using</button>
+      <p class="qwhy">Rule 17 sets the order of operations: observable, explainable inputs first, learned representations after. It is not a ban on embeddings - session a5 covers when they pay - it is a statement about what you fund first.</p>
+    </div>
+    <p class="quiz-score"></p>
+  </section>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <section class="cheat" id="cheatsheet">
+    <h3>Leader session 1 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>The budget statement</b><span>"ML practitioners spend far more time evaluating, cleaning, and transforming data than building models" (Google MLCC). Fund accordingly.</span></div>
+      <div class="cheat-item"><b>The ladder</b><span>Held-out AUC 0.500 → 0.696 → 0.785 → 0.806 → 0.812 → 0.813. Same algorithm at every rung.</span></div>
+      <div class="cheat-item"><b>The biggest single jump</b><span>Encoding, +0.089. A translation problem, not a modelling one - the model simply could not read those columns.</span></div>
+      <div class="cheat-item"><b>Two paths</b><span>Swapping the model is visible and feels like progress. Building the features is invisible and is where the lift is.</span></div>
+      <div class="cheat-item"><b>Rules 17 and 19</b><span>Start with directly observed and reported features, not learned ones. Use very specific features when you can.</span></div>
+      <div class="cheat-item"><b>Rules 21 and 22</b><span>Feature weights learnable are roughly proportional to data - more columns is not free. And retire what nothing uses.</span></div>
+      <div class="cheat-item"><b>The reframing question</b><span>"What would you build if I gave you two weeks and forbade you from changing the model?" A good team lights up.</span></div>
+      <div class="cheat-item"><b>Running case</b><span>Lumen Skincare checkout sessions, 3.2% conversion, 1,800 train / 1,200 held out. Every AUC computed live in-browser.</span></div>
+    </div>
+  </section>
+
+  <footer class="pagefoot">
+    <span>Leader session 1 of 6 · learn-feature-engineering-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="../index.html">← All sessions</a> &nbsp;·&nbsp; <a href="a2-leakage-disaster.html">Next: The leakage disaster →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/fe-live.js?v=1"></script>
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>

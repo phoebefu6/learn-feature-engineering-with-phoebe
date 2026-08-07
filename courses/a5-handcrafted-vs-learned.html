@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leader session 5 · Hand-crafted vs learned features - learn feature engineering with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-feature-engineering-with-phoebe</a> / Leader session 5 of 6</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn Feature Engineering with Phoebe · Leader track · Session 5 of 6</div>
+    <h1>Hand-crafted vs <span class="accent">learned features</span></h1>
+    <p class="sub">Somebody on your team wants to put embeddings into the model. Somebody else wants to keep hand-crafting columns. Both are right, in different situations, and the decision is yours to arbitrate. Tonight you get the honest version: what an embedding actually buys you over a one-hot column, what it costs in dimensions, dollars and explainability, and the one rule that tells you which to reach for first. No code. Just the decision, and the questions that make it.</p>
+    <div class="chip-row">
+      <span class="chip level">🟠 Leader track</span>
+      <span class="chip audience">Data leads · PMs · DS managers</span>
+      <span class="chip audience">No code, decisions only</span>
+      <span class="chip time">45 min</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Welcome</span>
+      <span class="a2" style="flex:4">3-18 · What an embedding buys</span>
+      <span class="a3" style="flex:5">18-42 · The stop-engineering decision</span>
+      <span class="a4" style="flex:1">42-45 · Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ INTRO ============ -->
+  <section class="section" id="intro">
+    <div class="section-kicker">
+      <span class="klabel">Part 0</span>
+      <h2>Where this sits</h2>
+    </div>
+    <p class="lede">Sessions a1 to a4 were about features you can name: a column someone wrote down, a definition someone owns, a value someone can point at in a warehouse. This session is about the other kind - features a model produces for you, out of text, in numbers nobody chose. That is a genuinely useful capability and a genuinely different governance problem, and the mistake leaders make is treating it as an upgrade instead of a trade.</p>
+    <div class="legend">
+      <span class="pill solid">Live - presented in session</span>
+      <span class="pill light">Self-study - read after class</span>
+      <span class="pill inkpill">Official sources covered</span>
+    </div>
+    <div class="callout win">
+      <strong>★ What you walk out with today</strong>
+      A plain-English answer to "what does an embedding buy us", a five-row table you can use to decide hand-craft vs embed in a planning meeting, the actual per-dollar cost numbers so you can size a project before approving it, and the counterweight rule that keeps the cheap option on the table.
+    </div>
+  </section>
+
+  <!-- ============ PART 1: WHAT AN EMBEDDING BUYS ============ -->
+  <section class="section" id="what-embeddings-buy">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · covers Google MLCC "Embeddings" + glossary, OpenAI embeddings guide</span>
+      <h2>What an embedding actually buys <span class="tag concept">15 min live</span></h2>
+    </div>
+    <p class="lede">Google's glossary keeps the definition boringly concrete: an embedding vector is <em>"A relatively low-dimensional vector of floating-point values (typically, between 5 and 500)"</em>. That is the whole object. Not intelligence, not understanding - a list of numbers standing in for something that used to be a word, a sentence, or a category with far too many levels. The question a leader should ask is not "is it advanced". It is "what problem does it solve that a column could not".</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A free-text column passing through an embedding model into a vector, joined onto the same feature matrix that a hand-crafted column lane feeds directly.">
+        <style>
+          .h5T { font: 700 13px Inter, sans-serif; fill: #FFFFFF; }
+          .h5S { font: 400 11.5px Inter, sans-serif; fill: #FFFFFF; opacity: .93; }
+          .h5I { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+          .h5X { font: 400 11.5px Inter, sans-serif; fill: #64748B; }
+          .h5N { font: 600 12px Inter, sans-serif; fill: #7C2D12; }
+          .h5L { font: 700 11px Inter, sans-serif; fill: #B45309; }
+          .h5W { stroke: #4D7C0F; stroke-width: 2.5; fill: none; marker-end: url(#h5Hd); }
+        </style>
+        <defs>
+          <marker id="h5Hd" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+            <path d="M0,0 L9,4.5 L0,9 z" fill="#4D7C0F"/>
+          </marker>
+        </defs>
+
+        <text class="h5L" x="40" y="36">LEARNED LANE</text>
+        <rect x="40" y="46" width="200" height="106" rx="10" fill="#F7FEE7" stroke="#84CC16" stroke-width="2"/>
+        <text class="h5I" x="58" y="70">FREE TEXT COLUMN</text>
+        <text class="h5X" x="58" y="94">support_note: "gift?"</text>
+        <text class="h5X" x="58" y="114">product_description</text>
+        <text class="h5X" x="58" y="134">review: "arrived dry"</text>
+
+        <rect x="290" y="60" width="160" height="78" rx="10" fill="#4D7C0F"/>
+        <text class="h5T" x="306" y="88">EMBEDDING MODEL</text>
+        <text class="h5S" x="306" y="110">text in,</text>
+        <text class="h5S" x="306" y="128">numbers out</text>
+
+        <rect x="500" y="46" width="160" height="106" rx="10" fill="#3F6212"/>
+        <text class="h5T" x="516" y="70">VECTOR</text>
+        <text class="h5S" x="516" y="94">[0.02, -0.41, 0.77,</text>
+        <text class="h5S" x="516" y="112">  0.13, ... ]</text>
+        <text class="h5S" x="516" y="136">384 to 3072 wide</text>
+
+        <text class="h5L" x="40" y="186">HAND-CRAFTED LANE</text>
+        <rect x="40" y="196" width="200" height="106" rx="10" fill="#F7FEE7" stroke="#84CC16" stroke-width="2"/>
+        <text class="h5I" x="58" y="220">NAMED COLUMNS</text>
+        <text class="h5X" x="58" y="244">prior_30d_spend</text>
+        <text class="h5X" x="58" y="264">channel one-hot</text>
+        <text class="h5X" x="58" y="284">tenure_days</text>
+
+        <rect x="700" y="46" width="150" height="256" rx="10" fill="#FFFFFF" stroke="#1E293B" stroke-width="2"/>
+        <text class="h5I" x="716" y="70">FEATURE</text>
+        <text class="h5I" x="716" y="88">MATRIX</text>
+        <text class="h5X" x="716" y="118">both lanes end</text>
+        <text class="h5X" x="716" y="138">in the same</text>
+        <text class="h5X" x="716" y="158">table of numbers</text>
+        <text class="h5X" x="716" y="196">one feeds a name</text>
+        <text class="h5X" x="716" y="216">you can explain</text>
+        <text class="h5X" x="716" y="246">the other feeds</text>
+        <text class="h5X" x="716" y="266">hundreds you</text>
+        <text class="h5X" x="716" y="286">cannot</text>
+
+        <path class="h5W" d="M240,99 L285,99"/>
+        <path class="h5W" d="M450,99 L495,99"/>
+        <path class="h5W" d="M660,99 L695,99"/>
+        <path class="h5W" d="M240,249 L695,249"/>
+
+        <rect x="40" y="336" width="14" height="14" rx="3" fill="#B45309"/>
+        <text class="h5N" x="64" y="348">Same model, same matrix. The lanes differ in what a human can say about the columns afterwards.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the two lanes that meet in the same feature matrix</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>The one-hot problem, in Google's own words<span class="mini">5 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>When a category has thousands of levels, the standard fix - one column per level - has two specific costs, and Google's crash course states both plainly.</p>
+        <ul>
+          <li><strong>Width costs weights.</strong> With M one-hot entries and N first-layer nodes, "the model has to train MxN weights for that layer". That is not a rounding error at scale; it is the training bill.</li>
+          <li><strong>Sameness.</strong> One-hot encodings "lack meaningful relationships". Every category sits the same distance from every other, so nothing carries across. Google's example is the one to repeat in a meeting: "hot dogs and shawarmas" should sit closer than "hot dogs and salads", and a one-hot column has no way to say so.</li>
+        </ul>
+        <p>An embedding fixes both at once. It is narrower than the one-hot block, and things that mean similar things land near each other in the space. That is the entire buy. Everything else people say about embeddings in a planning meeting is decoration on those two sentences.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>The bridge sentence to remember<span class="mini">4 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>The clearest one-line framing comes from OpenAI's own guide, and it is worth quoting verbatim because it strips out the mystique:</p>
+        <div class="callout tip">
+          <strong>The bridge quote</strong>
+          "An embedding can be used as a general free-text feature encoder within a machine learning model."
+        </div>
+        <p>Read what that sentence does <em>not</em> claim. It does not say the embedding is the model. It does not say it replaces your tabular features. It says <strong>encoder</strong> - a way of getting a text column into the same matrix as your spend and tenure columns, so an ordinary model can use it. Your existing pipeline stays. One column changes shape.</p>
+        <p>This matters for how you brief a board. "We are adding embeddings" sounds like a re-platform. "We are turning our support notes into a feature the existing model can read" is what is actually happening, and it is a much easier thing to scope, budget and cancel.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Where the numbers come from<span class="mini">3 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Nobody hand-derives an embedding. You call a model that was trained on a very large amount of text, and it hands back the vector. Two consequences follow, and both are governance facts rather than technical ones:</p>
+        <ul>
+          <li><strong>The numbers are not yours.</strong> They come from a model someone else trained on data you did not choose. If that model version changes, your feature changes, silently, for every row scored after the switch.</li>
+          <li><strong>The numbers have no names.</strong> Dimension 217 does not mean anything. There is no column definition to write, no owner to assign in the usual sense, and no sentence to put in front of a regulator that describes what it measures.</li>
+        </ul>
+        <p>Neither is a reason to avoid embeddings. Both are reasons to write down which model and which version produced your features, and to treat a model upgrade as a change to your feature definitions - because that is exactly what it is.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 2: THE STOP-ENGINEERING DECISION ============ -->
+  <section class="section" id="stop-engineering">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · covers Rules of ML #17</span>
+      <h2>When to stop hand-crafting <span class="tag concept">12 min live</span></h2>
+    </div>
+    <p class="lede">This is the decision your team will bring you, usually framed as a technology choice. It is not. It is a question about what data you have and who has to explain the result. Before the table, the counterweight - because in a room full of enthusiasm it is the part that gets skipped.</p>
+
+    <div class="callout tip">
+      <strong>Rules of Machine Learning, rule #17 - say this first</strong>
+      "Start with directly observed and reported features as opposed to learned features." The cheap, nameable, explainable features come first. Learned features are what you reach for when the observed ones have been tried and the remaining signal is sitting in text. Reversing that order is how teams spend a quarter on an embeddings project that a weekend of column work would have beaten.
+    </div>
+
+    <table class="clean">
+      <thead>
+        <tr><th>Situation</th><th>Hand-craft or embed</th><th>Why</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>A handful of clean categories</strong></td><td>Hand-craft</td><td>Nine channels or four product categories fit in a one-hot block without strain. An embedding here adds cost and removes names for no gain.</td></tr>
+        <tr><td><strong>Free text</strong> (support notes, product descriptions, reviews)</td><td>Embed</td><td>There is no hand-crafted column that captures a sentence. This is the case embeddings exist for, and the one where the trade is usually worth it.</td></tr>
+        <tr><td><strong>High-cardinality IDs with business meaning</strong></td><td>Hand-craft or target-encode</td><td>Postal code, merchant ID, SKU. These have structure your business already understands, and the encoding lesson in the practitioner track handles them with math you can audit.</td></tr>
+        <tr><td><strong>You need to explain each feature to a regulator</strong></td><td>Hand-craft</td><td>"Dimension 217 of a text embedding" is not an answer. If the model sits anywhere near credit, hiring, insurance or health, the explainability cost is the deciding cost.</td></tr>
+        <tr><td><strong>You have text and no time</strong></td><td>Embed</td><td>Turning a text column into a usable feature by hand takes real linguistic work. An off-the-shelf embedding is one call. Speed is a legitimate reason, as long as you have said out loud what you traded for it.</td></tr>
+      </tbody>
+    </table>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>The question that settles most of these<span class="mini">4 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>When the table does not settle it, one question usually does: <strong>does anybody have to justify a single decision this model makes?</strong></p>
+        <ul>
+          <li><strong>Yes.</strong> A declined application, a flagged transaction, a rejected claim, a triage priority. Hand-crafted features win by default, because the explanation has to survive a person asking "why me".</li>
+          <li><strong>No.</strong> A ranking, a recommendation, an internal prioritisation queue, a routing decision. The explainability cost is much lower, and the embedding trade gets easier.</li>
+        </ul>
+        <p>Notice this is not a technical question and your data scientists cannot answer it for you. It is a question about your product, your regulator and your appetite. That is precisely why it lands on your desk.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Rule #17 is not anti-embedding<span class="mini">2 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Rule #17 is often quoted as if it says learned features are bad. It says something narrower and more useful: start elsewhere. The reasoning is about risk, not quality. Directly observed features are available on day one, they keep working when an external model changes, and when something breaks you can point at the column that broke.</p>
+        <p>The honest reading for a leader: the sequencing is the rule, not the verdict. Try the observed features. Measure. Then, if text is where the remaining signal lives, spend the money on learning from it - with your eyes open about what you gave up.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 3: THE COST SIDE ============ -->
+  <section class="section" id="cost">
+    <div class="section-kicker">
+      <span class="klabel">Part 3 · covers OpenAI embeddings guide, Sentence Transformers</span>
+      <h2>The cost side leaders must own <span class="tag concept">12 min live</span></h2>
+    </div>
+    <p class="lede">Your team will scope the engineering. Nobody will scope the storage, the latency, or the explainability, because those land on you. Here are the real numbers so you can do it in the meeting rather than after it.</p>
+
+    <table class="clean">
+      <thead>
+        <tr><th>Option</th><th>Dimensions</th><th>Cost signal</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>text-embedding-3-small</code></td><td>1536</td><td>62,500 pages per dollar</td></tr>
+        <tr><td><code>text-embedding-3-large</code></td><td>3072</td><td>9,615 pages per dollar</td></tr>
+        <tr><td>Sentence Transformers <code>all-MiniLM-L6-v2</code></td><td>384</td><td>Local and free, 10,000+ pretrained models available</td></tr>
+      </tbody>
+    </table>
+
+    <div class="steps">
+      <div class="step"><p><strong>Dimensions are a dial, not a fixed cost.</strong> OpenAI's <code>dimensions</code> parameter lets you "trade-off performance and cost". You are not stuck with 3072 numbers per row because you chose the larger model.</p></div>
+      <div class="step"><p><strong>And the dial is generous.</strong> A 3-large embedding "shortened to a size of 256" still outperforms an unshortened ada-002 at 1536. Twelve times narrower than its full width, and still ahead of the previous generation at full width. Shortening is not the compromise it sounds like.</p></div>
+      <div class="step"><p><strong>The free option is real.</strong> Sentence Transformers runs locally at 384 dimensions with 10,000+ pretrained models to choose from. For a first test on your own support notes, "what would this cost" has an answer of zero, and there is no good reason to approve budget before that test has run.</p></div>
+      <div class="step"><p><strong>Then multiply by your row count.</strong> One text column at 1536 dimensions across ten million rows is a different storage and serving conversation than the same column at 256 across one hundred thousand. Ask for that arithmetic before, not after.</p></div>
+    </div>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>Embeddings turn one text column into hundreds of numbers.</strong> That is storage you now pay for on every row, latency you now pay for on every prediction, and a feature nobody can explain in a review. It buys you signal that genuinely was not reachable any other way. That is a real trade, not a free upgrade - and the job in the approval meeting is to make sure both halves of it get said out loud.</p>
+    </div>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Three costs that never make it onto the slide<span class="mini">4 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <ul>
+          <li><strong>Serving latency.</strong> If the embedding is computed at prediction time, every request now waits on a model call. If it is precomputed, you have a freshness question instead: how stale can a customer's support-note feature be before it is wrong.</li>
+          <li><strong>Version drift.</strong> The embedding model gets upgraded. Your features change shape or meaning. Unless someone is watching, this is a silent change to the inputs of a production model, which is the training-serving skew problem from a4 arriving through a new door.</li>
+          <li><strong>Review cost.</strong> Every future audit, incident review and model risk assessment now has a section that ends in "we cannot say what that dimension measures". That cost is small once and compounding thereafter.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>What the practitioner track does with this<span class="mini">2 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Session b9 of the practitioner track builds the join you saw in the diagram: a text column goes through an embedding model, the resulting vector is attached to the tabular feature matrix, and the same ordinary model trains on the combined table. Your team will see the mechanics, the dimension choice, and where it fails.</p>
+        <p>What stays on your side of the line: whether the text is worth embedding at all, whether the explainability cost is affordable in your regulatory context, and whether the observed features were genuinely exhausted first. Those are not implementation details, and no notebook answers them.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 4: SELF-STUDY ============ -->
+  <section class="section" id="before-you-approve">
+    <div class="section-kicker">
+      <span class="klabel">Part 4 · self-study</span>
+      <h2>Before you approve an embeddings project <span class="tag exercise">◐ 10 min read</span></h2>
+    </div>
+    <p class="lede">Four questions. If the answers are not ready, the project is not ready, and asking them costs you five minutes against a quarter of somebody's roadmap.</p>
+
+    <div class="steps">
+      <div class="step"><p><strong>1 · What text do we actually have?</strong> Not "we could collect". Have. How many rows carry it, how long is it, how much of it is empty or boilerplate. A support-note field that is blank on 70% of rows is not a text asset yet, and the embedding will faithfully encode the emptiness.</p></div>
+      <div class="step"><p><strong>2 · Does anyone need to explain the model?</strong> Regulator, customer, internal risk committee, journalist. If yes, name who, and get their view before the work starts rather than at the review. This is the question from Part 2, and it is the one most likely to kill the project late if asked late.</p></div>
+      <div class="step"><p><strong>3 · What is the per-query cost at our volume?</strong> Take the published rate, take the dimension choice, multiply by your actual rows and your actual refresh cadence. Then ask what the local 384-dimension option would cost instead. If nobody has done this arithmetic, that is the first deliverable.</p></div>
+      <div class="step"><p><strong>4 · Have the cheap hand-crafted features been tried first?</strong> Rule #17, as a gate rather than a slogan. What is the held-out number with observed features only? If that number does not exist, there is nothing for the embedding to beat, and you will never know whether it earned its cost.</p></div>
+    </div>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>How to say no without saying never<span class="mini">3 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>The useful response to an embeddings pitch is rarely a rejection. It is a sequence:</p>
+        <ul>
+          <li><strong>"Show me the observed-feature baseline first."</strong> Cheap, fast, and it sets the bar the embedding has to clear.</li>
+          <li><strong>"Run it locally at 384 dimensions before we buy anything."</strong> Free, and it answers whether the text carries signal at all.</li>
+          <li><strong>"Come back with the lift and the per-row cost."</strong> Two numbers. A decision either becomes obvious or the project was never worth arguing about.</li>
+        </ul>
+        <p>Every step is a real experiment, so nobody feels blocked, and by the end you are approving a known trade rather than a hope.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Source material</span>
+      <h2>Official sources covered</h2>
+    </div>
+    <p class="lede">The leader track teaches the decision-relevant core of the canonical sources, with every number and quote taken from the official documentation rather than paraphrased. Certificates and graded exercises stay with the official providers. This page covers:</p>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Google MLCC "Embeddings" + glossary - the MxN weight cost and the definition</span><span class="note">Part 1 · the hot dogs and shawarmas framing</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">OpenAI embeddings guide - the free-text feature encoder framing, dims and price</span><span class="note">Parts 1 and 3 · the dimensions trade-off dial</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Sentence Transformers - the local 384-dimension option</span><span class="note">Part 3 · named as the free first test, not taught</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Google "Rules of Machine Learning" - rule #17</span><span class="note">Part 2 · the counterweight, stated before the table</span></div>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions before you go 🎯 <span class="tag exercise">◐ 90 seconds</span></h2>
+    </div>
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">1 · Rules of ML #17 says "Start with directly observed and reported features as opposed to learned features." What does that mean for a leader approving work?</p>
+      <button class="qopt" type="button">A · Learned features are more modern, so prefer them once the budget allows</button>
+      <button class="qopt" type="button">B · Sequence the work: exhaust the observed, nameable features first, and reach for learned ones only after they have been measured</button>
+      <button class="qopt" type="button">C · Embeddings should never appear in a production model</button>
+      <p class="qwhy">The rule is about sequencing, not about quality. Observed features are available immediately, keep working when an external model changes, and can be pointed at when something breaks. Reversing the order is how a quarter gets spent on a project a weekend of column work would have beaten.</p>
+    </div>
+    <div class="quiz-q" data-answer="2">
+      <p class="qtext">2 · What does an embedding buy you that a one-hot column cannot?</p>
+      <button class="qopt" type="button">A · It removes the need for a held-out score</button>
+      <button class="qopt" type="button">B · It guarantees better accuracy on any column containing text</button>
+      <button class="qopt" type="button">C · It is narrower - with M one-hot entries and N first-layer nodes "the model has to train MxN weights" - and it carries the meaningful relationships one-hot encodings lack</button>
+      <p class="qwhy">Both halves come straight from Google's crash course. One-hot encodings "lack meaningful relationships", which is why "hot dogs and shawarmas" cannot sit closer than "hot dogs and salads" in a one-hot block. Narrower, plus relationships. That is the entire buy.</p>
+    </div>
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">3 · Your team says the large embedding model is too expensive at 3072 dimensions. What is the accurate response?</p>
+      <button class="qopt" type="button">A · Dimensions are a dial - the parameter lets you "trade-off performance and cost", and a 3-large embedding "shortened to a size of 256" still outperforms an unshortened ada-002 at 1536</button>
+      <button class="qopt" type="button">B · Cost is fixed by the model, so the only option is to drop the project</button>
+      <button class="qopt" type="button">C · Shortening an embedding always destroys its usefulness</button>
+      <p class="qwhy">Shortening is not the compromise it sounds like: twelve times narrower and still ahead of the previous generation at full width. And before any of that, the local 384-dimension option costs nothing, which makes it the right first test rather than a fallback.</p>
+    </div>
+    <p class="quiz-score"></p>
+  </section>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <section class="cheat" id="cheatsheet">
+    <h3>Leader session 5 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>What an embedding is</b><span>"A relatively low-dimensional vector of floating-point values (typically, between 5 and 500)" (Google glossary). A list of numbers, nothing more.</span></div>
+      <div class="cheat-item"><b>The one-hot problem</b><span>With M one-hot entries and N first-layer nodes "the model has to train MxN weights for that layer" - and one-hot encodings "lack meaningful relationships".</span></div>
+      <div class="cheat-item"><b>The relationship example</b><span>"hot dogs and shawarmas" should sit closer than "hot dogs and salads". A one-hot column has no way to say so.</span></div>
+      <div class="cheat-item"><b>The bridge quote</b><span>"An embedding can be used as a general free-text feature encoder within a machine learning model" (OpenAI). Encoder, not replacement.</span></div>
+      <div class="cheat-item"><b>The counterweight</b><span>Rule #17: "Start with directly observed and reported features as opposed to learned features." Sequencing, not a verdict.</span></div>
+      <div class="cheat-item"><b>Hand-craft vs embed</b><span>Few clean categories, meaningful IDs, or a regulator to answer to → hand-craft. Free text, or text plus no time → embed.</span></div>
+      <div class="cheat-item"><b>The cost numbers</b><span>3-small 1536 dims at 62,500 pages/$ · 3-large 3072 dims at 9,615 pages/$ · local all-MiniLM-L6-v2 at 384 dims, free.</span></div>
+      <div class="cheat-item"><b>Dimensions are a dial</b><span>The parameter lets you "trade-off performance and cost". 3-large "shortened to a size of 256" beats an unshortened ada-002 at 1536.</span></div>
+    </div>
+  </section>
+
+  <footer class="pagefoot">
+    <span>Leader session 5 of 6 · learn-feature-engineering-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="a4-governance-feature-stores.html">← a4 · Governance + feature stores</a> &nbsp;·&nbsp; <a href="../index.html">All sessions</a> &nbsp;·&nbsp; <a href="a6-questions-for-your-team.html">Next: Questions to ask your DS team →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>

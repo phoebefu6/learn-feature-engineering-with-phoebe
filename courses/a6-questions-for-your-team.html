@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leader session 6 · Questions to ask your DS team - learn feature engineering with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-feature-engineering-with-phoebe</a> / Leader session 6 of 6</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn Feature Engineering with Phoebe · Leader track · Session 6 of 6</div>
+    <h1>Questions to ask your <span class="accent">DS team</span></h1>
+    <p class="sub">Five sessions of context turn into one working ritual tonight. You do not need to read a notebook to tell whether feature work is sound - you need six questions, asked in the same order every time, and one artifact that answers them on paper. This session builds both: the feature review, and the feature spec that survives a team change, an incident review and an audit. Then you walk out with the one-line brief you can use tomorrow.</p>
+    <div class="chip-row">
+      <span class="chip level">🟠 Leader track</span>
+      <span class="chip audience">Data leads · PMs · DS managers</span>
+      <span class="chip audience">No code, decisions only</span>
+      <span class="chip time">45 min</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Welcome</span>
+      <span class="a2" style="flex:4">3-18 · The feature review</span>
+      <span class="a3" style="flex:5">18-42 · Workshop: your checklist</span>
+      <span class="a4" style="flex:1">42-45 · Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ INTRO ============ -->
+  <section class="section" id="intro">
+    <div class="section-kicker">
+      <span class="klabel">Part 0</span>
+      <h2>What this last session is for</h2>
+    </div>
+    <p class="lede">Everything so far has been diagnosis: why features carry the return, how leakage fakes success, where quality costs get paid, what governance actually protects, and when a learned feature is worth its price. Tonight is the operating manual. A review you can run without reading code, a spec your team can fill in without a meeting, and a synthesis short enough to repeat from memory in front of an executive who has none of this context.</p>
+    <div class="legend">
+      <span class="pill solid">Live - presented in session</span>
+      <span class="pill light">Self-study - read after class</span>
+      <span class="pill inkpill">Official sources covered</span>
+    </div>
+    <div class="callout win">
+      <strong>★ What you walk out with today</strong>
+      Six review questions in a fixed order, the seven fields a feature spec must contain, a one-page synthesis of the whole leader track, and a single sentence you can say in any model review that changes what gets brought to you.
+    </div>
+  </section>
+
+  <!-- ============ PART 1: THE FEATURE REVIEW ============ -->
+  <section class="section" id="feature-review">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · covers sklearn common pitfalls, permutation importance, Rules of ML</span>
+      <h2>The feature review ritual <span class="tag concept">15 min live</span></h2>
+    </div>
+    <p class="lede">Six questions, always in this order. The order matters: each one catches a different failure, and the early ones catch the failures that make the later answers meaningless. Run them on any model that comes to you and you will find the problems that code review does not, because none of these are code problems.</p>
+
+    <div class="steps">
+      <div class="step"><p><strong>1 · What is the base rate, and what does the held-out score say?</strong> Never the training score alone. A training score answers "did the model fit what it saw", which is always flattering and never sufficient. The base rate tells you whether the score is impressive at all - on a 3.2% conversion problem, 96.8% accuracy is what you get by predicting "no" every time. Ask for both numbers before you react to either.</p></div>
+      <div class="step"><p><strong>2 · For each feature, when is the value written relative to the outcome?</strong> This is the leakage question, and it is the most important one on the list. sklearn's definition is the standard to hold them to: leakage is "when information that would not be available at prediction time is used when building the model", producing "overly optimistic performance estimates" and "poorer performance when the model is used on actually novel data". A feature is only a feature if it exists <em>before</em> the thing you are predicting.</p></div>
+      <div class="step"><p><strong>3 · What did every transform fit on?</strong> Scalers, encoders, imputers and selectors all learn statistics from data. If they learned from the test set, the test score is fiction. sklearn's rule is blunt: "Always split the data into train and test subsets first, particularly before any preprocessing steps", and "Never include test data when using the fit and fit_transform methods."</p></div>
+      <div class="step"><p><strong>4 · Does the split respect time and entities?</strong> If the model will predict the future, the test set has to be the future. If a customer can appear on both sides of the split, the model has met them before and the held-out score is not held out. Neither failure produces an error message.</p></div>
+      <div class="step"><p><strong>5 · Which features are we no longer using?</strong> Rule #22 of the Rules of Machine Learning: "Clean up features you are no longer using." Unused features are pipelines nobody maintains, storage nobody questions and failure modes nobody expects. Feature debt is real debt, and this is the only question on the list that saves money rather than preventing embarrassment.</p></div>
+      <div class="step"><p><strong>6 · Who owns each feature definition?</strong> A name, not a team. If two dashboards disagree about "active customer", the model is quietly using one of the two definitions and nobody has decided which. Ownership is what turns a column into something that can be corrected.</p></div>
+    </div>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A feature spec entering six review gates arranged in two rows of three, each labelled with the failure it catches, and passing out to a reviewed state.">
+        <style>
+          .r6T { font: 700 13px Inter, sans-serif; fill: #FFFFFF; }
+          .r6I { font: 700 12px Inter, sans-serif; fill: #1E293B; }
+          .r6L { font: 700 10px Inter, sans-serif; fill: #B45309; }
+          .r6X { font: 400 11px Inter, sans-serif; fill: #64748B; }
+          .r6N { font: 600 12px Inter, sans-serif; fill: #7C2D12; }
+          .r6W { stroke: #4D7C0F; stroke-width: 2.5; fill: none; }
+          .r6A { stroke: #4D7C0F; stroke-width: 2.5; fill: none; marker-end: url(#r6Hd); }
+        </style>
+        <defs>
+          <marker id="r6Hd" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+            <path d="M0,0 L9,4.5 L0,9 z" fill="#4D7C0F"/>
+          </marker>
+        </defs>
+
+        <rect x="340" y="20" width="200" height="44" rx="10" fill="#4D7C0F"/>
+        <text class="r6T" x="358" y="48">FEATURE SPEC IN</text>
+        <path class="r6W" d="M440,64 L440,78"/>
+        <path class="r6W" d="M165,78 L715,78"/>
+        <path class="r6A" d="M165,78 L165,90"/>
+        <path class="r6A" d="M440,78 L440,90"/>
+        <path class="r6A" d="M715,78 L715,90"/>
+
+        <rect x="40" y="94" width="250" height="88" rx="10" fill="#F7FEE7" stroke="#84CC16" stroke-width="2"/>
+        <text class="r6I" x="58" y="120">1 · Base rate + held-out</text>
+        <text class="r6L" x="58" y="142">CATCHES</text>
+        <text class="r6X" x="58" y="162">a training score sold as truth</text>
+
+        <rect x="315" y="94" width="250" height="88" rx="10" fill="#F7FEE7" stroke="#84CC16" stroke-width="2"/>
+        <text class="r6I" x="333" y="120">2 · Write-time of a value</text>
+        <text class="r6L" x="333" y="142">CATCHES</text>
+        <text class="r6X" x="333" y="162">a value written after the outcome</text>
+
+        <rect x="590" y="94" width="250" height="88" rx="10" fill="#F7FEE7" stroke="#84CC16" stroke-width="2"/>
+        <text class="r6I" x="608" y="120">3 · What transforms fit on</text>
+        <text class="r6L" x="608" y="142">CATCHES</text>
+        <text class="r6X" x="608" y="162">test statistics leaking into fit</text>
+
+        <path class="r6A" d="M165,182 L165,196"/>
+        <path class="r6A" d="M440,182 L440,196"/>
+        <path class="r6A" d="M715,182 L715,196"/>
+
+        <rect x="40" y="200" width="250" height="88" rx="10" fill="#F7FEE7" stroke="#84CC16" stroke-width="2"/>
+        <text class="r6I" x="58" y="226">4 · Split by time + entity</text>
+        <text class="r6L" x="58" y="248">CATCHES</text>
+        <text class="r6X" x="58" y="268">the same customer on both sides</text>
+
+        <rect x="315" y="200" width="250" height="88" rx="10" fill="#F7FEE7" stroke="#84CC16" stroke-width="2"/>
+        <text class="r6I" x="333" y="226">5 · Features not in use</text>
+        <text class="r6L" x="333" y="248">CATCHES</text>
+        <text class="r6X" x="333" y="268">feature debt (Rule #22)</text>
+
+        <rect x="590" y="200" width="250" height="88" rx="10" fill="#F7FEE7" stroke="#84CC16" stroke-width="2"/>
+        <text class="r6I" x="608" y="226">6 · Owner of definition</text>
+        <text class="r6L" x="608" y="248">CATCHES</text>
+        <text class="r6X" x="608" y="268">two teams, two definitions</text>
+
+        <path class="r6W" d="M165,288 L165,300"/>
+        <path class="r6W" d="M440,288 L440,300"/>
+        <path class="r6W" d="M715,288 L715,300"/>
+        <path class="r6W" d="M165,300 L715,300"/>
+        <path class="r6A" d="M440,300 L440,316"/>
+
+        <rect x="290" y="320" width="300" height="44" rx="10" fill="#3F6212"/>
+        <text class="r6T" x="308" y="348">REVIEWED - and still legible later</text>
+
+        <rect x="40" y="378" width="14" height="14" rx="3" fill="#B45309"/>
+        <text class="r6N" x="64" y="390">Order matters. Gate 1 and 2 catch the failures that make every later answer meaningless.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - six gates, and the specific failure each one stops</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>Why question 2 outranks the other five<span class="mini">5 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Every other failure on the list announces itself eventually. A bad split gets caught when the numbers look strange. Feature debt shows up in a cost review. A missing owner surfaces the first time two people disagree.</p>
+        <p>Leakage does the opposite. It announces itself with <strong>a better score</strong>, which is why it survives code review, demo day and the launch meeting, and only fails once it is somebody's production system. sklearn documents this with a number worth carrying: on <em>completely random data with no signal at all</em>, running feature selection before the split produced <strong>0.76 accuracy</strong>. Done honestly, the same pipeline scored <strong>0.50</strong>, and 0.43 under cross-validation. Twenty-six points of accuracy manufactured out of pure noise.</p>
+        <p>So the question has to be asked feature by feature, not once for the model. "When is this value written, relative to the outcome we are predicting?" Ask it of the strongest feature first. That is where the leak usually is, because a leak is what makes a feature look strong.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>The importance-list trap<span class="mini">4 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Teams often bring a feature importance chart to a review. Two cautions from sklearn's own documentation before you read one:</p>
+        <ul>
+          <li><strong>Tree importances are biased.</strong> Impurity-based importance is "strongly biased" and will "favor high cardinality features (typically numerical features) over low cardinality features such as binary features". A tall bar can be an artifact of how many distinct values a column has.</li>
+          <li><strong>Importance is model-specific, not truth.</strong> "Permutation importance does not reflect the intrinsic predictive value of a feature by itself but how important this feature is for a particular model." And: "Features that are deemed of low importance for a bad model (low cross-validation score) could be very important for a good model."</li>
+        </ul>
+        <p>The reviewable version of the question: was this computed on the held-out set? sklearn's rule is the one to hold: "Features that are important on the training set but not on the held-out set might cause the model to overfit."</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Running the review without technical depth<span class="mini">3 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>You are not auditing code, and you should say so. The six questions work because each has an answer a person can state in a sentence, and an evasive answer is itself the finding.</p>
+        <ul>
+          <li>"We can get you the held-out number" means it has not been looked at recently.</li>
+          <li>"It's in the pipeline somewhere" for question 3 means nobody has traced what fit on what.</li>
+          <li>"The whole team owns it" for question 6 means nobody does.</li>
+        </ul>
+        <p>None of that requires you to read a line of code. It requires you to ask the same six questions every time, so that a team's preparation for your review becomes the review's real output.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 2: THE FEATURE SPEC ============ -->
+  <section class="section" id="feature-spec">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · covers Rules of ML #29, Feast point-in-time concepts</span>
+      <h2>What a feature spec must contain <span class="tag concept">12 min live</span></h2>
+    </div>
+    <p class="lede">The six questions need somewhere to land, and that place is a feature spec: one short block per feature, written once and maintained. This is exactly the artifact the practitioner capstone produces, so if both tracks have run, your team already knows how to fill it in. Seven fields, and every one of them exists because something went wrong without it.</p>
+
+    <table class="clean">
+      <thead>
+        <tr><th>Field</th><th>What it says</th><th>What it prevents</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Name + definition</strong></td><td>The feature name and one sentence describing what it measures</td><td>Two teams computing "active customer" differently and neither noticing</td></tr>
+        <tr><td><strong>Source</strong></td><td>The table and column it comes from</td><td>A feature nobody can trace back when the number looks wrong</td></tr>
+        <tr><td><strong>Write-time</strong> relative to the outcome</td><td>When the value is populated, compared to when the thing being predicted happens</td><td>Leakage. This is the field the whole spec exists for</td></tr>
+        <tr><td><strong>Transformation</strong></td><td>What was applied: scaled, encoded, binned, imputed, derived</td><td>Silent differences between how the feature is built for training and for serving</td></tr>
+        <tr><td><strong>Owner</strong></td><td>A person, not a team</td><td>A definition drifting for six months with nobody accountable</td></tr>
+        <tr><td><strong>Refresh cadence</strong></td><td>How often the value is recomputed, and how stale it may be at prediction time</td><td>A model served with a feature that was current last quarter</td></tr>
+        <tr><td><strong>Deprecation status</strong></td><td>Live, deprecated, or retired - and since when</td><td>Feature debt, and Rule #22 becoming a slogan rather than a practice</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>The test of a spec is not whether it is complete. It is whether it survives three events.</strong> A <em>team change</em>: the person who built the feature leaves and someone else has to maintain it. An <em>incident review</em>: the model produced something wrong on a Tuesday and you have four hours to explain why. An <em>audit</em>: an external party asks what the model uses and how each input is defined. A spec that answers all three is worth the twenty minutes it takes to write. One that only satisfies a checklist is documentation theatre, and everybody in the room knows it.</p>
+    </div>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Why the write-time field is the load-bearing one<span class="mini">4 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Six of the seven fields are hygiene. The write-time field is protection, and it is the one nobody writes down unless the template forces them to.</p>
+        <p>It works because it converts an abstract worry into a factual question with a checkable answer. "Is there leakage in this model?" invites a shrug. "When is <code>post_purchase_flag</code> written, relative to the purchase?" has one correct answer, and once it is written on a page next to the feature name, everyone in the review can see the problem at the same moment.</p>
+        <p>This is also the field that connects to the governance session. Rule #29 of the Rules of Machine Learning states the structural version: "The best way to make sure that you train like you serve is to save the set of features used at serving time, and then pipe those features to a log to use them at training time." Feature stores implement that idea, and one of their stated purposes is to "Avoid data leakage by generating point-in-time correct feature sets". The spec is the human-readable version of the same discipline, and you can have it this quarter without buying anything.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Workshop: draft one spec before the next review<span class="mini">15 min exercise</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Pick the single feature your team believes is the strongest in a live model. Fill in all seven fields yourself, from what you can find out without writing code, and note where you get stuck.</p>
+        <ul>
+          <li>If you cannot fill in <strong>write-time</strong>, you have found your first review item, and it is the important one.</li>
+          <li>If you cannot fill in <strong>owner</strong>, the definition is unowned regardless of what the org chart says.</li>
+          <li>If <strong>refresh cadence</strong> turns out to be different in training and in serving, you have found training-serving skew without needing a tool to detect it.</li>
+        </ul>
+        <p>Bring the half-finished spec to the team rather than a request for documentation. A leader filling in six fields and asking for the seventh gets a different response than a leader asking for a document.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 3: SYNTHESIS ============ -->
+  <section class="section" id="synthesis">
+    <div class="section-kicker">
+      <span class="klabel">Part 3 · the whole leader track in one page</span>
+      <h2>Course synthesis <span class="tag concept">12 min live</span></h2>
+    </div>
+    <p class="lede">Five sessions, five sentences. If you remember nothing else from this track, remember these, because each one changes a decision you will actually make.</p>
+
+    <div class="steps">
+      <div class="step"><p><strong>a1 · Features carry the return.</strong> The model-selection debate that eats a planning meeting is usually worth less than an afternoon of feature work. Fund the inputs, not the algorithm shopping.</p></div>
+      <div class="step"><p><strong>a2 · Leakage is the failure that looks like success.</strong> It arrives as a better score, so it passes every review built to catch bad news. sklearn's own noise experiment manufactured 26 accuracy points out of nothing at all.</p></div>
+      <div class="step"><p><strong>a3 · Quality is a budget with an upstream or downstream choice.</strong> You are always paying for it. The only question is whether you pay once at the source or repeatedly in every pipeline that consumes it.</p></div>
+      <div class="step"><p><strong>a4 · Skew and point-in-time correctness are governance, not tooling.</strong> Rule #29 says to train on the features you served. A feature store is one way to implement that discipline, and it is a bad substitute for having decided to have it.</p></div>
+      <div class="step"><p><strong>a5 · Learned features are a trade, not an upgrade.</strong> Embeddings buy signal from text that no column reaches. They cost storage, latency and explainability. Rule #17 keeps the cheap option on the table: start with directly observed and reported features.</p></div>
+    </div>
+
+    <div class="callout win">
+      <strong>★ The one-line brief</strong>
+      "Show me the held-out number, the write-time of every feature, and who owns the definitions." Say this once in a model review and the next model that comes to you will already have the answers. That is the entire point of the track: not to make you technical, but to make the right work the easiest work to bring you.
+    </div>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>How the two tracks fit together<span class="mini">3 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>The leader track gave you the decisions. The practitioner track gives your team the craft: numeric transforms, encoding, datetime decomposition, the leakage session, interactions, missing data, selection, the embeddings bridge, and a capstone that ends in the feature spec from Part 2.</p>
+        <p>They meet at the spec. Your six questions are what the spec is designed to answer, which means the two tracks produce a shared artifact rather than a shared vocabulary. That is a much stronger form of alignment, and it is the reason the capstone exists in the shape it does.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 4: WHERE NEXT ============ -->
+  <section class="section" id="where-next">
+    <div class="section-kicker">
+      <span class="klabel">Part 4 · self-study</span>
+      <h2>Where next <span class="tag exercise">◐ 5 min read</span></h2>
+    </div>
+    <p class="lede">Three directions, depending on who you are sending and what you are trying to fix.</p>
+
+    <div class="steps">
+      <div class="step"><p><strong>The practitioner track of this course</strong> - for anyone who builds features. Ten sessions on the same running case, with a live workbench, the leakage trap you can press, and a written feature spec as the capstone deliverable. If you have run the review from Part 1 and the answers were thin, this is the fix.</p></div>
+      <div class="step"><p><strong>learn-model-evaluation-with-phoebe</strong> - for judging the result. This course owned the inputs. That one owns the verdict: metrics, thresholds, and the cost of being wrong in each direction. The natural next conversation after "the held-out number is 0.81" is "0.81 of what, and what does a false positive cost us".</p></div>
+      <div class="step"><p><strong>learn-intro-ml-with-phoebe</strong> - for the modelling mechanics. If the vocabulary in a model review is still doing you damage, this is the on-ramp. It builds the Lumen case this course improved, and it makes the train and held-out split concrete rather than abstract.</p></div>
+    </div>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>What this course deliberately does not cover<span class="mini">2 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Stated plainly so you know where the edges are:</p>
+        <ul>
+          <li><strong>Deep-learning representation learning</strong> - a different course, and a different set of trades than the embeddings bridge in a5.</li>
+          <li><strong>Lag, rolling and seasonal time-series features</strong> - the forecasting course owns those properly.</li>
+          <li><strong>Feature-store implementation and operations</strong> - a4 taught the concept and when it pays. The build is a data-engineering topic.</li>
+          <li><strong>Automated feature engineering tools</strong> - named, not taught. None of them answer the write-time question for you.</li>
+          <li><strong>Certificates and graded exercises</strong> - those stay with the official providers, and the source list on every page tells you where to find them.</li>
+        </ul>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Source material</span>
+      <h2>Official sources covered</h2>
+    </div>
+    <p class="lede">This closing session pulls from every source the track used, since the review and the spec are the synthesis of all of them. Certificates and graded exercises stay with the official providers. This page covers:</p>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">sklearn "Common pitfalls" - the leakage definition and the split-first rules</span><span class="note">Review questions 2 and 3 · the 0.76-on-noise result</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">sklearn "Permutation feature importance" - the held-out rule and the bias caveats</span><span class="note">The importance-list trap in Part 1</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Google "Rules of Machine Learning" - rules 17, 22 and 29</span><span class="note">Review question 5 · the spec's write-time field · the a5 counterweight</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Feast - point-in-time correct feature sets</span><span class="note">Part 2 · the tooling version of the spec discipline, named not taught</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Google MLCC - base rates, categorical and embedding framing</span><span class="note">Review question 1 · carried forward from a1 and a5</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">fe-live canon (Lumen) - the ladder and the leakage gap</span><span class="note">The synthesis numbers · the workbench itself lives in the practitioner track</span></div>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions before you go 🎯 <span class="tag exercise">◐ 90 seconds</span></h2>
+    </div>
+    <div class="quiz-q" data-answer="2">
+      <p class="qtext">1 · Of the six review questions, which one outranks the rest, and why?</p>
+      <button class="qopt" type="button">A · Who owns each definition, because ownership fixes everything downstream</button>
+      <button class="qopt" type="button">B · Which features are no longer used, because feature debt is the largest recurring cost</button>
+      <button class="qopt" type="button">C · When each value is written relative to the outcome, because leakage announces itself as a better score and therefore survives every review built to catch bad news</button>
+      <p class="qwhy">Every other failure surfaces eventually. Leakage does not: sklearn's definition names information "that would not be available at prediction time", and their noise experiment produced 0.76 accuracy on data with no signal at all, against 0.50 done honestly. Ask the write-time question of the strongest feature first - a leak is often what made it look strong.</p>
+    </div>
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">2 · What must a feature spec contain?</p>
+      <button class="qopt" type="button">A · Name and one-sentence definition, source table and column, write-time relative to the outcome, transformation applied, owner, refresh cadence, and deprecation status</button>
+      <button class="qopt" type="button">B · The model's accuracy, the algorithm used, and the training date</button>
+      <button class="qopt" type="button">C · A link to the notebook where the feature was created</button>
+      <p class="qwhy">Seven fields, each present because something went wrong without it. The write-time field is the load-bearing one - it turns "is there leakage" into a factual question with a checkable answer. The test of the spec is whether it survives a team change, an incident review and an audit.</p>
+    </div>
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">3 · A team brings you a model with 96.8% accuracy on a problem where 3.2% of sessions convert. What do you ask?</p>
+      <button class="qopt" type="button">A · Nothing - 96.8% is comfortably above any reasonable threshold</button>
+      <button class="qopt" type="button">B · What the base rate is and what the held-out score says, since predicting "no" every time already scores 96.8% and a training score alone is never sufficient</button>
+      <button class="qopt" type="button">C · Which algorithm was chosen, since the accuracy suggests the model family is right</button>
+      <p class="qwhy">Review question 1, exactly as written. The base rate tells you whether a score is impressive at all, and the held-out number is the only one connected to production. A training score answers "did the model fit what it saw" - always available, always flattering, never enough.</p>
+    </div>
+    <p class="quiz-score"></p>
+  </section>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <section class="cheat" id="cheatsheet">
+    <h3>Leader session 6 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>The six questions</b><span>Base rate + held-out · write-time of each value · what transforms fit on · split by time and entity · unused features · owner per definition.</span></div>
+      <div class="cheat-item"><b>Question 2 is the one</b><span>Leakage is information "that would not be available at prediction time" (sklearn). It shows up as a better score, which is why it survives review.</span></div>
+      <div class="cheat-item"><b>The number to carry</b><span>Feature selection before the split: 0.76 accuracy on pure noise. Done honestly: 0.50, and 0.43 under cross-validation.</span></div>
+      <div class="cheat-item"><b>Transform discipline</b><span>"Always split the data into train and test subsets first, particularly before any preprocessing steps" · "Never include test data when using the fit and fit_transform methods."</span></div>
+      <div class="cheat-item"><b>The feature spec, 7 fields</b><span>Name + definition · source · write-time · transformation · owner · refresh cadence · deprecation status.</span></div>
+      <div class="cheat-item"><b>The spec's real test</b><span>Does it survive a team change, an incident review and an audit? If not, it is documentation theatre.</span></div>
+      <div class="cheat-item"><b>Importance charts</b><span>Impurity importance is "strongly biased" toward high-cardinality features, and importance is model-specific, not truth. Ask if it was computed held-out.</span></div>
+      <div class="cheat-item"><b>The one-line brief</b><span>"Show me the held-out number, the write-time of every feature, and who owns the definitions."</span></div>
+    </div>
+  </section>
+
+  <footer class="pagefoot">
+    <span>Leader session 6 of 6 · learn-feature-engineering-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="a5-handcrafted-vs-learned.html">← a5 · Hand-crafted vs learned</a> &nbsp;·&nbsp; <a href="../index.html">All sessions</a> &nbsp;·&nbsp; <a href="../index.html">Back to all sessions →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>

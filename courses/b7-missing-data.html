@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Practitioner session 7 · Missing data as signal - learn feature engineering with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-feature-engineering-with-phoebe</a> / Practitioner session 7 of 10</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn Feature Engineering with Phoebe · Practitioner track · Session 7 of 10</div>
+    <h1>Missing data <span class="accent">as signal</span></h1>
+    <p class="sub">Most teams treat a blank cell as damage to be repaired: pick a strategy, fill it in, move on. That habit quietly throws away one of the most useful features in the table. A blank is a fact about the row - somebody did not answer, a system did not write, an order went through without incident - and sometimes that fact predicts the target better than any value you could have imputed. Tonight: the three reasons a cell is empty, the toolkit that handles each one, the one-line move that costs nothing and often wins, and the leakage rail that makes imputation a learned parameter rather than a data-cleaning chore.</p>
+    <div class="chip-row">
+      <span class="chip level">🟠 Practitioner track</span>
+      <span class="chip audience">DS · analysts · ML engineers</span>
+      <span class="chip audience">Python · live workbench on key pages</span>
+      <span class="chip time">45 min</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Welcome</span>
+      <span class="a2" style="flex:4">3-18 · Why it is missing</span>
+      <span class="a3" style="flex:5">18-42 · Build-along: impute + indicate</span>
+      <span class="a4" style="flex:1">42-45 · Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ PART 1: WHY IT IS MISSING ============ -->
+  <section class="section" id="why-missing">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · covers Google MLCC data scrubbing + the framing sklearn's imputation guide assumes</span>
+      <h2>The question before any imputation <span class="tag concept">8 min live</span></h2>
+    </div>
+    <p class="lede">Before you type <code>SimpleImputer</code>, answer a question nobody asks in the sprint: <strong>why is this cell empty?</strong> Three columns can each be 30% blank and look identical on a data-quality dashboard, and the correct handling for each is different. Get the cause wrong and you do not just impute badly - you delete a real feature and skew the distribution you are training on.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three columns each 30 percent blank, with three different causes of the missingness and the correct handling for each.">
+        <style>
+          .m7T { font: 700 12.5px Inter, sans-serif; fill: #FFFFFF; }
+          .m7S { font: 400 11.5px Inter, sans-serif; fill: #FFFFFF; opacity: .93; }
+          .m7I { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+          .m7H { font: 700 12px Inter, sans-serif; fill: #3F6212; }
+          .m7X { font: 400 12px Inter, sans-serif; fill: #64748B; }
+          .m7N { font: 600 13px Inter, sans-serif; fill: #7C2D12; }
+        </style>
+        <defs>
+          <marker id="m7Hd" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+            <path d="M0,0 L9,4.5 L0,9 z" fill="#4D7C0F"/>
+          </marker>
+        </defs>
+
+        <text class="m7I" x="30" y="28">One dashboard number, 30% blank, three different causes</text>
+
+        <rect x="30" y="48" width="250" height="52" rx="10" fill="#4D7C0F"/>
+        <text class="m7T" x="46" y="72">MISSING COMPLETELY</text>
+        <text class="m7T" x="46" y="90">AT RANDOM</text>
+        <rect x="30" y="106" width="250" height="168" rx="10" fill="#F7FEE7" stroke="#84CC16" stroke-width="2"/>
+        <text class="m7X" x="46" y="132">Cause: the form timed out</text>
+        <text class="m7X" x="46" y="154">on a bad connection</text>
+        <text class="m7X" x="46" y="180">Blank tells you: nothing</text>
+        <text class="m7H" x="46" y="212">Handling</text>
+        <text class="m7X" x="46" y="234">median impute, indicator</text>
+        <text class="m7X" x="46" y="256">optional, shape holds up</text>
+
+        <rect x="315" y="48" width="250" height="52" rx="10" fill="#3F6212"/>
+        <text class="m7T" x="331" y="72">MISSING AT RANDOM,</text>
+        <text class="m7T" x="331" y="90">GIVEN OTHER COLUMNS</text>
+        <rect x="315" y="106" width="250" height="168" rx="10" fill="#F7FEE7" stroke="#84CC16" stroke-width="2"/>
+        <text class="m7X" x="331" y="132">Cause: the mobile app</text>
+        <text class="m7X" x="331" y="154">never showed the field</text>
+        <text class="m7X" x="331" y="180">Blank tells you: see device</text>
+        <text class="m7H" x="331" y="212">Handling</text>
+        <text class="m7X" x="331" y="234">impute FROM those columns</text>
+        <text class="m7X" x="331" y="256">IterativeImputer, KNNImputer</text>
+
+        <rect x="600" y="48" width="250" height="52" rx="10" fill="#991B1B"/>
+        <text class="m7T" x="616" y="72">MISSING NOT</text>
+        <text class="m7T" x="616" y="90">AT RANDOM</text>
+        <rect x="600" y="106" width="250" height="168" rx="10" fill="#FEF2F2" stroke="#FCA5A5" stroke-width="2"/>
+        <text class="m7X" x="616" y="132">Cause: high earners skip</text>
+        <text class="m7X" x="616" y="154">income; support_note is</text>
+        <text class="m7X" x="616" y="180">empty when nothing broke</text>
+        <text class="m7N" x="616" y="212">Handling</text>
+        <text class="m7X" x="616" y="234">KEEP the blank as a feature</text>
+        <text class="m7X" x="616" y="256">mean-fill erases the signal</text>
+
+        <rect x="30" y="306" width="14" height="14" rx="3" fill="#B45309"/>
+        <text class="m7N" x="54" y="318">Only the cause tells you which handling is honest. The blank rate alone tells you nothing.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the same 30% gap, three causes, three different correct answers</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>The three mechanisms, in plain language<span class="mini">5 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Strip away the statistics vocabulary and there are three stories a blank cell can be telling you:</p>
+        <ul>
+          <li><strong>Missing completely at random.</strong> The blankness has nothing to do with the row. A connection dropped, a batch job half-failed, a device rebooted mid-form. The rows with gaps look like the rows without them, so filling the gap with a central value distorts very little.</li>
+          <li><strong>Missing at random, given other columns.</strong> The blankness is not random, but it is fully explained by columns you already have. Lumen's mobile checkout never rendered the optional field, so <code>device = "mobile"</code> predicts the gap perfectly. You cannot ignore it, but you can model it from the columns that explain it.</li>
+          <li><strong>Missing NOT at random.</strong> The blankness depends on the missing value itself, or on the outcome. <code>income</code> is left blank disproportionately by high earners. <code>support_note</code> is empty precisely because the order went perfectly - which is exactly the kind of order you may be trying to predict. Here the missingness <em>is</em> the information.</li>
+        </ul>
+        <p>You cannot prove which mechanism you are in from the data alone. You get there by asking the person who owns the form, the app screen, or the upstream job - which is why this session is as much an interview technique as a coding one.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>What mean-imputing a not-at-random column actually costs<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Two separate damages, and teams usually only notice the second one much later:</p>
+        <ul>
+          <li><strong>You destroy real signal.</strong> If blank means "this order was uneventful", then every blank row carried a usable fact about the target. Replace them all with the column mean and every one of those rows now says the same neutral thing. The feature that was there is gone, and no amount of model tuning brings it back.</li>
+          <li><strong>You bias the distribution.</strong> Filling 30% of a column with its own mean piles a third of the mass onto a single point. Variance shrinks, correlations get diluted toward zero, and any downstream scaler or binner you fit afterwards is fitting a shape the real world never had.</li>
+        </ul>
+        <p>Both damages are silent. Nothing raises an error, the pipeline runs, and the score is merely a little worse than it should have been - the hardest kind of problem to notice.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 2: THE TOOLKIT ============ -->
+  <section class="section" id="toolkit">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · covers sklearn imputation classes + OneHotEncoder NaN handling</span>
+      <h2>The toolkit, and the move that costs nothing <span class="tag concept">9 min live</span></h2>
+    </div>
+    <p class="lede">sklearn gives you three imputers and one small utility, and the utility is the one that wins arguments. Read the table for what each imputer decides, then look hard at the last row: the missingness indicator does not fill anything at all, it simply lets the model see that the cell was blank.</p>
+
+    <table class="clean">
+      <thead>
+        <tr><th>Tool</th><th>What it does</th><th>Use it when</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>SimpleImputer</code></td><td>Fills with <code>mean</code>, <code>median</code>, <code>most_frequent</code> or a <code>constant</code> you supply</td><td>The default. Median for anything skewed, most_frequent or constant for categoricals</td></tr>
+        <tr><td><code>IterativeImputer</code></td><td>Models each column with gaps as a function of the other columns, round-robin</td><td>Missing-at-random cases where other columns genuinely explain the gap. Still an experimental feature - you must opt in explicitly</td></tr>
+        <tr><td><code>KNNImputer</code></td><td>Fills from the values of the nearest complete rows</td><td>Rows have close neighbours and the data is small enough to afford the distance computation</td></tr>
+        <tr><td><code>MissingIndicator</code> / <code>add_indicator=True</code></td><td>Adds a boolean column saying "this was blank", alongside the filled value</td><td>Almost always. It is one argument, it costs one column, and it is the only way the model can learn from absence directly</td></tr>
+      </tbody>
+    </table>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>Median over mean, and a sentinel for categoricals<span class="mini">4 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Two defaults worth making automatic:</p>
+        <ul>
+          <li><strong>Median, not mean, for money columns.</strong> Lumen's <code>prior_30d_spend</code> is right-skewed like every spend column you will ever meet - a long tail of big spenders drags the mean well above the typical customer. Impute with the mean and every blank row is quietly labelled a slightly-above-average spender. The median puts them where most customers actually are.</li>
+          <li><strong>A constant plus an explicit sentinel for categoricals.</strong> <code>SimpleImputer(strategy="constant", fill_value="unknown")</code> makes "we did not have this" a named level rather than a silent merge into whatever happened to be most frequent. The most_frequent strategy has its uses, but it hides the gap inside a real category, and you can never separate them again downstream.</li>
+        </ul>
+        <div class="callout tip">
+          <strong>Carry-over from the encoding session</strong>
+          For <code>OneHotEncoder</code>, <code>np.nan</code> and <code>None</code> are treated as separate categories. That means NaN can simply <em>be</em> a category when blankness is meaningful - no imputation step at all, just a column in the one-hot output that says "this was missing". For a not-at-random categorical, that is often the cleanest thing you can do.
+        </div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>The build-along pipeline<span class="mini">5 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Numerics get a median plus an indicator; categoricals get a named sentinel and then one-hot encoding that tolerates unseen levels at prediction time. Note that nothing is fitted outside the <code>Pipeline</code>:</p>
+<pre><code>from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.linear_model import LogisticRegression
+
+numeric = Pipeline([
+    ("impute", SimpleImputer(strategy="median", add_indicator=True)),
+    ("scale", StandardScaler()),
+])
+
+categorical = Pipeline([
+    ("impute", SimpleImputer(strategy="constant", fill_value="unknown")),
+    ("encode", OneHotEncoder(handle_unknown="ignore")),
+])
+
+prep = ColumnTransformer([
+    ("num", numeric, ["prior_30d_spend", "pages_viewed"]),
+    ("cat", categorical, ["channel", "device", "product_category"]),
+])
+
+pipe = Pipeline([
+    ("prep", prep),
+    ("model", LogisticRegression(max_iter=1000)),
+])
+
+pipe.fit(X_train, y_train)   # every median learned from train rows only</code></pre>
+        <p>One argument, <code>add_indicator=True</code>, is the whole missingness-as-signal lesson in code. The imputed value keeps the row usable; the indicator keeps the fact that it was blank.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>IterativeImputer, and why it comes with a warning label<span class="mini">3 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p><code>IterativeImputer</code> models each column with gaps from the other columns and cycles until the estimates settle. It is genuinely useful in the missing-at-random case, and it is still an <strong>experimental</strong> feature in sklearn - you must import the experimental enabler before the class is available at all, and the API can change between releases.</p>
+        <p>Two practical cautions before you reach for it: it is far more expensive than a median, and it makes the imputed values a function of the whole feature set, which means a single upstream column changing shape now moves values in a column you were not touching. Start simple, and let a measured gain justify the complexity - not the other way round.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 3: THE LEAKAGE RAIL ============ -->
+  <section class="section" id="leakage-rail">
+    <div class="section-kicker">
+      <span class="klabel">Part 3 · covers sklearn "Common pitfalls" ch.12, applied to imputation</span>
+      <h2>An imputer is a model, not a cleaning step <span class="tag demo">★ 9 min · everyone runs it</span></h2>
+    </div>
+    <p class="lede">Here is the sentence that puts this session on the leakage rail: <strong>imputation statistics are learned parameters.</strong> A median is not a fact about your column, it is a number estimated from a specific set of rows. Compute it on the full dataset before splitting and you have committed preprocessing leakage - family 2 from b5, full stop, no nuance, no "but it is only a median".</p>
+
+    <div class="steps">
+      <div class="step"><p><strong>What goes wrong.</strong> The global median is computed from rows that include your test set. The test rows now have their gaps filled with a number that was informed by the test rows themselves. Your held-out score is measuring something production will never reproduce.</p></div>
+      <div class="step"><p><strong>Why "it is only a median" is not a defence.</strong> sklearn's rule is written without an exemption: "Never include test data when using the <code>fit</code> and <code>fit_transform</code> methods." A median is a fit. A most-frequent category is a fit. A KNN imputer is unambiguously a fit.</p></div>
+      <div class="step"><p><strong>The fix is structural, not disciplinary.</strong> Put the imputer inside the <code>Pipeline</code>, so each cross-validation fold learns its own fill values from its own training rows. sklearn states the purpose plainly: pipelines "help avoid leaking statistics from your test data into the trained model in cross-validation, by ensuring that the same samples are used to train the transformers and predictors."</p></div>
+      <div class="step"><p><strong>The habit to build.</strong> If a preprocessing step has a number in it that came from data, it belongs inside the Pipeline. Imputation, scaling, encoding, selection - all of them. The Pipeline is not tidiness, it is the thing that makes the wrong version hard to type.</p></div>
+    </div>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>The month the column went 90% blank.</strong> A team imputed a key numeric feature with the global median, cross-validated cleanly, and shipped. In their historical data the column was about 8% missing every month, so the fill value touched almost nothing and nobody thought about it again. Then an upstream form change made the field optional, the column arrived <strong>90% missing</strong>, and nearly every prediction collapsed toward the same value - because for nine rows in ten the model's strongest feature had become a constant. The model had never once been evaluated under the missingness rate it actually faced. Nothing errored, no alert fired, and the first signal was a business metric drifting a week later.</p>
+    </div>
+
+    <div class="callout tip">
+      <strong>The test that would have caught it</strong>
+      Before shipping, re-score your held-out set with the column artificially blanked at 50% and at 90%. If the score falls off a cliff, you have not built a feature, you have built a dependency - and you now know exactly which upstream change breaks your model.
+    </div>
+  </section>
+
+  <!-- ============ PART 4: MISSINGNESS OVER TIME ============ -->
+  <section class="section" id="over-time">
+    <div class="section-kicker">
+      <span class="klabel">Part 4 · self-study · connects to leader session a3</span>
+      <h2>Missingness moves <span class="tag concept">read after class</span></h2>
+    </div>
+    <p class="lede">Everything above assumed the missingness rate is a property of the column. It is not. It is a property of the systems upstream of you, and those systems change without telling you.</p>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Three ways a stable column starts going blank<span class="mini">4 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <ul>
+          <li><strong>A column gets deprecated upstream.</strong> The producing service stops writing it, or writes it only for a subset of traffic. The column still exists, the schema still validates, and the values simply stop arriving.</li>
+          <li><strong>A form field is made optional.</strong> The most common cause and the most invisible one, because it is a product decision made in a different team's sprint, for perfectly good conversion reasons. Overnight, a column that was 2% missing becomes 60% missing.</li>
+          <li><strong>The mechanism itself changes.</strong> Worse than a rate change: a column that was missing completely at random becomes missing not at random, or the reverse. The correct handling flips, and your pipeline carries on doing the old thing.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Monitor the missingness rate as a first-class signal<span class="mini">3 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>The missingness rate of every feature is worth monitoring in its own right, on the same dashboard as your model's score. It is cheap to compute, it needs no labels, and it moves <em>before</em> your metrics do - a rate that jumps from 8% to 90% is visible on day one, while the business impact shows up weeks later.</p>
+        <p>Two thresholds worth setting per feature: an absolute one ("alert if more than 40% blank") and a relative one ("alert if the rate doubles versus the training window"). The relative one catches the slow drift the absolute one sleeps through.</p>
+        <p>This is where the practitioner track meets the leader track: in a3, missingness is framed as part of the feature budget - a data-quality signal that decides which features you can responsibly build at all. If a column cannot be relied on to arrive, its predictive power on historical data is a promise you cannot keep.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ HOMEWORK ============ -->
+  <section class="section" id="exercise">
+    <div class="section-kicker">
+      <span class="klabel">Homework</span>
+      <h2>Try it yourself - this week <span class="tag exercise">◐ 25-35 min total</span></h2>
+    </div>
+    <ul>
+      <li>Take the three most-missing columns in a table you actually work with and write one sentence each on <em>why</em> the cells are blank. If you cannot write the sentence, you have found this week's conversation to have with the upstream owner.</li>
+      <li>For each of those columns, label the mechanism: completely at random, at random given other columns, or not at random. Note which handling your current pipeline uses and whether it matches.</li>
+      <li>Add <code>add_indicator=True</code> to one numeric imputer and re-score. Note the change - it is often small, occasionally large, and never costs more than one column.</li>
+      <li>Find one imputation statistic in your codebase that is computed outside a Pipeline. Move it inside and re-run cross-validation. If the score drops, you just found leakage.</li>
+      <li>Blank one important column at 90% in a copy of your held-out set and re-score. Write down the number. That is your model's answer to the question "what if this feed breaks?"</li>
+    </ul>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Source material</span>
+      <h2>Official sources covered</h2>
+    </div>
+    <p class="lede">This session works through sklearn's imputation classes and the part of the common-pitfalls chapter that governs them, plus the categorical NaN behaviour carried over from b3 and Google's data-scrubbing framing. Certificates and graded exercises stay with the official providers (Kaggle Learn, Google MLCC). This page covers:</p>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">sklearn imputation - SimpleImputer, IterativeImputer, KNNImputer, MissingIndicator</span><span class="note">Parts 2-3 · strategies, add_indicator, the experimental flag</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">sklearn "Common pitfalls" - preprocessing leakage applied to imputation</span><span class="note">Part 3 · imputers inside the Pipeline, one fit per fold</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">sklearn OneHotEncoder - np.nan and None as separate categories</span><span class="note">Part 2 · the encoding session's carry-over: NaN as a category</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Google MLCC - data scrubbing and the cost of unclean features</span><span class="note">Part 1 framing · the leader-track view of missingness is a3</span></div>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions before you go 🎯 <span class="tag exercise">◐ 90 seconds</span></h2>
+    </div>
+    <div class="quiz-q" data-answer="2">
+      <p class="qtext">1 · <code>support_note</code> is empty on 70% of Lumen's orders, because nothing went wrong on those orders. Which mechanism is that, and what follows?</p>
+      <button class="qopt" type="button">A · Missing completely at random - fill with the most frequent note and carry on</button>
+      <button class="qopt" type="button">B · Missing at random given other columns - reconstruct it with IterativeImputer</button>
+      <button class="qopt" type="button">C · Missing NOT at random - the blankness itself carries information about the outcome, so it must survive into the feature set</button>
+      <p class="qwhy">The gap depends on what happened to the order, which is close to what you are predicting. Fill it with a central value and every one of those rows now says the same neutral thing. Keep the blank, either as an indicator column or as its own one-hot category.</p>
+    </div>
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">2 · What does <code>add_indicator=True</code> actually buy you?</p>
+      <button class="qopt" type="button">A · A boolean column recording that the cell was blank, so the model can learn from absence directly rather than only from the value you invented</button>
+      <button class="qopt" type="button">B · A better estimate of the fill value, computed from the neighbouring rows</button>
+      <button class="qopt" type="button">C · Protection against leakage, because the indicator is computed after the split</button>
+      <p class="qwhy">It fills nothing and estimates nothing. It preserves the one piece of information that every imputation strategy otherwise destroys - that the cell was empty. One argument, one extra column, and the not-at-random signal survives.</p>
+    </div>
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">3 · Why must the imputer live inside the <code>Pipeline</code> rather than being applied to the dataframe first?</p>
+      <button class="qopt" type="button">A · Because pandas and sklearn disagree on how NaN is represented</button>
+      <button class="qopt" type="button">B · Because the fill value is a learned parameter - computed on the full dataset it uses test rows, which is preprocessing leakage; inside the Pipeline each fold learns its own</button>
+      <button class="qopt" type="button">C · Because Pipelines run imputation faster than a dataframe operation would</button>
+      <p class="qwhy">A median is a fit. sklearn's rule has no exemption for it: never include test data in <code>fit</code> or <code>fit_transform</code>. Pipelines exist precisely to "avoid leaking statistics from your test data into the trained model in cross-validation."</p>
+    </div>
+    <p class="quiz-score"></p>
+  </section>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <section class="cheat" id="cheatsheet">
+    <h3>Practitioner session 7 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>Ask why first</b><span>Three columns can each be 30% blank with three different causes and three different correct handlings. The blank rate alone tells you nothing.</span></div>
+      <div class="cheat-item"><b>The three mechanisms</b><span>Completely at random (unrelated to anything) · at random given other columns (explained by what you have) · NOT at random (the blank depends on the missing value or the outcome).</span></div>
+      <div class="cheat-item"><b>The not-at-random cost</b><span>Mean-imputing destroys real signal AND biases the distribution - a third of the mass piled on one point. Both damages are silent.</span></div>
+      <div class="cheat-item"><b>The imputers</b><span>SimpleImputer (mean / median / most_frequent / constant) · IterativeImputer (experimental, opt in explicitly) · KNNImputer.</span></div>
+      <div class="cheat-item"><b>Median for money</b><span>prior_30d_spend is right-skewed; the mean labels every blank row an above-average spender. Median puts them where customers actually are.</span></div>
+      <div class="cheat-item"><b>The free win</b><span>add_indicator=True / MissingIndicator: a boolean "this was blank" column. Costs one column, lets the model learn from absence directly.</span></div>
+      <div class="cheat-item"><b>NaN as a category</b><span>For OneHotEncoder, np.nan and None are separate categories - so NaN can simply BE a category when blankness is meaningful.</span></div>
+      <div class="cheat-item"><b>The leakage rail</b><span>Imputation statistics are learned parameters. A median from the full dataset is preprocessing leakage (b5, family 2). Imputers go inside the Pipeline.</span></div>
+    </div>
+  </section>
+
+  <footer class="pagefoot">
+    <span>Practitioner session 7 of 10 · learn-feature-engineering-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="b6-interactions.html">← b6 · Interactions + aggregations</a> &nbsp;·&nbsp; <a href="../index.html">All sessions</a> &nbsp;·&nbsp; <a href="b8-selection-importance.html">Next: Selection + importance →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>

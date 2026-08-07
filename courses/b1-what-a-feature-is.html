@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Practitioner session 1 · What a feature actually is - learn feature engineering with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-feature-engineering-with-phoebe</a> / Practitioner session 1 of 10</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn Feature Engineering with Phoebe · Practitioner track · Session 1 of 10</div>
+    <h1>What a feature <span class="accent">actually is</span></h1>
+    <p class="sub">A column is what the database gives you. A feature is what the model can learn from - and the gap between the two is where most of the winnable performance in applied machine learning lives. Tonight you meet that gap on Lumen's checkout data: same model, same rows, and a held-out AUC that climbs from 0.500 to 0.813 purely because of how the columns were shaped. Nothing in this course changes the algorithm. Everything changes the inputs.</p>
+    <div class="chip-row">
+      <span class="chip level">🟢 Practitioner track</span>
+      <span class="chip audience">DS · analysts · ML engineers</span>
+      <span class="chip audience">Python · live workbench on key pages</span>
+      <span class="chip time">Start here</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Welcome</span>
+      <span class="a2" style="flex:4">3-18 · Column vs feature, the model's-eye view</span>
+      <span class="a3" style="flex:5">18-42 · Build-along: climb the ladder</span>
+      <span class="a4" style="flex:1">42-45 · Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ INTRO ============ -->
+  <section class="section" id="intro">
+    <div class="section-kicker">
+      <span class="klabel">Part 0</span>
+      <h2>How this track works</h2>
+    </div>
+    <p class="lede">Ten sessions, one running case: <strong>Lumen Skincare's checkout data</strong> - 40,000 sessions, a 3.2% conversion rate, and a pile of raw columns. The intro-ML course trained a model on it; the model-evaluation course judged the result. This course owns what sits between them: turning columns into features, and not fooling yourself while you do it. b2-b4 build the craft (numeric transforms, encoding, datetime), b5 is the leakage session everything else defends against, b6-b8 go deeper (interactions, missing data, selection), b9 bridges to embeddings, and b10 ships a written feature spec you can hand to a colleague.</p>
+    <div class="legend">
+      <span class="pill solid">Live - presented in session</span>
+      <span class="pill light">Self-study - read after class</span>
+      <span class="pill peach">▶ Live workbench - a real model, trained in your browser</span>
+      <span class="pill inkpill">Official sources covered</span>
+    </div>
+    <div class="callout win">
+      <strong>★ What you walk out with today</strong>
+      A working definition of "feature" you can defend, the model's-eye view of a table (it sees numbers, nothing else), the five feature groups that make up the rest of this course, and the habit the whole track is built on: never read a training score without asking what the held-out score says.
+    </div>
+  </section>
+
+  <!-- ============ PART 1: COLUMN VS FEATURE ============ -->
+  <section class="section" id="column-vs-feature">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · covers Google MLCC "feature vectors", Kaggle Learn lesson 1</span>
+      <h2>The model does not see your table <span class="tag concept">7 min live</span></h2>
+    </div>
+    <p class="lede">Google's glossary is precise: feature engineering is <em>"the process of determining which features might be useful in training a model, and then creating those features from raw data."</em> The key word is <strong>creating</strong>. Your model never sees <code>channel = "email"</code> or a timestamp - it sees a vector of floating-point numbers. Everything else is a translation you perform, and every translation is a decision about what the model is allowed to notice.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A raw Lumen table row on the left, the translation step in the middle, and the numeric feature vector the model actually receives on the right.">
+        <style>
+          .cfT { font: 700 14px Inter, sans-serif; fill: #FFFFFF; }
+          .cfS { font: 400 11.5px Inter, sans-serif; fill: #FFFFFF; opacity: .92; }
+          .cfI { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+          .cfX { font: 400 12px Inter, sans-serif; fill: #64748B; }
+          .cfN { font: 600 13px Inter, sans-serif; fill: #7C2D12; }
+          .cfWire { stroke: #4D7C0F; stroke-width: 2.5; fill: none; marker-end: url(#cfHd); }
+        </style>
+        <defs>
+          <marker id="cfHd" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+            <path d="M0,0 L9,4.5 L0,9 z" fill="#4D7C0F"/>
+          </marker>
+        </defs>
+        <rect x="40" y="46" width="230" height="180" rx="10" fill="#F7FEE7" stroke="#84CC16" stroke-width="2"/>
+        <text class="cfI" x="58" y="72">RAW ROW</text>
+        <text class="cfX" x="58" y="98">channel: "email"</text>
+        <text class="cfX" x="58" y="120">signup_date: 2025-11-03</text>
+        <text class="cfX" x="58" y="142">prior_30d_spend: 182.40</text>
+        <text class="cfX" x="58" y="164">pages_viewed: 6</text>
+        <text class="cfX" x="58" y="186">postal_code: 048624</text>
+        <text class="cfX" x="58" y="208">support_note: "gift?"</text>
+        <rect x="330" y="106" width="200" height="60" rx="10" fill="#4D7C0F"/>
+        <text class="cfT" x="350" y="132">YOU TRANSLATE</text>
+        <text class="cfS" x="350" y="152">encode · scale · derive</text>
+        <rect x="590" y="46" width="250" height="180" rx="10" fill="#3F6212"/>
+        <text class="cfT" x="610" y="72">WHAT THE MODEL GETS</text>
+        <text class="cfS" x="610" y="98">[1, 0, 0, 0, 0, 0, 0, 0, 0,</text>
+        <text class="cfS" x="610" y="120">  1.82, 1.20, 0.61, 1.0,</text>
+        <text class="cfS" x="610" y="142">  0.83, 0.0, ... ]</text>
+        <text class="cfS" x="610" y="172">numbers only - no strings,</text>
+        <text class="cfS" x="610" y="194">no dates, no meaning</text>
+        <path class="cfWire" d="M270,136 L325,136"/>
+        <path class="cfWire" d="M530,136 L585,136"/>
+        <rect x="40" y="266" width="14" height="14" rx="3" fill="#B45309"/>
+        <text class="cfN" x="64" y="278">Whatever you fail to translate, the model cannot use. Whatever you translate badly, it learns badly.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the translation step nobody sees on the dashboard</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>Why "just throw the columns in" fails<span class="mini">4 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Three concrete failures, all of them common, all of them fixed in this course:</p>
+        <ul>
+          <li><strong>Strings-as-integers.</strong> Google's crash course puts it perfectly: if you index categories and hand them over raw, "the model would treat the indexed values as continuous floating-point numbers. The model would then consider 'purple' six times more likely than 'orange.'" That is not a subtle bias - it is arithmetic on nonsense (b3).</li>
+          <li><strong>Buried signal.</strong> A <code>signup_date</code> holds tenure, weekday, seasonality, recency. As a timestamp it holds none of them, as far as a linear model is concerned (b4).</li>
+          <li><strong>Invisible relationships.</strong> Spend matters more for returning customers than new ones. No single column carries that; the interaction has to be built (b6).</li>
+        </ul>
+        <div class="callout example">
+          <span class="ex-pill">Real world</span>
+          <p><strong>Where practitioners actually spend the time.</strong> Google's crash course states it flatly: "ML practitioners spend far more time evaluating, cleaning, and transforming data than building models." The model-selection debate that eats a planning meeting is usually worth less than one afternoon of feature work - and this course exists because the afternoon is the part nobody teaches.</p>
+        </div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Google's feature rules, condensed<span class="mini">3 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>From "Rules of Machine Learning" - the ones that shape this whole track:</p>
+        <ul>
+          <li><strong>Rule 17:</strong> "Start with directly observed and reported features as opposed to learned features." Hand-crafted first; the embeddings bridge comes in b9, not before.</li>
+          <li><strong>Rule 19:</strong> "Use very specific features when you can." Specific beats clever.</li>
+          <li><strong>Rule 20:</strong> "Combine and modify existing features to create new features in human-understandable ways" - discretization and crosses, which are b2 and b6.</li>
+          <li><strong>Rule 21:</strong> "The number of feature weights you can learn in a linear model is roughly proportional to the amount of data you have." More columns is not free (b8).</li>
+          <li><strong>Rule 22:</strong> "Clean up features you are no longer using." Feature debt is real debt.</li>
+        </ul>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 2: THE FIVE GROUPS ============ -->
+  <section class="section" id="five-groups">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · the map of the whole track</span>
+      <h2>Five groups, one ladder <span class="tag concept">6 min live</span></h2>
+    </div>
+    <p class="lede">Everything you will build in the next nine sessions falls into five groups, and tonight's workbench turns them on one at a time so you can watch each one earn its lift. The point is not the numbers - it is that the numbers move at all while the algorithm sits perfectly still.</p>
+
+    <table class="clean">
+      <thead>
+        <tr><th>Group</th><th>What it does to the table</th><th>Session</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Raw numerics</strong></td><td>Take the numbers as-is, then decide how to scale, bin, or tame their shape</td><td>b2</td></tr>
+        <tr><td><strong>Encoding</strong></td><td>Turn categories into numbers a model can hold without inventing an order</td><td>b3</td></tr>
+        <tr><td><strong>Datetime</strong></td><td>Break a timestamp into the things it actually means: tenure, weekday, recency</td><td>b4</td></tr>
+        <tr><td><strong>Interactions</strong></td><td>Build the relationships between columns that no single column carries</td><td>b6</td></tr>
+        <tr><td><strong>Selection</strong></td><td>Remove what is noise, which is a feature decision too</td><td>b8</td></tr>
+      </tbody>
+    </table>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>The sixth toggle, and why it is different<span class="mini">4 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Tonight's workbench has a sixth lever, drawn with a dashed border: <strong>target leakage</strong>. It is not a feature group - it is the failure mode this entire course is arranged to prevent, and you will press it deliberately in a moment.</p>
+        <p>sklearn's own documentation defines the problem exactly: <em>"Data leakage occurs when information that would not be available at prediction time is used when building the model. This results in overly optimistic performance estimates... and thus poorer performance when the model is used on actually novel data."</em></p>
+        <p>Read the middle clause twice. Leakage does not announce itself with an error. It announces itself with <strong>a better score</strong> - which is why it survives code review, demo day, and the launch meeting, and only fails once it is somebody's production system.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>What a held-out set is protecting you from<span class="mini">3 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Every score in this course comes in a pair - training and held-out - and the workbench deliberately hides the held-out number until you press a button. That friction is on purpose. The pattern to internalize:</p>
+        <ul>
+          <li><strong>Training score</strong> answers "did the model fit what it saw?" It is always available, always flattering, and never sufficient.</li>
+          <li><strong>Held-out score</strong> answers "will this work on rows it has never met?" It is the only one connected to production.</li>
+          <li><strong>The gap between them</strong> is the diagnostic: a small gap means honest work; a sudden large gap means you have taught the model something it will not have when it matters.</li>
+        </ul>
+        <p>The intro-ML course made this split; this course will try, repeatedly, to break it on purpose so you recognize the shape when it happens by accident.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ DEMO 1 ============ -->
+  <section class="section" id="demo-1">
+    <div class="section-kicker">
+      <span class="klabel">Demo 1 of 2</span>
+      <h2>Climb the ladder <span class="tag demo">★ 14 min · everyone runs it</span></h2>
+    </div>
+    <p class="lede">Below is a real logistic regression, trained by gradient descent in your browser on 1,800 Lumen sessions and scored on 1,200 it never saw. Start with every lever off, then switch on one group at a time and press <strong>Score on held-out</strong> after each. The algorithm never changes. Only the columns do.</p>
+
+    <div class="steps">
+      <div class="step"><p>All levers off: <strong>0.500</strong>. No features, no model - a coin flip. Everything above this line is something you build, not something the algorithm finds.</p></div>
+      <div class="step"><p>+ Raw numerics: <strong>0.696</strong>. Spend and pages viewed carry real signal - and they were already sitting in the table, costing nothing but the decision to use them.</p></div>
+      <div class="step"><p>+ Encoding: <strong>0.785</strong>. The single biggest jump on the ladder, and it comes from columns the model previously could not read at all (b3).</p></div>
+      <div class="step"><p>+ Datetime: <strong>0.806</strong>. Tenure and weekend were inside <code>signup_date</code> the whole time, invisible until decomposed (b4).</p></div>
+      <div class="step"><p>+ Interactions: <strong>0.812</strong>. Spend-times-returning is a relationship no column holds alone (b6).</p></div>
+      <div class="step"><p>+ Selection: <strong>0.813</strong>. Dropping the noise column barely moves the score - and that is the lesson: selection buys simplicity and stability more than accuracy (b8).</p></div>
+    </div>
+
+    <div class="febox" data-mode="ladder" data-levers=""></div>
+
+    <div class="callout tip">
+      <strong>How to read the workbench</strong>
+      Training AUC is always visible; held-out stays masked until you ask for it. AUC 0.5 is random, 1.0 is perfect, and on a rare-event problem like 3.2% conversion, 0.8 is a genuinely useful model. The data is synthetic Lumen; the model, the split, and every number are real and computed live.
+    </div>
+  </section>
+
+  <!-- ============ DEMO 2 ============ -->
+  <section class="section" id="demo-2">
+    <div class="section-kicker">
+      <span class="klabel">Demo 2 of 2</span>
+      <h2>Now break it on purpose <span class="tag demo">★ 8 min · everyone runs it</span></h2>
+    </div>
+    <p class="lede">With all five honest levers on, switch on <strong>target leakage</strong> and read the training score first. Then press Score on held-out. This is the most important thirty seconds of the course.</p>
+
+    <div class="steps">
+      <div class="step"><p>Training AUC jumps to <strong>0.967</strong>. In a normal week this is the moment you message the team. The feature is <code>post_purchase_flag</code>, and it was sitting right there in the warehouse.</p></div>
+      <div class="step"><p>Press <strong>Score on held-out</strong>: <strong>0.789</strong>. A gap of <strong>0.179</strong> - and look closer, it is BELOW the 0.813 you had before adding it. The leak did not just fail to help; it made the model worse.</p></div>
+      <div class="step"><p>Understand the mechanism: <code>post_purchase_flag</code> is written after the sale. In your historical table it is filled in. At prediction time - the moment that actually matters - it is empty. The workbench scores held-out rows the way production would, so the column arrives blank and the model's best feature evaporates.</p></div>
+      <div class="step"><p>Say the rule out loud: a feature is only a feature if it exists <em>before</em> the thing you are predicting.</p></div>
+    </div>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>sklearn documents this with a number that should scare you.</strong> In their own worked example on <em>completely random data with no signal at all</em>, running feature selection before the train/test split produced <strong>0.76 accuracy</strong>. Done honestly, the same pipeline scored <strong>0.50</strong> - and 0.43 under cross-validation. Leakage manufactured 26 points of accuracy out of pure noise. If a result looks too good, this is the first thing to check, not the last.</p>
+    </div>
+  </section>
+
+  <!-- ============ HOMEWORK ============ -->
+  <section class="section" id="exercise">
+    <div class="section-kicker">
+      <span class="klabel">Homework</span>
+      <h2>Try it yourself - this week <span class="tag exercise">◐ 20-30 min total</span></h2>
+    </div>
+    <ul>
+      <li>Run every lever combination on the workbench until you can predict which ones move the held-out score and roughly how much. Note which single group buys the most lift.</li>
+      <li>Take a table you actually work with and sort its columns into the five groups. Anything that fits none of them is either an identifier, a leak, or a feature waiting to be invented - label which.</li>
+      <li>For one column, write down what the model literally receives today. If the answer is "a string" or "a timestamp," you have found this week's win.</li>
+      <li>The leakage audit, five minutes: for each column, ask "was this value knowable before the outcome happened?" Bring the suspicious ones to b5.</li>
+    </ul>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Source material</span>
+      <h2>Official sources covered</h2>
+    </div>
+    <p class="lede">This track teaches the working core of the canonical feature-engineering sources - sklearn's preprocessing, pitfalls, and selection guides, Google's crash-course data modules and Rules of ML, and Kaggle Learn's feature-engineering course - with a live workbench on the key pages. Certificates and graded exercises stay with the official providers (linked each session). This page covers:</p>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Google MLCC - feature vectors + "Qualities of good features" framing</span><span class="note">Parts 1-2 · normalization and binning land in b2</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Kaggle Learn "Feature Engineering" - lesson 1, What Is Feature Engineering</span><span class="note">The column-vs-feature frame · mutual information in b8</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">sklearn "Common pitfalls" - the leakage definition</span><span class="note">Previewed in Demo 2 with the 0.76-on-noise result · the full session is b5</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Google "Rules of Machine Learning" - rules 17, 19-22</span><span class="note">The feature doctrine · governance and Rule 29 in the leader track</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Lumen canon (learn-intro-ml) - the dataset and the model under improvement</span><span class="note">Reused, never re-derived · this course adds postal_code, signup_date, support_note</span></div>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions before you go 🎯 <span class="tag exercise">◐ 90 seconds</span></h2>
+    </div>
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">1 · Why can you not hand a model the column <code>channel = "email"</code> as an integer index?</p>
+      <button class="qopt" type="button">A · Integers are too small a data type to hold nine categories</button>
+      <button class="qopt" type="button">B · The model treats indexes as continuous numbers, so it would infer that one category is several times "more" than another</button>
+      <button class="qopt" type="button">C · sklearn raises an error on non-scaled integer columns</button>
+      <p class="qwhy">Google's crash course says it exactly: the model "would then consider 'purple' six times more likely than 'orange.'" The index imposes an order and a magnitude that the categories never had. Encoding (b3) is how you avoid inventing that arithmetic.</p>
+    </div>
+    <div class="quiz-q" data-answer="2">
+      <p class="qtext">2 · The leakage lever pushed training AUC to 0.967 and held-out AUC to 0.789. What made the held-out score collapse?</p>
+      <button class="qopt" type="button">A · The held-out set is smaller, so its scores are always lower</button>
+      <button class="qopt" type="button">B · The model overfitted because too many features were added at once</button>
+      <button class="qopt" type="button">C · The leaked column is recorded after the outcome, so at prediction time it arrives empty and the model's strongest feature disappears</button>
+      <p class="qwhy">This is the production failure in miniature. sklearn's definition names it precisely: information "that would not be available at prediction time." The historical table has the column filled in; the live request does not.</p>
+    </div>
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">3 · On the ladder, the algorithm never changed. What does that demonstrate?</p>
+      <button class="qopt" type="button">A · Held-out performance moved from 0.500 to 0.813 purely through how the columns were shaped - the inputs, not the model, carried the lift</button>
+      <button class="qopt" type="button">B · Logistic regression is a stronger model than the workbench suggests</button>
+      <button class="qopt" type="button">C · AUC is unreliable as a metric on rare-event data</button>
+      <p class="qwhy">That is the thesis of the whole course. Same estimator, same rows, same split - every point of improvement came from translating raw columns into things the model could actually use.</p>
+    </div>
+    <p class="quiz-score"></p>
+  </section>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <section class="cheat" id="cheatsheet">
+    <h3>Practitioner session 1 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>Feature vs column</b><span>A column is stored; a feature is created. "Determining which features might be useful, and then creating those features from raw data" (Google glossary).</span></div>
+      <div class="cheat-item"><b>The model's-eye view</b><span>It receives a vector of floats. No strings, no dates, no meaning. Whatever you fail to translate, it cannot use.</span></div>
+      <div class="cheat-item"><b>The five groups</b><span>Raw numerics (b2) · Encoding (b3) · Datetime (b4) · Interactions (b6) · Selection (b8). The rest of the track, in order.</span></div>
+      <div class="cheat-item"><b>The ladder</b><span>Held-out AUC 0.500 → 0.696 → 0.785 → 0.806 → 0.812 → 0.813. Same algorithm throughout.</span></div>
+      <div class="cheat-item"><b>Leakage in one line</b><span>Information "that would not be available at prediction time" (sklearn). It shows up as a BETTER score, which is why it survives review.</span></div>
+      <div class="cheat-item"><b>The leak's shape</b><span>Train 0.967, held-out 0.789 - worse than the 0.813 without it. sklearn's noise experiment: 0.76 leaked vs 0.50 honest.</span></div>
+      <div class="cheat-item"><b>The pair rule</b><span>Never read a training score alone. Small train-holdout gap = honest work; sudden large gap = you taught it something it will not have.</span></div>
+      <div class="cheat-item"><b>Running case</b><span>Lumen Skincare checkout sessions, 3.2% conversion. Plus this course's additions: postal_code, signup_date, support_note.</span></div>
+    </div>
+  </section>
+
+  <footer class="pagefoot">
+    <span>Practitioner session 1 of 10 · learn-feature-engineering-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="../index.html">← All sessions</a> &nbsp;·&nbsp; <a href="b2-numeric-transforms.html">Next: Numeric transforms →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/fe-live.js?v=1"></script>
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>

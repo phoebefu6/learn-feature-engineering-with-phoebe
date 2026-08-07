@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Practitioner session 8 · Selection + importance - learn feature engineering with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-feature-engineering-with-phoebe</a> / Practitioner session 8 of 10</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn Feature Engineering with Phoebe · Practitioner track · Session 8 of 10</div>
+    <h1>Selection <span class="accent">+ importance</span></h1>
+    <p class="sub">Seven sessions of building features, and tonight you take some away. Two honest warnings up front. First, selection is oversold: on our own ladder it moved held-out AUC from 0.812 to 0.813, so what it really buys is simplicity, stability and serving cost. Second, the tool most teams use to decide what to cut - the feature importances a tree hands you for free - is documented by sklearn as "strongly biased", and biased in a direction that will point you straight at the wrong column. Tonight: the selection methods, the importance that lies, the importance that does not, and the moment Lumen's <code>session_hour</code> finally gets retired on evidence.</p>
+    <div class="chip-row">
+      <span class="chip level">🟠 Practitioner track</span>
+      <span class="chip audience">DS · analysts · ML engineers</span>
+      <span class="chip audience">Python · live workbench on key pages</span>
+      <span class="chip time">45 min</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Welcome</span>
+      <span class="a2" style="flex:4">3-18 · Selection methods</span>
+      <span class="a3" style="flex:5">18-42 · Build-along: importance that does not lie</span>
+      <span class="a4" style="flex:1">42-45 · Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ PART 1: WHY REMOVE FEATURES ============ -->
+  <section class="section" id="why-remove">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · covers Google "Rules of Machine Learning" #21 and #22</span>
+      <h2>Why remove features at all <span class="tag concept">7 min live</span></h2>
+    </div>
+    <p class="lede">Adding a column feels free. It is not, and Google's Rules of ML say why in two sentences. Rule 21: <em>"The number of feature weights you can learn in a linear model is roughly proportional to the amount of data you have."</em> Rule 22: <em>"Clean up features you are no longer using."</em> Your data budget is finite, and every weight you spend on a column that carries nothing is a weight you did not spend on one that does.</p>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>The honest number, before anyone oversells this<span class="mini">4 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Look back at the ladder you climbed in b1. Selection is the last rung, and it is the smallest one on the board:</p>
+        <ul>
+          <li>+ Interactions: held-out AUC <strong>0.812</strong></li>
+          <li>+ Selection: held-out AUC <strong>0.813</strong></li>
+        </ul>
+        <p>One thousandth. That is the accuracy case for feature selection on this dataset, and stating it plainly is the point - most courses quietly imply selection is a performance technique. It usually is not. What it actually buys is worth more than a decimal place:</p>
+        <ul>
+          <li><strong>Simplicity.</strong> Fewer columns to explain, review, and defend when someone asks why the model did that.</li>
+          <li><strong>Stability.</strong> Fewer weights spread across noise means less variance between retrains, and less sensitivity to a shift in a column nobody is watching.</li>
+          <li><strong>Serving cost.</strong> Every feature in the model is a feature that must be computed, joined, monitored and kept alive at prediction time. A column you dropped is a pipeline you never have to fix at 2am.</li>
+        </ul>
+        <p>Frame it that way with your team and the conversation improves immediately: you stop arguing about a thousandth of AUC and start arguing about how many things you want to keep running.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Feature debt is real debt<span class="mini">3 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Rule 22 is a maintenance rule, not a modelling one. An unused feature still has an owner, an upstream job, a schema, a backfill, and an on-call rotation attached to it. It still breaks. It still shows up in the incident channel. And because nobody remembers whether the model uses it, nobody dares delete it.</p>
+        <p>The cheapest moment to remove a feature is the moment you can show it earns nothing. That is what the rest of this session is about: producing evidence solid enough that the deletion happens.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 2: THE METHODS ============ -->
+  <section class="section" id="methods">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · covers sklearn "Feature selection" (1.13) + Kaggle Learn lesson 2, mutual information</span>
+      <h2>The methods, and what each one costs <span class="tag concept">8 min live</span></h2>
+    </div>
+    <p class="lede">Five families in sklearn, in rough order of cost. Read the last column hardest - each method has a specific way of misleading you, and none of them is "it removes the wrong feature at random".</p>
+
+    <table class="clean">
+      <thead>
+        <tr><th>Method</th><th>How it decides</th><th>Cost</th><th>Watch out</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>VarianceThreshold</code></td>
+          <td>Drops features that barely vary at all</td>
+          <td>Trivial - no model, no target</td>
+          <td>Ignores the target entirely. For Bernoulli features, to remove those that are one value in more than 80% of samples, set <code>threshold = .8 * (1 - .8) = 0.16</code></td>
+        </tr>
+        <tr>
+          <td><code>SelectKBest</code> / <code>SelectPercentile</code></td>
+          <td>Scores each feature against the target with <code>chi2</code>, <code>f_classif</code> or <code>mutual_info_classif</code></td>
+          <td>Cheap - one pass per feature</td>
+          <td>Univariate, so it cannot see combinations. And sklearn's own warning: "Beware not to use a regression scoring function with a classification problem, you will get useless results"</td>
+        </tr>
+        <tr>
+          <td><code>RFE</code> / <code>RFECV</code></td>
+          <td>Fits the model, drops the weakest features, repeats. <code>RFECV</code> cross-validates the number to keep</td>
+          <td>Expensive - many refits</td>
+          <td>Needs a model that exposes <code>coef_</code> or <code>feature_importances_</code>, and inherits that model's biases</td>
+        </tr>
+        <tr>
+          <td><code>SelectFromModel</code></td>
+          <td>Keeps features whose learned coefficient or importance clears a threshold</td>
+          <td>One fit</td>
+          <td>With L1, a smaller <code>C</code> or a larger <code>alpha</code> means fewer features kept. With trees, you inherit the impurity bias in Part 3</td>
+        </tr>
+        <tr>
+          <td><code>SequentialFeatureSelector</code></td>
+          <td>Adds (or removes) one feature at a time, keeping whatever most improves cross-validated score</td>
+          <td>The most expensive of the five</td>
+          <td>sklearn: "SFS differs from RFE and SelectFromModel in that it does not require the underlying model to expose a <code>coef_</code> or <code>feature_importances_</code> attribute. It may however be slower"</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Mutual information, and why it beats correlation<span class="mini">5 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Kaggle Learn's definition is the one to carry around: mutual information is <em>"a measure of the extent to which knowledge of one quantity reduces uncertainty about the other."</em> It is the first thing to reach for on a new dataset, because it answers "which columns are worth my attention this afternoon" without fitting anything.</p>
+        <p>It beats correlation for a specific reason, stated plainly in the same lesson: <em>"correlation only detects linear relationships."</em> A U-shaped relationship, a threshold effect, a category that matters only at the extremes - correlation reports roughly zero for all of them. Mutual information does not.</p>
+        <p>The scale: minimum <strong>0.0</strong>, meaning the two quantities are independent, and no fixed maximum - though "values above 2.0 or so are uncommon", so treat a score above 2 as a reason to check for leakage rather than a reason to celebrate.</p>
+        <div class="callout tip">
+          <strong>Its three caveats, verbatim - read them before you trust a ranking</strong>
+          "MI can't detect interactions between features. It is a univariate metric." · "The actual usefulness of a feature depends on the model you use it with." · "Just because a feature has a high MI score doesn't mean your model will be able to do anything with that information."
+        </div>
+        <p>The first caveat is the one that bites in this course specifically. In b6 you built interactions - relationships that no single column carries. A univariate metric is structurally blind to exactly those. If you had used mutual information to prune before building interactions, you would have deleted the ingredients.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Picking a scoring function without wasting an afternoon<span class="mini">3 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <ul>
+          <li><strong>Classification:</strong> <code>chi2</code> (non-negative features only), <code>f_classif</code> (linear dependency), <code>mutual_info_classif</code> (any dependency, slower).</li>
+          <li><strong>Regression:</strong> <code>f_regression</code>, <code>mutual_info_regression</code>.</li>
+          <li><strong>The mistake sklearn bothers to warn about:</strong> crossing the two lists. "Beware not to use a regression scoring function with a classification problem, you will get useless results." Nothing raises an error - you simply get a ranking that means nothing, which is worse.</li>
+        </ul>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 3: IMPORTANCE THAT LIES ============ -->
+  <section class="section" id="importance">
+    <div class="section-kicker">
+      <span class="klabel">Part 3 · covers sklearn "Permutation feature importance" (5.2)</span>
+      <h2>Importance that lies, and importance that does not <span class="tag demo">★ 12 min · everyone runs it</span></h2>
+    </div>
+    <p class="lede">Fit a tree, print <code>feature_importances_</code>, sort descending, screenshot it for the deck. It is the single most common feature-analysis move in applied machine learning, and sklearn's own documentation describes it as <strong>"strongly biased"</strong>. Not approximate. Not noisy. Biased, in a direction you can predict.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The same model ranked twice: impurity importance on the training set puts a high-cardinality id column first, while permutation importance on the held-out set puts it at zero.">
+        <style>
+          .s8T { font: 700 12.5px Inter, sans-serif; fill: #991B1B; }
+          .s8G { font: 700 12.5px Inter, sans-serif; fill: #3F6212; }
+          .s8X { font: 400 12px Inter, sans-serif; fill: #64748B; }
+          .s8L { font: 600 12px Inter, sans-serif; fill: #1E293B; }
+          .s8R { font: 400 11.5px Inter, sans-serif; fill: #64748B; }
+          .s8N { font: 600 13px Inter, sans-serif; fill: #7C2D12; }
+          .s8Wire { stroke: #4D7C0F; stroke-width: 2.5; fill: none; marker-end: url(#s8Hd); }
+        </style>
+        <defs>
+          <marker id="s8Hd" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+            <path d="M0,0 L9,4.5 L0,9 z" fill="#4D7C0F"/>
+          </marker>
+        </defs>
+
+        <text class="s8L" x="30" y="30">One model, two rankings</text>
+
+        <rect x="30" y="52" width="390" height="300" rx="10" fill="#FEF2F2" stroke="#FCA5A5" stroke-width="2"/>
+        <text class="s8T" x="46" y="80">IMPURITY IMPORTANCE</text>
+        <text class="s8X" x="46" y="100">read off the trained tree</text>
+        <text class="s8L" x="46" y="132">customer_id (high cardinality)</text>
+        <rect x="46" y="140" width="250" height="18" rx="4" fill="#991B1B"/>
+        <text class="s8R" x="304" y="154">rank 1</text>
+        <text class="s8L" x="46" y="190">prior_30d_spend</text>
+        <rect x="46" y="198" width="165" height="18" rx="4" fill="#B45309"/>
+        <text class="s8R" x="219" y="212">rank 2</text>
+        <text class="s8L" x="46" y="248">postal_code</text>
+        <rect x="46" y="256" width="118" height="18" rx="4" fill="#B45309"/>
+        <text class="s8R" x="172" y="270">rank 3</text>
+        <text class="s8L" x="46" y="306">session_hour</text>
+        <rect x="46" y="314" width="10" height="18" rx="4" fill="#64748B"/>
+        <text class="s8R" x="64" y="328">near nothing</text>
+
+        <rect x="460" y="52" width="390" height="300" rx="10" fill="#F7FEE7" stroke="#84CC16" stroke-width="2"/>
+        <text class="s8G" x="476" y="80">PERMUTATION IMPORTANCE</text>
+        <text class="s8X" x="476" y="100">measured on the held-out set</text>
+        <text class="s8L" x="476" y="132">prior_30d_spend</text>
+        <rect x="476" y="140" width="250" height="18" rx="4" fill="#4D7C0F"/>
+        <text class="s8R" x="734" y="154">rank 1</text>
+        <text class="s8L" x="476" y="190">new_vs_returning</text>
+        <rect x="476" y="198" width="96" height="18" rx="4" fill="#84CC16"/>
+        <text class="s8R" x="580" y="212">rank 2</text>
+        <text class="s8L" x="476" y="248">customer_id (high cardinality)</text>
+        <rect x="476" y="256" width="6" height="18" rx="2" fill="#64748B"/>
+        <text class="s8R" x="490" y="270">zero on unseen rows</text>
+        <text class="s8L" x="476" y="306">session_hour</text>
+        <rect x="476" y="314" width="6" height="18" rx="2" fill="#64748B"/>
+        <text class="s8R" x="490" y="328">zero here too</text>
+
+        <path class="s8Wire" d="M424,200 L456,200"/>
+
+        <rect x="30" y="368" width="14" height="14" rx="3" fill="#B45309"/>
+        <text class="s8N" x="54" y="380">The id looks strongest on training data and is worth nothing on rows the model never saw.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the same model, ranked by what it memorised and by what it actually uses</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>What impurity importance is biased towards<span class="mini">5 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>sklearn's warning, verbatim, is worth reading in full because every clause does work:</p>
+        <p>Impurity-based importances <em>"favor high cardinality features (typically numerical features) over low cardinality features such as binary features or categorical variables with a small number of possible categories"</em>, and <em>"can give high importance to features that may not be predictive on unseen data when the model is overfitting."</em></p>
+        <p>The mechanism is simple once you see it. A column with thousands of distinct values offers thousands of possible split points, so it will almost always find <em>some</em> split that reduces impurity on the training rows. It looks powerful because it is flexible, not because it is predictive. Meanwhile a genuinely useful binary flag gets one split point and one shot, and finishes lower down the list.</p>
+        <p>That is why a customer id, a raw timestamp, or a high-cardinality postal code so often floats to the top of an importance chart that then gets pasted into a slide.</p>
+        <p>The alternative, in sklearn's words: permutation importance <em>"avoids this issue, since it can be computed on unseen data."</em> Shuffle one column, re-score, and measure how much the score falls. If the model was genuinely relying on the column, breaking it hurts. If the model was memorising, breaking it changes nothing on rows it never saw.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Compute it on the held-out set, and read both<span class="mini">4 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Permutation importance can be computed on training data or on held-out data, and comparing the two is a diagnostic in its own right. sklearn states the rule verbatim: <em>"Features that are important on the training set but not on the held-out set might cause the model to overfit."</em></p>
+<pre><code>from sklearn.inspection import permutation_importance
+
+r = permutation_importance(
+    pipe, X_test, y_test,            # held-out rows, never the training rows
+    n_repeats=30, random_state=42, scoring="roc_auc")
+
+for i in r.importances_mean.argsort()[::-1]:
+    if r.importances_mean[i] - 2 * r.importances_std[i] &gt; 0:
+        print(f"{feature_names[i]:&lt;24} "
+              f"{r.importances_mean[i]:.3f} +/- {r.importances_std[i]:.3f}")</code></pre>
+        <p><code>n_repeats</code> is what turns a single shuffle into an estimate with a spread. Without it you cannot tell a real drop from a lucky permutation, and the filter above - keep only features whose mean importance clears two standard deviations - is the cheapest way to stop yourself reading noise as a ranking.</p>
+        <div class="callout tip">
+          <strong>The meta-warning, verbatim - pin this above the importance chart</strong>
+          "Permutation importance does not reflect the intrinsic predictive value of a feature by itself but how important this feature is for a particular model." A feature that is unimportant to your current model may be very important to a better one. You are measuring a relationship, not a property of the column.
+        </div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>The correlated-feature trap<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Permutation importance has one failure mode you will meet on real tabular data, and it is easy to walk into. If two features are strongly correlated, permuting one leaves the model its correlate to fall back on. The score barely moves. Do the same to the other, and the score barely moves again. <strong>Both report low importance, and both are actually load-bearing.</strong></p>
+        <p>Drop them both on that evidence and the score collapses, which is a confusing afternoon.</p>
+        <p>The fix is mechanical: cluster the correlated features first - a hierarchical clustering on the correlation matrix does it - and keep one representative per cluster before you interpret any importance number. You are then measuring the cluster's contribution, which is the thing you actually wanted to know.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 4: THE LUMEN DECISION ============ -->
+  <section class="section" id="lumen-decision">
+    <div class="section-kicker">
+      <span class="klabel">Part 4 · covers sklearn's Pipeline guidance for selection + the Lumen canon</span>
+      <h2>Retiring session_hour, on evidence <span class="tag concept">6 min live</span></h2>
+    </div>
+    <p class="lede">Lumen's <code>session_hour</code> has been sitting in this case since the intro-ML course, where it was seeded as deliberate near-useless noise. It has been suspected ever since. Tonight it gets retired properly - not because someone had a hunch, but because permutation importance on held-out data puts it at zero and stands behind the number.</p>
+
+    <div class="steps">
+      <div class="step"><p><strong>The suspicion.</strong> The intro-ML course exposed <code>session_hour</code> as noise, but exposure is not evidence anyone can act on. "We think this column does nothing" does not survive contact with the person who built the pipeline that produces it.</p></div>
+      <div class="step"><p><strong>The evidence.</strong> Permutation importance on the held-out set: shuffling <code>session_hour</code> does not move the score, because the model was never relying on it for rows it had not seen. That is a measurable, reproducible, defensible zero.</p></div>
+      <div class="step"><p><strong>The decision.</strong> Drop it. Held-out AUC goes 0.812 to <strong>0.813</strong> - a rounding error in accuracy terms, and a real win in every other term: one fewer column to compute, join, monitor and break.</p></div>
+      <div class="step"><p><strong>Where the selection step lives.</strong> Inside the Pipeline, always. sklearn is explicit: "Feature selection is usually used as a pre-processing step before doing the actual learning. The recommended way to do this in scikit-learn is to use a <code>Pipeline</code>."</p></div>
+    </div>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>Selection outside cross-validation is the leakage you already met.</strong> In b5 you saw sklearn's own worked example: feature selection fitted on all the data before splitting scored <strong>0.76 accuracy on completely random noise</strong>, where the honest pipeline scored <strong>0.50</strong> and <strong>0.43 +/- 0.05</strong> under cross-validation. Selection is a fit. It learns which columns to keep from the target, and if it learns that from rows that end up in your test set, your test set is no longer a test. This is the single most common way a competent team ships a model that was never as good as the notebook said.</p>
+    </div>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>An order of operations that holds up<span class="mini">4 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <ol>
+          <li><strong>Split first</strong>, before anything else touches the data.</li>
+          <li><strong>Explore with mutual information</strong> on the training rows only - to decide where to spend your afternoon, not to prune.</li>
+          <li><strong>Build features</strong>, including the interactions from b6, before any univariate pruning. Univariate metrics cannot see combinations, so pruning first deletes the ingredients.</li>
+          <li><strong>Put the selector inside the Pipeline</strong>, so it re-fits within every cross-validation fold.</li>
+          <li><strong>Judge with permutation importance on held-out data</strong>, with <code>n_repeats</code>, after clustering correlated features.</li>
+          <li><strong>Delete the column for real</strong> - Rule 22 - and delete the pipeline that produced it too, or you have kept the cost and lost the benefit.</li>
+        </ol>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ DEMO ============ -->
+  <section class="section" id="demo-1">
+    <div class="section-kicker">
+      <span class="klabel">Demo · the last rung of the ladder</span>
+      <h2>Watch selection earn its thousandth <span class="tag demo">★ 8 min · everyone runs it</span></h2>
+    </div>
+    <p class="lede">The workbench opens with the four honest feature groups you built in b1 to b6 already on: numerics, encoding, datetime and interactions. Read the held-out score, then switch on <strong>Selection</strong> and read it again. This is the smallest move in the whole course, and the one that most needs explaining honestly.</p>
+
+    <div class="steps">
+      <div class="step"><p>Numerics, encoding, datetime and interactions on. Press <strong>Score on held-out</strong>: <strong>0.812</strong>. This is the model you have earned so far.</p></div>
+      <div class="step"><p>Switch on <strong>Selection</strong> and score again: <strong>0.813</strong>. One thousandth of AUC. If you were expecting the chart to jump, that expectation is exactly what this session exists to correct.</p></div>
+      <div class="step"><p>What the workbench's selection step actually did: it dropped <code>session_hour</code>, the deliberate noise column. The score barely moved <em>because</em> the column carried nothing - which is the confirmation, not the disappointment.</p></div>
+      <div class="step"><p>Now say why you would still ship it. One fewer column to compute at prediction time, one fewer upstream job to keep alive, one fewer thing to monitor, one fewer thing to break. Accuracy is not the case for selection. Operations is.</p></div>
+    </div>
+
+    <div class="febox" data-mode="ladder" data-levers="numeric,categorical,datetime,interactions"></div>
+
+    <div class="callout tip">
+      <strong>How to read this one</strong>
+      Every number here is computed live in your browser: 3,000 Lumen sessions, a shuffled 60/40 split, logistic regression by gradient descent. The data is synthetic; the model, the split and the AUC are real. A gain this small is a real result, honestly reported - and reporting it honestly is more useful to your team than a bigger number would be.
+    </div>
+  </section>
+
+  <!-- ============ HOMEWORK ============ -->
+  <section class="section" id="exercise">
+    <div class="section-kicker">
+      <span class="klabel">Homework</span>
+      <h2>Try it yourself - this week <span class="tag exercise">◐ 30-40 min total</span></h2>
+    </div>
+    <ul>
+      <li>Run <code>permutation_importance</code> on a model you already have, on the held-out set, with <code>n_repeats=30</code>. Compare the ranking to the <code>feature_importances_</code> you have been quoting. Note every column that moves more than two places.</li>
+      <li>Find the highest-cardinality feature in that model and check where it sits in each ranking. If it is high on impurity and near zero on permutation, you have just reproduced sklearn's documented bias on your own data.</li>
+      <li>Compute mutual information on your training rows. Pick the top feature and the bottom feature, and write one sentence each on whether you believe the score - remembering that MI is univariate and cannot see the interactions you built.</li>
+      <li>Check whether any selection step in your codebase is fitted outside the Pipeline. If so, move it inside and re-run cross-validation. Write down both numbers.</li>
+      <li>Pick one feature you can defend deleting. Delete it, and delete the job that produces it. Rule 22 only pays if you finish it.</li>
+    </ul>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Source material</span>
+      <h2>Official sources covered</h2>
+    </div>
+    <p class="lede">This session works through sklearn's feature-selection chapter and its permutation-importance page in full, plus Kaggle Learn's mutual-information lesson and the two Rules of ML that make the case for removing features at all. Certificates and graded exercises stay with the official providers (Kaggle Learn, Google MLCC). This page covers:</p>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">sklearn "Feature selection" (1.13) - the five method families</span><span class="note">Part 2 · VarianceThreshold through SequentialFeatureSelector, with the scoring-function warning</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">sklearn "Permutation feature importance" (5.2)</span><span class="note">Part 3 · the impurity bias, the held-out rule, the meta-warning, correlated features</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Kaggle Learn "Feature Engineering" lesson 2 - Mutual Information</span><span class="note">Part 2 · the definition, the 0.0 to ~2.0 scale, and all three caveats</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Google "Rules of Machine Learning" - #21 and #22</span><span class="note">Part 1 · the data budget and feature debt · the rest of the doctrine is b1 and a4</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">fe-live workbench canon - the selection rung</span><span class="note">Demo · 0.812 to 0.813, dropping session_hour, computed live</span></div>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions before you go 🎯 <span class="tag exercise">◐ 90 seconds</span></h2>
+    </div>
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">1 · Your tree's <code>feature_importances_</code> puts a customer id column at the top. What does sklearn's documentation say is going on?</p>
+      <button class="qopt" type="button">A · The id is genuinely predictive and should be kept, since the tree found real splits on it</button>
+      <button class="qopt" type="button">B · Impurity-based importance is "strongly biased" and favours high-cardinality features over low-cardinality ones, and can rate features highly that are not predictive on unseen data</button>
+      <button class="qopt" type="button">C · The id must be leaking the target, which is a different problem from importance bias</button>
+      <p class="qwhy">Thousands of distinct values means thousands of candidate split points, so the column will almost always find something that reduces impurity on the training rows. Permutation importance "avoids this issue, since it can be computed on unseen data" - and on unseen data the id is worth nothing.</p>
+    </div>
+    <div class="quiz-q" data-answer="2">
+      <p class="qtext">2 · You rank features by mutual information and prune the bottom half before building anything. What have you risked?</p>
+      <button class="qopt" type="button">A · Nothing - MI detects non-linear relationships, so it sees everything correlation would miss</button>
+      <button class="qopt" type="button">B · Only speed, since MI is slower to compute than correlation</button>
+      <button class="qopt" type="button">C · Deleting the ingredients of an interaction, because "MI can't detect interactions between features. It is a univariate metric."</button>
+      <p class="qwhy">MI is genuinely better than correlation, which "only detects linear relationships" - but it scores one column at a time. Two features that mean little alone and a great deal together both look droppable. Build your interactions before you prune.</p>
+    </div>
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">3 · Why does the selection step have to sit inside the <code>Pipeline</code>?</p>
+      <button class="qopt" type="button">A · Because selection learns from the target, so fitting it outside cross-validation leaks - sklearn's own example scored 0.76 accuracy on pure noise that way, versus 0.50 done honestly</button>
+      <button class="qopt" type="button">B · Because sklearn refuses to cross-validate a model whose features were chosen elsewhere</button>
+      <button class="qopt" type="button">C · Because selection outside the Pipeline is slower to re-run on each fold</button>
+      <p class="qwhy">Selection is a fit like any other. sklearn's recommendation is direct: "Feature selection is usually used as a pre-processing step before doing the actual learning. The recommended way to do this in scikit-learn is to use a Pipeline." Inside it, each fold selects from its own training rows.</p>
+    </div>
+    <p class="quiz-score"></p>
+  </section>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <section class="cheat" id="cheatsheet">
+    <h3>Practitioner session 8 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>The honest case</b><span>Selection moved held-out AUC 0.812 to 0.813. It buys simplicity, stability and serving cost - not accuracy. Say so out loud.</span></div>
+      <div class="cheat-item"><b>Rules 21 and 22</b><span>Feature weights you can learn are "roughly proportional to the amount of data you have" · "Clean up features you are no longer using."</span></div>
+      <div class="cheat-item"><b>VarianceThreshold math</b><span>Bernoulli features that are one value in more than 80% of samples: threshold = .8 * (1 - .8) = 0.16.</span></div>
+      <div class="cheat-item"><b>Scoring-function warning</b><span>"Beware not to use a regression scoring function with a classification problem, you will get useless results." No error is raised.</span></div>
+      <div class="cheat-item"><b>SFS vs RFE</b><span>SFS "does not require the underlying model to expose a coef_ or feature_importances_ attribute. It may however be slower."</span></div>
+      <div class="cheat-item"><b>Mutual information</b><span>"Knowledge of one quantity reduces uncertainty about the other." Beats correlation, which "only detects linear relationships." Min 0.0; above 2.0 is uncommon. Univariate - blind to interactions.</span></div>
+      <div class="cheat-item"><b>Impurity importance lies</b><span>"Strongly biased" toward high-cardinality features; can rate features highly that "may not be predictive on unseen data when the model is overfitting."</span></div>
+      <div class="cheat-item"><b>Permutation importance</b><span>Compute on held-out, with n_repeats. It measures importance "for a particular model", not intrinsic value. Cluster correlated features first, or both look useless.</span></div>
+    </div>
+  </section>
+
+  <footer class="pagefoot">
+    <span>Practitioner session 8 of 10 · learn-feature-engineering-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="b7-missing-data.html">← b7 · Missing data as signal</a> &nbsp;·&nbsp; <a href="../index.html">All sessions</a> &nbsp;·&nbsp; <a href="b9-embeddings-as-features.html">Next: Embeddings as features →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/fe-live.js?v=1"></script>
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>

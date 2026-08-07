@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Practitioner session 3 · Categorical encoding - learn feature engineering with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-feature-engineering-with-phoebe</a> / Practitioner session 3 of 10</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn Feature Engineering with Phoebe · Practitioner track · Session 3 of 10</div>
+    <h1>Categorical <span class="accent">encoding</span></h1>
+    <p class="sub">Encoding was the single biggest jump on b1's ladder - held-out AUC from 0.696 to 0.785 - because it hands the model columns it previously could not read at all. Tonight you learn one-hot properly, including the parameters that keep it from exploding, and then you meet target encoding: the technique that solves high cardinality and, done naively, manufactures a training AUC of 0.931 out of a column that knows absolutely nothing.</p>
+    <div class="chip-row">
+      <span class="chip level">🟡 Practitioner track</span>
+      <span class="chip audience">DS · analysts · ML engineers</span>
+      <span class="chip audience">Python · live workbench on key pages</span>
+      <span class="chip time">45 min</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Welcome</span>
+      <span class="a2" style="flex:5">3-18 · One-hot and its limits</span>
+      <span class="a3" style="flex:8">18-42 · Build-along: high cardinality without leaking</span>
+      <span class="a4" style="flex:1">42-45 · Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ PART 1: ONE-HOT ============ -->
+  <section class="section" id="one-hot">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · covers Google MLCC "Working with categorical data" + sklearn OneHotEncoder</span>
+      <h2>Why not just number the categories <span class="tag concept">8 min live</span></h2>
+    </div>
+    <p class="lede">The tempting shortcut is to map <code>channel</code> to 0 through 8 and move on. Google's crash course explains the damage in one sentence, and it is worth reading slowly: <em>"the model would treat the indexed values as continuous floating-point numbers. The model would then consider 'purple' six times more likely than 'orange.'"</em></p>
+
+    <p>An index is not a label. It is a number with an order and a magnitude, and a linear model will happily fit a single weight to it - meaning your model now believes affiliate traffic is exactly nine times whatever email is. Nothing about your data said that. You said it, accidentally, when you chose the integers.</p>
+
+    <p class="lede">One-hot removes the arithmetic. Nine categories become nine binary columns, exactly one of which is 1 for any given row. No order, no magnitude, one weight learned per category independently.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 390" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Lumen's channel column with nine levels expanding into nine one-hot binary columns, with the three rarest levels folded into a single infrequent bucket.">
+        <style>
+          .c3T { font: 700 13px Inter, sans-serif; fill: #FFFFFF; }
+          .c3S { font: 400 12px Inter, sans-serif; fill: #FFFFFF; opacity: .93; }
+          .c3I { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+          .c3X { font: 400 12px Inter, sans-serif; fill: #64748B; }
+          .c3K { font: 700 11px Inter, sans-serif; fill: #3F6212; }
+          .c3V { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+          .c3N { font: 600 13px Inter, sans-serif; fill: #7C2D12; }
+          .c3W { stroke: #4D7C0F; stroke-width: 2.5; fill: none; marker-end: url(#c3Hd); }
+        </style>
+        <defs>
+          <marker id="c3Hd" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+            <path d="M0,0 L9,4.5 L0,9 z" fill="#4D7C0F"/>
+          </marker>
+        </defs>
+
+        <rect x="40" y="46" width="210" height="180" rx="10" fill="#F7FEE7" stroke="#84CC16" stroke-width="2"/>
+        <text class="c3I" x="58" y="72">channel · 9 levels</text>
+        <text class="c3X" x="58" y="98">email</text>
+        <text class="c3X" x="58" y="116">paid_search</text>
+        <text class="c3X" x="58" y="134">organic</text>
+        <text class="c3X" x="58" y="152">direct</text>
+        <text class="c3X" x="58" y="170">social</text>
+        <text class="c3X" x="58" y="188">affiliate</text>
+        <text class="c3K" x="58" y="212">+ sms, display, referral</text>
+
+        <path class="c3W" d="M255,136 L302,136"/>
+
+        <text class="c3I" x="310" y="72">One-hot: 9 binary columns, exactly one is 1</text>
+
+        <rect x="310" y="88" width="55" height="48" rx="6" fill="#3F6212"/>
+        <text class="c3S" x="326" y="108" font-size="10">eml</text>
+        <text class="c3T" x="333" y="128">1</text>
+        <rect x="368" y="88" width="55" height="48" rx="6" fill="#F7FEE7" stroke="#84CC16" stroke-width="1.5"/>
+        <text class="c3X" x="384" y="108" font-size="10">pdS</text>
+        <text class="c3V" x="391" y="128">0</text>
+        <rect x="426" y="88" width="55" height="48" rx="6" fill="#F7FEE7" stroke="#84CC16" stroke-width="1.5"/>
+        <text class="c3X" x="442" y="108" font-size="10">org</text>
+        <text class="c3V" x="449" y="128">0</text>
+        <rect x="484" y="88" width="55" height="48" rx="6" fill="#F7FEE7" stroke="#84CC16" stroke-width="1.5"/>
+        <text class="c3X" x="500" y="108" font-size="10">dir</text>
+        <text class="c3V" x="507" y="128">0</text>
+        <rect x="542" y="88" width="55" height="48" rx="6" fill="#F7FEE7" stroke="#84CC16" stroke-width="1.5"/>
+        <text class="c3X" x="558" y="108" font-size="10">soc</text>
+        <text class="c3V" x="565" y="128">0</text>
+        <rect x="600" y="88" width="55" height="48" rx="6" fill="#F7FEE7" stroke="#84CC16" stroke-width="1.5"/>
+        <text class="c3X" x="616" y="108" font-size="10">aff</text>
+        <text class="c3V" x="623" y="128">0</text>
+        <rect x="658" y="88" width="55" height="48" rx="6" fill="#FEF2F2" stroke="#FCA5A5" stroke-width="1.5"/>
+        <text class="c3X" x="674" y="108" font-size="10">sms</text>
+        <text class="c3V" x="681" y="128">0</text>
+        <rect x="716" y="88" width="55" height="48" rx="6" fill="#FEF2F2" stroke="#FCA5A5" stroke-width="1.5"/>
+        <text class="c3X" x="732" y="108" font-size="10">dsp</text>
+        <text class="c3V" x="739" y="128">0</text>
+        <rect x="774" y="88" width="55" height="48" rx="6" fill="#FEF2F2" stroke="#FCA5A5" stroke-width="1.5"/>
+        <text class="c3X" x="790" y="108" font-size="10">ref</text>
+        <text class="c3V" x="797" y="128">0</text>
+
+        <text class="c3X" x="310" y="166">[1, 0, 0, 0, 0, 0, 0, 0, 0] is the row for channel = email</text>
+        <text class="c3X" x="310" y="188">No order is implied, so no category can be "more" than another</text>
+
+        <text class="c3I" x="40" y="266">Rare-level grouping: min_frequency = 0.01</text>
+        <rect x="40" y="278" width="300" height="58" rx="8" fill="#FEF2F2" stroke="#FCA5A5" stroke-width="2"/>
+        <text class="c3N" x="58" y="302">sms · display · referral</text>
+        <text class="c3N" x="58" y="324">each under 1% of all rows</text>
+        <path class="c3W" d="M347,307 L392,307"/>
+        <rect x="400" y="278" width="300" height="58" rx="8" fill="#B45309"/>
+        <text class="c3T" x="418" y="302">infrequent_sklearn</text>
+        <text class="c3S" x="418" y="324">one column replaces three</text>
+        <text class="c3N" x="715" y="312">9 becomes 7 cols</text>
+
+        <rect x="40" y="358" width="14" height="14" rx="3" fill="#B45309"/>
+        <text class="c3N" x="64" y="370">min_frequency and max_categories fold rare levels; np.nan and None stay separate categories.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - nine levels out, nine binary columns back, three of them folded</figcaption>
+    </figure>
+
+    <p class="lede">sklearn's <code>OneHotEncoder</code> carries the parameters that turn this from a demo into something production-safe. These five are the ones you will actually set.</p>
+
+    <table class="clean">
+      <thead>
+        <tr><th>Parameter</th><th>What it does</th><th>Why you set it</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>handle_unknown</code></td><td><code>error</code> · <code>ignore</code> · <code>infrequent_if_exist</code></td><td>A category appears in production that was not in training. <code>error</code> crashes, <code>ignore</code> emits all zeros, <code>infrequent_if_exist</code> routes it to the rare bucket</td></tr>
+        <tr><td><code>min_frequency</code></td><td>An integer count or a fraction of rows</td><td>Levels below the threshold are grouped into one infrequent category instead of getting their own barely-populated column</td></tr>
+        <tr><td><code>max_categories</code></td><td>A hard ceiling on output columns</td><td>Caps the blast radius. Note the docs' fine print: "<code>max_categories</code> includes the feature that combines infrequent categories"</td></tr>
+        <tr><td><code>drop</code></td><td><code>'first'</code> or <code>'if_binary'</code>, giving n-1 columns</td><td>"Useful to avoid co-linearity" in linear models, where the full set of dummies is perfectly redundant</td></tr>
+        <tr><td><code>sparse_output</code></td><td>Return a sparse matrix or a dense array</td><td>Sparse is the default and the right choice at scale - and it is why b2's MaxAbsScaler advice exists</td></tr>
+      </tbody>
+    </table>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>The gotcha that costs an afternoon<span class="mini">3 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p><code>np.nan</code> and <code>None</code> are treated as <strong>separate categories</strong> by <code>OneHotEncoder</code>. If your pipeline reads some rows from a CSV (missing values arrive as <code>np.nan</code>) and others from a JSON API (missing values arrive as <code>None</code>), you will silently produce two different "missing" columns describing the same absence, each with half the data and half the statistical power.</p>
+        <p>The fix is dull and reliable: normalize your nulls to one representation before the encoder ever sees them. Do it in the ingest step, not in the model code, so every downstream consumer inherits the same convention.</p>
+        <div class="callout example">
+          <span class="ex-pill">Real world</span>
+          <p><strong>Missing is often signal, not absence.</strong> A Lumen session with no <code>channel</code> is usually direct traffic that failed attribution, which is a meaningfully different customer from one that clicked a paid ad. Treating that null as its own category is frequently the right call rather than a failure to impute - which is exactly the argument b7 makes at full length.</p>
+        </div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>When to drop a column, and when not to<span class="mini">3 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p><code>drop='first'</code> removes one dummy per feature, leaving n-1 columns. sklearn's stated reason is that it is "useful to avoid co-linearity in the input matrix" - with all n dummies present, any one of them is exactly one minus the sum of the others, and an unregularized linear model has no unique solution.</p>
+        <ul>
+          <li><strong>Drop</strong> for plain linear or logistic regression when you intend to read the coefficients. Each remaining weight becomes "relative to the dropped baseline category", which is usually what you wanted to say anyway.</li>
+          <li><strong>Do not drop</strong> for tree-based models, where collinearity is not an issue and dropping a level just makes one category harder to isolate with a single split.</li>
+          <li><strong>Do not drop</strong> when you are using L1 or L2 regularization, which handles collinearity on its own and where the penalty applies asymmetrically once a baseline is implicit.</li>
+          <li><code>drop='if_binary'</code> is the tidy middle ground: it drops only for two-level features, where the second column is pure redundancy no matter what model you use.</li>
+        </ul>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 2: HIGH CARDINALITY ============ -->
+  <section class="section" id="cardinality">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · covers Google MLCC dimensionality + Rules of ML #21</span>
+      <h2>The high-cardinality problem <span class="tag concept">6 min live</span></h2>
+    </div>
+    <p class="lede">One-hot works beautifully at nine levels. It stops working somewhere before a thousand, and Google names the failure directly: <em>"Categorical data tends to produce high-dimensional feature vectors... High dimensionality increases training costs and makes training more difficult."</em></p>
+
+    <p>This course adds <code>postal_code</code> to the Lumen case precisely to make the problem concrete. It has roughly <strong>1,200 levels</strong> across <strong>40,000 rows</strong>. One-hot encoding it adds 1,200 columns, most of which are 1 in a few dozen rows and 0 in every other row. The model is now being asked to learn 1,200 weights from evidence that, for most of them, amounts to a handful of observations.</p>
+
+    <div class="callout tip">
+      <strong>Rules of ML #21, the sentence that sizes the problem</strong>
+      "The number of feature weights you can learn in a linear model is roughly proportional to the amount of data you have." 40,000 rows does not support 1,200 well-estimated postal-code weights. Every column you add is a claim on the same fixed budget of evidence.
+    </div>
+
+    <table class="clean">
+      <thead>
+        <tr><th>Option</th><th>How it handles 1,200 levels</th><th>Cost</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Rare grouping</strong></td><td><code>min_frequency</code> folds everything below a threshold into one infrequent column</td><td>Simple and safe. You lose the identity of every small area</td></tr>
+        <tr><td><strong>Hashing</strong></td><td>Hash each level into a fixed number of buckets, say 64</td><td>No fitting and no vocabulary to store, but collisions are silent and irreversible</td></tr>
+        <tr><td><strong>Target encoding</strong></td><td>Replace each level with a smoothed statistic of the target for that level - one column total</td><td>Powerful. Leaks the target unless you cross-fit. This is Part 3</td></tr>
+        <tr><td><strong>Embeddings</strong></td><td>Learn a dense low-dimensional vector per level</td><td>Best on very high cardinality with real structure. Needs more data and more machinery (b9)</td></tr>
+      </tbody>
+    </table>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Rare grouping is underrated<span class="mini">3 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Before reaching for anything clever, try the boring option and measure it. Setting <code>min_frequency=0.01</code> on <code>postal_code</code> keeps only the areas that appear in at least 1% of sessions and folds the rest into a single bucket. Twelve hundred columns typically become a few dozen, and the model gets to learn each of those few dozen weights from a real sample rather than a rumour.</p>
+        <p>Two practical benefits people forget:</p>
+        <ul>
+          <li>It gives you a natural landing zone for unseen categories in production. Pair it with <code>handle_unknown="infrequent_if_exist"</code> and a postal code that never appeared in training is routed to the infrequent bucket rather than crashing or vanishing into all-zeros.</li>
+          <li>It is fully reversible and fully explainable. You can show a stakeholder exactly which levels were merged. Neither hashing nor an embedding lets you do that.</li>
+        </ul>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 3: TARGET ENCODING ============ -->
+  <section class="section" id="target-encoding">
+    <div class="section-kicker">
+      <span class="klabel">Part 3 · covers sklearn TargetEncoder + Pargent et al. 2021</span>
+      <h2>Target encoding, done right <span class="tag concept">10 min live</span></h2>
+    </div>
+    <p class="lede">Target encoding replaces a category with a statistic of the target for that category: postal code 048624 becomes the conversion rate of sessions from 048624. One column instead of 1,200. The idea is obvious and the implementation is full of trapdoors, which is why sklearn documents the maths rather than hiding it.</p>
+
+    <p>For a binary target, each level <em>i</em> is encoded as a blend of its own rate and the global rate:</p>
+
+    <div class="prompt-box"><span class="label">The formula</span>S_i = lambda_i * (n_iY / n_i)  +  (1 - lambda_i) * (n_Y / n)
+
+lambda_i = n_i / (m + n_i)          m = the smoothing factor
+
+  n_i   = rows in category i          n_iY = positive rows in category i
+  n     = total rows                  n_Y  = total positive rows
+
+smooth="auto" uses an empirical Bayes estimate:  m = sigma_i^2 / tau^2</div>
+
+    <p>Read <code>lambda_i</code> as a confidence dial. A category with thousands of rows has <code>lambda_i</code> close to 1, so it is encoded as its own rate. A category with three rows has <code>lambda_i</code> close to 0, so it is dragged back toward the global mean where it can do less damage. sklearn states the effect in one line: <em>"Large smoothing factors put more weight on the global mean."</em></p>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>sklearn's own demonstration of the dial.</strong> On the same three categories, <code>smooth=5000</code> produces encodings of <strong>[44.1, 44.4, 44.3]</strong> - the categories have been smoothed into near-identity with the global mean, and the feature carries almost nothing. <code>smooth=1.0</code> on the identical data produces <strong>[21, 80.8, 43.2]</strong> - the raw category rates, barely regularized, and now trusting three separate small samples completely. Neither extreme is the answer; the parameter is the whole game.</p>
+    </div>
+
+    <p class="lede">Now the part that matters more than the formula. If you compute each category's rate from the same rows you then train on, every row has contributed to its own encoding. The feature contains a whisper of the answer, and the model hears it.</p>
+
+    <div class="callout tip">
+      <strong>Cross-fitting, in sklearn's words</strong>
+      "In <code>fit_transform</code>, the training data is split into k folds (determined by the <code>cv</code> parameter) and each fold is encoded using the encodings learnt using the other k-1 folds." The stated purpose: to prevent target information from leaking into the train-time representation, especially for non-informative high-cardinality categorical variables.
+    </div>
+
+    <p>Which produces the single most surprising line in the sklearn preprocessing docs, and the one to say out loud in your next code review: <strong><code>fit(X, y).transform(X)</code> does not equal <code>fit_transform(X, y)</code></strong>. These are different operations by design. <code>fit_transform</code> cross-fits; <code>fit</code> followed by <code>transform</code> does not, and the docs explicitly discourage using that pair on training data.</p>
+
+    <div class="prompt-box"><span class="label">Python · right and wrong</span>from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import TargetEncoder, OneHotEncoder
+from sklearn.linear_model import LogisticRegression
+
+# RIGHT: inside a Pipeline. Pipeline.fit calls fit_transform on the training
+# fold, so the cross-fitting happens; test rows go through transform only.
+prep = ColumnTransformer([
+    ("high_card", TargetEncoder(smooth="auto", cv=5), ["postal_code"]),
+    ("low_card",  OneHotEncoder(min_frequency=0.01,
+                                handle_unknown="infrequent_if_exist"),
+                  ["channel", "device", "product_category"]),
+])
+
+model = Pipeline([("prep", prep), ("clf", LogisticRegression(max_iter=1000))])
+model.fit(X_train, y_train)
+
+# WRONG: fit then transform on the SAME training rows. No cross-fitting.
+# Every row helped build its own encoding, and the docs discourage this.
+enc = TargetEncoder().fit(X_train, y_train)
+X_bad = enc.transform(X_train)
+
+# NOTE: shuffle and random_state are deprecated since sklearn 1.9. Do not
+# reach for them; cv and smooth are the parameters that matter.</div>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>What the peer-reviewed evidence says<span class="mini">3 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Target encoding has a reputation as a Kaggle trick, which undersells it. Pargent, Pfisterer, Thomas and Bischl (2021) benchmarked encoding strategies for high-cardinality categorical features across many datasets and models, and found that <em>"regularized versions of target encoding... consistently provided the best results"</em> compared with integer and one-hot encoding.</p>
+        <p>Note the word doing the work: <strong>regularized</strong>. The finding is not "target encoding wins". It is "target encoding <em>with the smoothing and the cross-fitting</em> wins". The unregularized version is the thing you are about to watch fail in the workbench, and the paper is not endorsing it.</p>
+        <p>This is also the honest answer to "should I always use target encoding?" - no. Use one-hot with rare grouping when cardinality is modest and you want interpretability. Reach for a regularized target encoder when one-hot would inflate the feature space beyond what your row count can support.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ DEMO ============ -->
+  <section class="section" id="demo">
+    <div class="section-kicker">
+      <span class="klabel">Build-along</span>
+      <h2>Watch a useless column score 0.931 <span class="tag demo">★ 14 min · everyone runs it</span></h2>
+    </div>
+    <p class="lede">The workbench below target-encodes Lumen's <code>postal_code</code> two ways on the same rows. Read the setup carefully before you press anything, because the setup is the whole point.</p>
+
+    <div class="steps">
+      <div class="step"><p><strong>The setup.</strong> <code>postal_code</code> has 1,200 levels and is drawn <em>independently of the target</em>. It knows nothing. There is no signal in it to find, by construction - like sklearn's own <code>near_unique</code> demo column.</p></div>
+      <div class="step"><p><strong>Naive encoding</strong> - fit the per-level rates on all training rows, then reuse them on those same rows: training AUC <strong>0.931</strong>, held-out <strong>0.493</strong>. A column containing no information just produced a training score you would celebrate.</p></div>
+      <div class="step"><p><strong>Cross-fitted</strong> - each fold encoded using the encodings learnt from the other folds, which is what <code>TargetEncoder.fit_transform</code> does: training <strong>0.509</strong>, held-out <strong>0.493</strong>. The held-out number did not move. The training number told the truth for the first time.</p></div>
+      <div class="step"><p><strong>Sit with the gap.</strong> Naive: 0.931 train against 0.493 held-out. Cross-fitted: 0.509 against 0.493. Cross-fitting did not improve the model - it improved your ability to see that there was never a model here at all.</p></div>
+      <div class="step"><p><strong>sklearn's own numbers, at scale.</strong> On 50,000 rows with a near-unique category column, their documented example reports test R² of <strong>0.634</strong> without cross-fitting versus <strong>0.793</strong> with it. Their docs call the first case "catastrophic overfitting" - not sloppy, not suboptimal. Catastrophic.</p></div>
+    </div>
+
+    <div class="febox" data-mode="encode"></div>
+
+    <div class="callout tip">
+      <strong>The habit this session installs</strong>
+      Any time a categorical feature makes the training score jump, ask how its encoding was fitted before you ask what it means. A suspiciously good training score on a high-cardinality column is a leakage symptom until proven otherwise - and b5 is where that instinct becomes a full method.
+    </div>
+  </section>
+
+  <!-- ============ HOMEWORK ============ -->
+  <section class="section" id="exercise">
+    <div class="section-kicker">
+      <span class="klabel">Homework</span>
+      <h2>Try it yourself - this week <span class="tag exercise">◐ 25-35 min total</span></h2>
+    </div>
+    <ul>
+      <li>Count the distinct levels in every categorical column you own. Anything above about fifty is a candidate for rare grouping; anything above a few hundred is a candidate for target encoding or embeddings.</li>
+      <li>Take your highest-cardinality column and one-hot it with <code>min_frequency</code> at 0.01, then 0.005, then 0.001. Record how many columns each produces and how the held-out score moves. Usually less than you expect.</li>
+      <li>Reproduce the trap deliberately: target-encode a column with <code>fit</code> then <code>transform</code> on training rows, and compare the training score with the same encoder inside a <code>Pipeline</code>. Seeing your own number inflate is worth more than reading about mine.</li>
+      <li>Audit your codebase for <code>TargetEncoder</code>, <code>LabelEncoder</code> or any hand-rolled group-mean encoding used outside a Pipeline. Each one is a leak waiting to be found by someone else.</li>
+    </ul>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Source material</span>
+      <h2>Official sources covered</h2>
+    </div>
+    <p class="lede">Tonight covers Google's categorical-data module for the reasoning and sklearn's encoder documentation for the mechanics, plus the peer-reviewed benchmark that backs the regularized approach. Certificates and graded exercises stay with the official providers. This page covers:</p>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Google MLCC "Working with categorical data" - indexing, one-hot, dimensionality</span><span class="note">Parts 1-2 · feature crosses land in b6</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">sklearn OneHotEncoder - handle_unknown, min_frequency, max_categories, drop</span><span class="note">Part 1 · plus the np.nan versus None gotcha</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">sklearn TargetEncoder + the internal cross-fitting example</span><span class="note">Part 3 · the formula, the smoothing dial, the 0.634 versus 0.793 result</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Pargent, Pfisterer, Thomas, Bischl (2021) - regularized target encoding benchmark</span><span class="note">The evidence that regularization is the load-bearing part</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">fe-live encode canon - postal_code naive versus cross-fitted</span><span class="note">Train 0.931 / held-out 0.493 against 0.509 / 0.493</span></div>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions before you go 🎯 <span class="tag exercise">◐ 90 seconds</span></h2>
+    </div>
+    <div class="quiz-q" data-answer="2">
+      <p class="qtext">1 · Why is mapping <code>channel</code> to the integers 0 through 8 the wrong move?</p>
+      <button class="qopt" type="button">A · Because sklearn refuses to fit on integer columns without a scaler</button>
+      <button class="qopt" type="button">B · Because nine categories is too many for a single column to hold</button>
+      <button class="qopt" type="button">C · Because the model "would treat the indexed values as continuous floating-point numbers" and infer that one category is several times "more" than another</button>
+      <p class="qwhy">Google's example says it exactly: the model "would then consider 'purple' six times more likely than 'orange.'" You did not observe that ordering in the data - you invented it when you picked the integers.</p>
+    </div>
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">2 · What does cross-fitting inside <code>TargetEncoder.fit_transform</code> actually prevent?</p>
+      <button class="qopt" type="button">A · Each training row contributing to its own encoding, which lets target information leak into the train-time representation</button>
+      <button class="qopt" type="button">B · Categories unseen in training from crashing the transform at prediction time</button>
+      <button class="qopt" type="button">C · The encoded column from having a different scale than the other numerics</button>
+      <p class="qwhy">The training data is split into k folds and "each fold is encoded using the encodings learnt using the other k-1 folds". Without it, a column with no signal at all scored a training AUC of 0.931 in tonight's workbench, and sklearn's own 50,000-row example dropped from test R² 0.793 to 0.634 - which their docs call "catastrophic overfitting".</p>
+    </div>
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">3 · When does target encoding beat one-hot encoding?</p>
+      <button class="qopt" type="button">A · Always, since one column is always cheaper than many</button>
+      <button class="qopt" type="button">B · On high-cardinality features where one-hot would inflate the feature space past what your row count supports - and only in a regularized, cross-fitted form</button>
+      <button class="qopt" type="button">C · Whenever the categorical column has any relationship with the target</button>
+      <p class="qwhy">Rules of ML #21 sets the budget: learnable weights are "roughly proportional to the amount of data you have". Pargent et al. found "regularized versions of target encoding... consistently provided the best results" - regularized being the operative word. At nine levels, one-hot with rare grouping is simpler and more explainable.</p>
+    </div>
+    <p class="quiz-score"></p>
+  </section>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <section class="cheat" id="cheatsheet">
+    <h3>Practitioner session 3 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>Never index categories</b><span>"The model would treat the indexed values as continuous floating-point numbers... consider 'purple' six times more likely than 'orange.'"</span></div>
+      <div class="cheat-item"><b>OneHotEncoder params</b><span>handle_unknown (error / ignore / infrequent_if_exist) · min_frequency · max_categories · drop='first'|'if_binary' · sparse_output.</span></div>
+      <div class="cheat-item"><b>Two gotchas</b><span>np.nan and None are SEPARATE categories. And "max_categories includes the feature that combines infrequent categories."</span></div>
+      <div class="cheat-item"><b>High cardinality</b><span>"High dimensionality increases training costs and makes training more difficult." Lumen's postal_code: 1,200 levels on 40,000 rows.</span></div>
+      <div class="cheat-item"><b>Rules of ML #21</b><span>"The number of feature weights you can learn in a linear model is roughly proportional to the amount of data you have."</span></div>
+      <div class="cheat-item"><b>The formula</b><span>S_i = lambda_i * (n_iY / n_i) + (1 - lambda_i) * (n_Y / n), lambda_i = n_i / (m + n_i). smooth="auto" is empirical Bayes, m = sigma_i^2 / tau^2.</span></div>
+      <div class="cheat-item"><b>The smoothing dial</b><span>"Large smoothing factors put more weight on the global mean." smooth=5000 → [44.1, 44.4, 44.3]. smooth=1.0 → [21, 80.8, 43.2].</span></div>
+      <div class="cheat-item"><b>Cross-fitting or bust</b><span>fit(X, y).transform(X) does NOT equal fit_transform(X, y). Naive 0.931 train / 0.493 held-out; cross-fitted 0.509 / 0.493. shuffle and random_state deprecated since 1.9.</span></div>
+    </div>
+  </section>
+
+  <footer class="pagefoot">
+    <span>Practitioner session 3 of 10 · learn-feature-engineering-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="b2-numeric-transforms.html">← b2 · Numeric transforms</a> &nbsp;·&nbsp; <a href="../index.html">All sessions</a> &nbsp;·&nbsp; <a href="b4-datetime-features.html">Next: Datetime + cyclical features →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/fe-live.js?v=1"></script>
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>

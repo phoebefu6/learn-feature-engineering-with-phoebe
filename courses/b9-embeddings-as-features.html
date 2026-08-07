@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Practitioner session 9 · Embeddings as features - learn feature engineering with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-feature-engineering-with-phoebe</a> / Practitioner session 9 of 10</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn Feature Engineering with Phoebe · Practitioner track · Session 9 of 10</div>
+    <h1>Embeddings <span class="accent">as features</span></h1>
+    <p class="sub">Eight sessions of hand-crafted craft, and one column has been sitting untouched the whole time: <code>support_note</code>, free text, unusable by anything you have built so far. Tonight you encode it and bolt the result onto the same tabular matrix feeding the same logistic regression from b1. This is a bridge session, not a conversion: embeddings do not replace the craft, they extend it to the columns the craft cannot reach - and they arrive with their own cost, their own interpretability bill, and their own leakage rails.</p>
+    <div class="chip-row">
+      <span class="chip level">🔴 Practitioner track</span>
+      <span class="chip audience">DS · analysts · ML engineers</span>
+      <span class="chip audience">Python · live workbench on key pages</span>
+      <span class="chip time">45 min</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Welcome</span>
+      <span class="a2" style="flex:4">3-18 · When hand-crafting stops</span>
+      <span class="a3" style="flex:5">18-42 · Build-along: support_note becomes a feature</span>
+      <span class="a4" style="flex:1">42-45 · Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ PART 1: THE HONEST BRIDGE ============ -->
+  <section class="section" id="the-bridge">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · covers Google MLCC "Embeddings" + glossary, Rules of ML #17</span>
+      <h2>Start with what you observed <span class="tag concept">8 min live</span></h2>
+    </div>
+    <p class="lede">Before a single word about embeddings, the counterweight, and it is Google's own: <strong>Rule 17 - "Start with directly observed and reported features as opposed to learned features."</strong> That rule is why this session is number nine and not number two. Everything in b2 to b8 is directly observed: a spend figure, a channel, a weekday, a count. Learned features are the ones a model invented for you, and they buy real capability at the price of everything you liked about a hand-crafted column.</p>
+
+    <p>So the honest question is not "should we use embeddings?" It is narrower and much easier to answer: <em>is there a column here that hand-crafting genuinely cannot reach?</em> On Lumen there is exactly one. <code>support_note</code> is free text a customer typed. There is no scaler for it, no sensible one-hot, no decomposition. It is either encoded or it is dropped, and for eight sessions we have been dropping it.</p>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>Why one-hot runs out on text<span class="mini">5 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Google's crash course gives two reasons, and both matter more for text than for anything you encoded in b3:</p>
+        <ul>
+          <li><strong>Width.</strong> With M one-hot entries feeding N first-layer nodes, "the model has to train MxN weights for that layer." A vocabulary is not nine channels; it is tens of thousands of entries, and the weight count follows it up.</li>
+          <li><strong>Meaninglessness.</strong> One-hot encodings "lack meaningful relationships." Every category sits the same distance from every other, so "hot dogs and shawarmas" are exactly as unrelated as "hot dogs and salads" - which is the opposite of what you want a model to know about food, or about a customer note.</li>
+        </ul>
+        <p>An embedding fixes both by being small and by placing similar things near each other. Google's glossary is precise about the size: an embedding vector is <em>"A relatively low-dimensional vector of floating-point values (typically, between 5 and 500)."</em> Low-dimensional relative to the vocabulary, not relative to your table - 384 columns is still 384 columns, and Part 3 prices that.</p>
+        <p>And then the line that makes this a feature-engineering session rather than an NLP session, from OpenAI's embeddings guide: <em>"An embedding can be used as a general free-text feature encoder within a machine learning model."</em> That is the whole idea. The embedding is not the model. It is a transformer that turns a column you could not use into columns you can, and everything downstream stays exactly as it was.</p>
+      </div>
+    </details>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Lumen's support_note text column passing through an encoder into a 384-dimensional vector, which is concatenated onto the hand-crafted tabular columns to form one feature matrix for the same model.">
+        <style>
+          .e9T { font: 700 13.5px Inter, sans-serif; fill: #FFFFFF; }
+          .e9S { font: 400 11.5px Inter, sans-serif; fill: #FFFFFF; opacity: .93; }
+          .e9I { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+          .e9X { font: 400 12px Inter, sans-serif; fill: #64748B; }
+          .e9N { font: 600 13px Inter, sans-serif; fill: #7C2D12; }
+          .e9Wire { stroke: #4D7C0F; stroke-width: 2.5; fill: none; marker-end: url(#e9Hd); }
+        </style>
+        <defs>
+          <marker id="e9Hd" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+            <path d="M0,0 L9,4.5 L0,9 z" fill="#4D7C0F"/>
+          </marker>
+        </defs>
+
+        <rect x="40" y="50" width="200" height="104" rx="10" fill="#F7FEE7" stroke="#84CC16" stroke-width="2"/>
+        <text class="e9I" x="56" y="76">TEXT COLUMN</text>
+        <text class="e9X" x="56" y="100">support_note</text>
+        <text class="e9X" x="56" y="122">"gift wrap?"</text>
+        <text class="e9X" x="56" y="144">1 column, free text</text>
+
+        <rect x="286" y="68" width="150" height="68" rx="10" fill="#4D7C0F"/>
+        <text class="e9T" x="302" y="96">ENCODER</text>
+        <text class="e9S" x="302" y="118">all-MiniLM-L6-v2</text>
+
+        <rect x="482" y="50" width="170" height="104" rx="10" fill="#3F6212"/>
+        <text class="e9T" x="498" y="76">EMBEDDING VECTOR</text>
+        <text class="e9S" x="498" y="100">[0.12, -0.44, 0.07,</text>
+        <text class="e9S" x="498" y="120">... 0.31]</text>
+        <text class="e9S" x="498" y="142">shape [n, 384]</text>
+
+        <rect x="40" y="206" width="200" height="104" rx="10" fill="#F7FEE7" stroke="#84CC16" stroke-width="2"/>
+        <text class="e9I" x="56" y="232">HAND-CRAFTED (b2-b8)</text>
+        <text class="e9X" x="56" y="256">scaled numerics (b2)</text>
+        <text class="e9X" x="56" y="278">one-hot channel (b3)</text>
+        <text class="e9X" x="56" y="300">tenure, weekday (b4)</text>
+
+        <rect x="690" y="98" width="150" height="164" rx="10" fill="#3F6212"/>
+        <text class="e9T" x="706" y="126">ONE MATRIX</text>
+        <text class="e9S" x="706" y="152">384 embedding cols</text>
+        <text class="e9S" x="706" y="174">+ crafted columns</text>
+        <text class="e9S" x="706" y="202">feeding the SAME</text>
+        <text class="e9S" x="706" y="224">logistic regression</text>
+        <text class="e9S" x="706" y="246">you built in b1</text>
+
+        <path class="e9Wire" d="M240,102 L282,102"/>
+        <path class="e9Wire" d="M436,102 L478,102"/>
+        <path class="e9Wire" d="M652,102 C668,102 672,118 686,138"/>
+        <path class="e9Wire" d="M240,258 C420,258 540,250 686,222"/>
+
+        <rect x="40" y="322" width="14" height="14" rx="3" fill="#B45309"/>
+        <text class="e9N" x="64" y="334">Two lanes, one matrix. The embedding extends the craft; it does not replace it.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the text lane joins the tabular lane, and the model never notices</figcaption>
+    </figure>
+
+    <div class="callout tip">
+      <strong>Where this session sits in the track</strong>
+      Representation learning proper - training the encoder as part of your model - belongs to learn-deep-learning-with-phoebe. Here the encoder is a fixed, pretrained transform you call once, exactly like a scaler you fitted somewhere else. That framing is what keeps this a feature-engineering lesson.
+    </div>
+  </section>
+
+  <!-- ============ PART 2: DOING IT ============ -->
+  <section class="section" id="doing-it">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · covers OpenAI embeddings guide + Sentence Transformers</span>
+      <h2>support_note becomes 384 columns <span class="tag concept">9 min live</span></h2>
+    </div>
+    <p class="lede">The code is shorter than the discussion. Encode the text, stack the result beside the matrix you already had, fit the same estimator. Note where the split sits - first, as always, because an encoder call is still a transform and Part 4 is about what happens when you forget that.</p>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>The build-along, end to end<span class="mini">6 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+<pre><code>from sentence_transformers import SentenceTransformer
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+import numpy as np
+
+X_train, X_test, y_train, y_test = train_test_split(      # split FIRST
+    df, y, test_size=0.4, stratify=y, random_state=42)
+
+encoder = SentenceTransformer("all-MiniLM-L6-v2")         # pin this string
+
+E_train = encoder.encode(X_train["support_note"].fillna("").tolist())
+E_test  = encoder.encode(X_test["support_note"].fillna("").tolist())
+print(E_train.shape)                                      # (n, 384)
+
+Z_train = np.hstack([prep.fit_transform(X_train), E_train])   # b2-b8 lane
+Z_test  = np.hstack([prep.transform(X_test),      E_test])    # transform only
+
+clf = LogisticRegression(max_iter=1000).fit(Z_train, y_train)</code></pre>
+        <p>Swap the first two lines for an API call and nothing else changes: you get back a list of float vectors, you <code>np.hstack</code> them, the estimator is untouched. That interchangeability is the practical form of OpenAI's "general free-text feature encoder" line - the encoder is a component, not a commitment.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Three practical notes before you ship this<span class="mini">5 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <ul>
+          <li><strong>Dimensionality against rows.</strong> Rule 21: "The number of feature weights you can learn in a linear model is roughly proportional to the amount of data you have." 384 new columns against Lumen's 40,000 rows is comfortable. 3,072 columns against 4,000 rows is a different conversation, and the answer there is a smaller encoder or a shortened output, not more regularization bolted on afterwards.</li>
+          <li><strong>Cache the embeddings.</strong> Text does not change; a support note written in November is the same string every time you retrain. Encode once, store the vectors keyed by a hash of the text, and you pay the cost exactly one time instead of once per experiment. This is the single biggest difference between a cheap embedding pipeline and an expensive one.</li>
+          <li><strong>Pin the model version.</strong> A new encoder is a <em>different feature space</em>. The columns keep their names and their shape, the numbers mean something else entirely, and a model trained on the old vectors scored against the new ones will degrade quietly. Treat the encoder identifier as part of the feature definition - which is field 4 of the spec you write in b10.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>What the workbench cannot show you<span class="mini">2 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Plainly: this page has no live workbench, because the in-browser workbench hosts Lumen's tabular features only and cannot run a text encoder. The ladder demo and the encode demo return in b10 for the capstone. Tonight the code above is the demonstration, and it runs on your laptop rather than in the slide.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 3: COST AND TRADEOFFS ============ -->
+  <section class="section" id="cost">
+    <div class="section-kicker">
+      <span class="klabel">Part 3 · covers OpenAI dimensions/pricing + Sentence Transformers hosting</span>
+      <h2>What it costs, in dollars and in explanation <span class="tag concept">8 min live</span></h2>
+    </div>
+    <p class="lede">Two bills arrive with an embedding feature. The first is money and latency, and it is easy to compare. The second is interpretability, and it is the one that shows up months later in a review meeting.</p>
+
+    <table class="clean">
+      <thead>
+        <tr><th>Option</th><th>Dims</th><th>Cost</th><th>When it is the right call</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>text-embedding-3-small</code></td><td>1536</td><td>62,500 pages per dollar</td><td>The default hosted choice. Cheap enough that caching is a convenience rather than a necessity.</td></tr>
+        <tr><td><code>text-embedding-3-large</code></td><td>3072</td><td>9,615 pages per dollar</td><td>Roughly 6.5x the cost per page and twice the columns. Justify it with a measured lift, not a hunch.</td></tr>
+        <tr><td><code>3-large</code> + <code>dimensions</code></td><td>256</td><td>same per page, fewer columns</td><td>The parameter exists to "trade-off performance and cost". A 3-large embedding "shortened to a size of 256" still outperforms an unshortened ada-002 at 1536.</td></tr>
+        <tr><td><code>all-MiniLM-L6-v2</code> (local)</td><td>384</td><td>free, but you host it</td><td>No per-call bill, no data leaving your network, 10,000+ pretrained models on Hugging Face to choose from. You own the serving.</td></tr>
+      </tbody>
+    </table>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>The interpretability bill, stated plainly<span class="mini">5 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Here is what actually happened to your feature set. You traded <strong>one explainable column</strong> for <strong>hundreds of anonymous ones</strong>. Before: "support_note mentions a gift." After: "dimension 217 is 0.043." No stakeholder will ever ask about dimension 217, and no one can answer if they do.</p>
+        <p>Three places this bill comes due:</p>
+        <ul>
+          <li><strong>The feature review.</strong> The leader track (a5, a6) teaches executives to ask "what does this feature mean and who owns it?" For 384 dimensions the honest answer is "the encoder means it," which is a defensible answer only if you say it out loud in advance.</li>
+          <li><strong>Regulated settings.</strong> Anywhere a decision has to be explained to the person it affects, an anonymous 384-column block is a governance problem before it is a modelling one. Hand-crafted features are not merely nostalgic there; they are the compliance artifact.</li>
+          <li><strong>Debugging.</strong> When performance drifts, a named column tells you where to look. A dimension does not. Permutation importance (b8) still works on the block as a whole, which is usually the granularity you can actually act on: keep the text feature, or drop it.</li>
+        </ul>
+        <div class="callout tip">
+          <strong>A practical compromise</strong>
+          Keep both. Derive two or three hand-crafted flags from the same text - note length, whether it contains a question mark, whether a keyword list fires - and carry them alongside the embedding block. They cost nothing, they are explainable, and when the embedding adds no measured lift over them you have just saved yourself an encoder in production.
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 4: THE LEAKAGE RAILS ============ -->
+  <section class="section" id="rails">
+    <div class="section-kicker">
+      <span class="klabel">Part 4 · covers sklearn "Common pitfalls", applied to text</span>
+      <h2>The leakage rails for embeddings <span class="tag concept">9 min live</span></h2>
+    </div>
+    <p class="lede">Every rule from b5 still applies, and text gives them new hiding places. sklearn's definition has not changed: information "that would not be available at prediction time." A text column obeys it exactly like a numeric one - the difference is that text feels like context rather than data, so people forget to ask when it was written.</p>
+
+    <div class="steps">
+      <div class="step"><p><strong>Rail 1 - the text must exist at prediction time.</strong> A <code>support_note</code> written after the order is target leakage, the b5 family-1 shape precisely: a column that only exists because the outcome already happened. Ask the same audit question you ask of every other column - "was this value knowable before the thing I am predicting?" - and be strict, because a well-written note is exactly the kind of feature that dominates importance and feels magically good.</p></div>
+      <div class="step"><p><strong>Rail 2 - fit any dimensionality reduction on training data only.</strong> PCA or SVD over the full embedding matrix, all rows, before the split is family-2 preprocessing leakage. It is invisible in the output, it raises no error, and the test rows quietly voted on their own components. Same fix as always: inside the Pipeline, <code>fit_transform</code> on train, <code>transform</code> on test.</p></div>
+      <div class="step"><p><strong>Rail 3 - a fine-tuned encoder can be a leak.</strong> If the encoder was fine-tuned on your labels, the vectors carry target information into every row that produced them, including the rows you later call held-out. This is the target-encoding failure from b5 wearing a much larger coat: naive encoding of a random postal code scored train 0.931 and held-out 0.493 for exactly this reason. A pretrained, frozen, off-the-shelf encoder has never seen your target and is safe by construction.</p></div>
+      <div class="step"><p><strong>And the splits still matter.</strong> Text does not exempt you from family 3 or family 4. If notes accumulate over time, split by time. If the same customer writes several, split by customer - otherwise the model memorizes a writing style and you will not find out until a genuinely new customer arrives.</p></div>
+    </div>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>The resolution summary.</strong> A support team embedded a "resolution summary" field into a churn model and got a spectacular offline score - the best the team had ever seen, across every fold. The summary was written when the case closed. It described the outcome in fluent prose, and the encoder faithfully turned that prose into 768 excellent predictors of a thing that had already happened. No cross-validation can catch this: the column is contaminated in every fold, so every fold agrees. The only thing that catches it is field 3 of a feature spec, which is what b10 makes you write.</p>
+    </div>
+  </section>
+
+  <!-- ============ HOMEWORK ============ -->
+  <section class="section" id="exercise">
+    <div class="section-kicker">
+      <span class="klabel">Homework</span>
+      <h2>Try it yourself - this week <span class="tag exercise">◐ 30-40 min total</span></h2>
+    </div>
+    <ul>
+      <li>Run the build-along on a text column you actually have. Report two numbers: held-out score without the embedding block, and with it. If the gap is not worth the hosting, you have learned something valuable for free.</li>
+      <li>Before that, do the Rule 17 pass: write down three hand-crafted features you could derive from the same text in ten minutes. Score those first. Embeddings that cannot beat a keyword flag are not earning their bill.</li>
+      <li>Write the write-time answer for your text column in one sentence: who types it, into which system, and at what moment relative to the outcome. If you cannot answer, that is this week's finding.</li>
+      <li>Price it honestly: rows to encode, encoder choice, whether caching applies, and what a re-encode costs when you change models. Bring the number to b10, because it belongs in the spec.</li>
+    </ul>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Source material</span>
+      <h2>Official sources covered</h2>
+    </div>
+    <p class="lede">Certificates and graded exercises stay with the official providers (linked each session). This page covers:</p>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Google MLCC "Embeddings" + glossary - the one-hot problem and the vector definition</span><span class="note">Part 1 · MxN weights, "lack meaningful relationships", 5 to 500 dimensions</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">OpenAI embeddings guide - the free-text feature encoder framing, dims and pricing</span><span class="note">Parts 1 and 3 · 3-small 1536, 3-large 3072, the dimensions parameter</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Sentence Transformers - local encoding, all-MiniLM-L6-v2</span><span class="note">Part 2 build-along · 384 dims, 10,000+ pretrained models, you host it</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Google "Rules of Machine Learning" - rules 17 and 21</span><span class="note">Part 1 counterweight and the dimensionality note in Part 2</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">sklearn "Common pitfalls" - leakage applied to text and to reduction steps</span><span class="note">Part 4 · the full leakage treatment is b5; the spec field is b10</span></div>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions before you go 🎯 <span class="tag exercise">◐ 90 seconds</span></h2>
+    </div>
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">1 · Why does this course teach embeddings in session 9 rather than session 2?</p>
+      <button class="qopt" type="button">A · Embeddings require a deep-learning background that earlier sessions have not built</button>
+      <button class="qopt" type="button">B · Rule 17 - "Start with directly observed and reported features as opposed to learned features." Hand-crafted craft comes first, and embeddings extend it where it cannot reach</button>
+      <button class="qopt" type="button">C · Embedding APIs are too expensive to demonstrate early in a course</button>
+      <p class="qwhy">Google's Rule 17 is the counterweight to the whole session. Directly observed features are cheaper, explainable, and debuggable. Reach for a learned feature when a column genuinely cannot be hand-crafted - on Lumen that is exactly one column, <code>support_note</code>.</p>
+    </div>
+    <div class="quiz-q" data-answer="2">
+      <p class="qtext">2 · What do embeddings buy you that one-hot encoding of text cannot?</p>
+      <button class="qopt" type="button">A · They remove the need to split before preprocessing</button>
+      <button class="qopt" type="button">B · They are always more accurate, on any column type</button>
+      <button class="qopt" type="button">C · Far fewer columns, plus meaningful distance - one-hot forces the model to train MxN weights and its encodings "lack meaningful relationships"</button>
+      <p class="qwhy">Google's two objections to one-hot on text: with M entries and N first-layer nodes "the model has to train MxN weights for that layer", and every category sits equidistant from every other, so "hot dogs and shawarmas" are no closer than "hot dogs and salads". An embedding is low-dimensional - "typically, between 5 and 500" - and similar text lands nearby.</p>
+    </div>
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">3 · Your encoder was fine-tuned on your own labels before being used to embed the training text. What is the problem?</p>
+      <button class="qopt" type="button">A · Target information is baked into the vectors, so every embedded row partly carries its own answer - the same failure as naive target encoding, at 384 dimensions</button>
+      <button class="qopt" type="button">B · Nothing, as long as the train/test split happened before encoding</button>
+      <button class="qopt" type="button">C · Only a problem if the encoder output has more dimensions than you have rows</button>
+      <p class="qwhy">A correct split does not save you here, exactly as it did not in b5's Demo 2: naive target encoding of a random postal code scored train 0.931 and held-out 0.493. A pretrained, frozen encoder has never seen your target and is safe by construction.</p>
+    </div>
+    <p class="quiz-score"></p>
+  </section>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <section class="cheat" id="cheatsheet">
+    <h3>Practitioner session 9 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>Rule 17 first</b><span>"Start with directly observed and reported features as opposed to learned features." Embeddings extend the craft; they do not replace it.</span></div>
+      <div class="cheat-item"><b>The bridge quote</b><span>"An embedding can be used as a general free-text feature encoder within a machine learning model" (OpenAI). Same model, new columns.</span></div>
+      <div class="cheat-item"><b>Why not one-hot</b><span>M entries x N nodes means "the model has to train MxN weights for that layer", and one-hot "lack meaningful relationships".</span></div>
+      <div class="cheat-item"><b>What a vector is</b><span>"A relatively low-dimensional vector of floating-point values (typically, between 5 and 500)" (Google glossary).</span></div>
+      <div class="cheat-item"><b>The build</b><span>encode(text) then np.hstack onto the tabular matrix, fit the same logistic regression. all-MiniLM-L6-v2 gives shape [n, 384].</span></div>
+      <div class="cheat-item"><b>Cost, in numbers</b><span>3-small 1536 dims, 62,500 pages/$ · 3-large 3072, 9,615 pages/$ · 3-large shortened to 256 still beats ada-002 at 1536 · MiniLM 384, free but self-hosted.</span></div>
+      <div class="cheat-item"><b>Interpretability bill</b><span>One explainable column traded for hundreds of anonymous ones. Keep two or three hand-crafted flags from the same text as a baseline.</span></div>
+      <div class="cheat-item"><b>Three leakage rails</b><span>Text must exist at prediction time · fit reduction on train only · never fine-tune the encoder on your labels. Pin the encoder version.</span></div>
+    </div>
+  </section>
+
+  <footer class="pagefoot">
+    <span>Practitioner session 9 of 10 · learn-feature-engineering-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="b8-selection-importance.html">← b8 · Selection + importance</a> &nbsp;·&nbsp; <a href="../index.html">All sessions</a> &nbsp;·&nbsp; <a href="b10-capstone-feature-spec.html">Next: Capstone →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>

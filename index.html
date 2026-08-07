@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>learn feature engineering with phoebe - a two-track course on the inputs that decide models</title>
+<link rel="stylesheet" href="assets/style.css?v=1">
+<style>
+  .stats-row { display: flex; gap: 2.4rem; margin-top: 1.5rem; flex-wrap: wrap; }
+  .stat b { display: block; font-size: 2.1rem; font-weight: 800; line-height: 1.05; font-variant-numeric: tabular-nums; }
+  .stat span { font-size: .72rem; opacity: .85; text-transform: uppercase; letter-spacing: .09em; font-weight: 600; }
+
+  .course-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 1rem; margin-top: 1.5rem; }
+  .course-card {
+    border: 1px solid var(--hairline);
+    border-top: 4px solid var(--diff, var(--indigo));
+    border-radius: var(--radius);
+    padding: 1.2rem 1.3rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    text-decoration: none;
+    color: var(--ink);
+    background: #fff;
+    transition: box-shadow .15s ease, border-color .15s ease, transform .15s ease;
+    position: relative;
+  }
+  .course-card:hover { border-color: var(--indigo-soft); border-top-color: var(--diff, var(--indigo)); box-shadow: 0 8px 28px rgba(77,124,15,.14); transform: translateY(-3px); }
+  .course-card .cicon { font-size: 1.7rem; line-height: 1; }
+  .course-card .cnum { font-size: .72rem; font-weight: 700; color: var(--indigo); text-transform: uppercase; letter-spacing: .1em; }
+  .course-card h3 { font-size: 1.05rem; font-weight: 800; line-height: 1.3; }
+  .course-card p { font-size: .85rem; color: var(--muted); flex: 1; }
+  .course-card .meta { display: flex; gap: .4rem; flex-wrap: wrap; }
+
+  .diff-legend { display: flex; gap: 1rem; margin-top: 1.6rem; font-size: .74rem; color: var(--muted); font-weight: 600; flex-wrap: wrap; }
+  .diff-legend i { display: inline-block; width: .85rem; height: .35rem; border-radius: 999px; margin-right: .35rem; vertical-align: middle; }
+
+  .paths { margin-top: 2.6rem; }
+  .paths h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: .3rem; }
+  .paths .plede { color: var(--muted); font-size: .92rem; margin-bottom: .8rem; }
+  .path { display: flex; gap: .55rem; align-items: center; padding: .75rem 0; border-bottom: .5px solid var(--hairline); flex-wrap: wrap; }
+  .path:last-child { border-bottom: none; }
+  .path b { min-width: 15.5rem; font-size: .9rem; }
+  .path .pstep { background: var(--indigo-50); color: var(--indigo); border-radius: 999px; padding: .16rem .68rem; font-weight: 700; font-size: .8rem; text-decoration: none; transition: all .12s ease; }
+  .path .pstep:hover { background: var(--indigo); color: #fff; }
+  .path .parr { color: var(--faint); font-weight: 700; }
+
+  .mm-section { margin-top: 1.6rem; }
+  .mm-section h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: .2rem; }
+  .mm-section .mm-lede { color: var(--muted); font-size: .92rem; margin-bottom: .4rem; }
+  .mm-wrap { border: 1px solid var(--hairline); border-radius: var(--radius); background: linear-gradient(180deg,#fff,#F4FBEA); padding: .6rem; overflow-x: auto; }
+  .mm-svg { width: 100%; height: auto; display: block; max-width: 60rem; margin: 0 auto; min-width: 34rem; }
+  .mm-link { cursor: pointer; text-decoration: none; }
+  .mm-node rect { transition: opacity .15s ease, filter .15s ease; }
+  .mm-node text { pointer-events: none; }
+  .mm-link:hover .mm-node rect { filter: brightness(1.06); }
+  .mm-edge { transition: opacity .15s ease; }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn Feature Engineering with Phoebe</div>
+    <h1>Two tracks into the inputs that decide your model</h1>
+    <p class="sub">A column is what the database gives you. A feature is what the model can learn from - and almost all of the winnable performance in applied machine learning lives in the gap between them. A leader track teaches why feature work beats model swaps, how a suspiciously good score is a red flag rather than a win, and what feature governance actually costs. A practitioner track rebuilds Lumen's checkout data column by column: scaling, encoding, datetime decomposition, interactions, missing-data signal, selection, and an honest bridge to embeddings. A live workbench trains a real model in your browser - watch held-out AUC climb 0.500 to 0.813 with the algorithm never changing, then press the leakage lever and watch a training score of 0.967 collapse to 0.789 the moment the column that knew the future goes missing.</p>
+    <div class="stats-row">
+      <div class="stat"><b data-count="2">2</b><span>tracks</span></div>
+      <div class="stat"><b data-count="16">16</b><span>sessions</span></div>
+      <div class="stat"><b data-count="813">813</b><span>held-out AUC x1000</span></div>
+      <div class="stat"><b data-count="45">45</b><span>min per session</span></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="section">
+    <div class="paths" style="margin-top:0">
+      <h2>The leader track 🤝 <span style="font-size:.85rem;font-weight:600;color:var(--muted)">· for data leads, PMs &amp; DS managers · 6 x 45 min · no code</span></h2>
+      <p class="plede">Where the ROI actually is: why feature work outperforms model shopping, the leakage disaster explained without maths, data quality as a budget line, feature governance and stores, when to stop hand-crafting - and the review questions that make a DS team's feature work legible.</p>
+    </div>
+    <div class="course-grid">
+      <a class="course-card" href="courses/a1-features-decide-roi.html" style="--diff:#34D399">
+        <span class="cicon">💡</span>
+        <span class="cnum">Leader 1 · easy</span>
+        <h3>Why features decide ROI before models do</h3>
+        <p>The unglamorous truth: practitioners spend far more time on data than models, and that is where the return is. Where to put the effort.</p>
+        <span class="meta"><span class="pill amber">▶ Leaders start here</span></span>
+      </a>
+      <a class="course-card" href="courses/a2-leakage-disaster.html" style="--diff:#34D399">
+        <span class="cicon">🕳️</span>
+        <span class="cnum">Leader 2 · easy</span>
+        <h3>The leakage disaster, in plain English</h3>
+        <p>The one failure that announces itself with a better score - and sklearn's own experiment where leakage produced 0.76 accuracy on pure noise.</p>
+        <span class="meta"><span class="pill light">▶ The trap demo</span></span>
+      </a>
+      <a class="course-card" href="courses/a3-data-quality-budget.html" style="--diff:#FBBF24">
+        <span class="cicon">🧹</span>
+        <span class="cnum">Leader 3 · medium</span>
+        <h3>Data quality is a feature budget</h3>
+        <p>Missingness, cardinality, drift-prone columns, bad labels - what to fund upstream versus patch downstream, and why a few bad rows spoil a large dataset.</p>
+        <span class="meta"><span class="pill light">The spend decision</span></span>
+      </a>
+      <a class="course-card" href="courses/a4-governance-feature-stores.html" style="--diff:#FBBF24">
+        <span class="cicon">🏛️</span>
+        <span class="cnum">Leader 4 · medium</span>
+        <h3>Feature governance + feature stores</h3>
+        <p>Training-serving skew, Google's Rule 29, point-in-time correctness, reuse across teams - and an honest answer on when a feature store pays for itself.</p>
+        <span class="meta"><span class="pill light">Build-vs-buy framing</span></span>
+      </a>
+      <a class="course-card" href="courses/a5-handcrafted-vs-learned.html" style="--diff:#FB923C">
+        <span class="cicon">🧬</span>
+        <span class="cnum">Leader 5 · deciding</span>
+        <h3>Hand-crafted vs learned features</h3>
+        <p>The embeddings question for decision-makers: when to stop engineering columns and let the model represent - with the cost and interpretability tradeoffs stated plainly.</p>
+        <span class="meta"><span class="pill light">The stop-engineering line</span></span>
+      </a>
+      <a class="course-card" href="courses/a6-questions-for-your-team.html" style="--diff:#FB923C">
+        <span class="cicon">📋</span>
+        <span class="cnum">Leader 6 · deciding</span>
+        <h3>Questions to ask your DS team</h3>
+        <p>The feature review checklist, what a feature spec must contain, and the four questions that surface leakage before a launch rather than after.</p>
+        <span class="meta"><span class="pill light">The review ritual</span></span>
+      </a>
+    </div>
+
+    <div class="paths">
+      <h2>The practitioner track 🧪 <span style="font-size:.85rem;font-weight:600;color:var(--muted)">· for DS, analysts &amp; ML engineers · 10 x 45 min · Python + the live workbench</span></h2>
+      <p class="plede">One running case, rebuilt column by column: Lumen Skincare's checkout sessions. The held-out ladder climbs 0.500 → 0.696 → 0.785 → 0.806 → 0.812 → 0.813 with the algorithm untouched, and b5 exists to make sure none of it was a lie. Ends with a written feature spec you can hand to a colleague.</p>
+    </div>
+    <div class="course-grid">
+      <a class="course-card" href="courses/b1-what-a-feature-is.html" style="--diff:#34D399">
+        <span class="cicon">🔤</span>
+        <span class="cnum">Practitioner 1 · easy</span>
+        <h3>What a feature actually is</h3>
+        <p>Column versus feature, the model's-eye view of your table, the five feature groups - and your first climb up the live ladder.</p>
+        <span class="meta"><span class="pill amber">▶ Practitioners start here</span></span>
+      </a>
+      <a class="course-card" href="courses/b2-numeric-transforms.html" style="--diff:#34D399">
+        <span class="cicon">📐</span>
+        <span class="cnum">Practitioner 2 · easy</span>
+        <h3>Numeric transforms</h3>
+        <p>The scaler family and when each one is right, skew and log, clipping, binning strategies, and splines versus polynomials for curvature.</p>
+        <span class="meta"><span class="pill light">Shape the numbers</span></span>
+      </a>
+      <a class="course-card" href="courses/b3-categorical-encoding.html" style="--diff:#FBBF24">
+        <span class="cicon">🏷️</span>
+        <span class="cnum">Practitioner 3 · medium</span>
+        <h3>Categorical encoding</h3>
+        <p>One-hot and its parameters, rare-category grouping, the high-cardinality problem - and target encoding done safely with internal cross-fitting.</p>
+        <span class="meta"><span class="pill light">▶ The quiet leak</span></span>
+      </a>
+      <a class="course-card" href="courses/b4-datetime-features.html" style="--diff:#FBBF24">
+        <span class="cicon">🕰️</span>
+        <span class="cnum">Practitioner 4 · medium</span>
+        <h3>Datetime + cyclical features</h3>
+        <p>Decomposition, cyclical encoding for hours and months, tenure and recency - everything a timestamp was hiding in plain sight.</p>
+        <span class="meta"><span class="pill light">+0.021 on the ladder</span></span>
+      </a>
+      <a class="course-card" href="courses/b5-leakage.html" style="--diff:#FB923C">
+        <span class="cicon">🕳️</span>
+        <span class="cnum">Practitioner 5 · the heart</span>
+        <h3>Leakage: the session</h3>
+        <p>THE core session: the four families, sklearn's three rules, the Pipeline as structural defence - and two live demos where good work and leaked work look identical until they do not.</p>
+        <span class="meta"><span class="pill light">▶ 0.967 → 0.789</span></span>
+      </a>
+      <a class="course-card" href="courses/b6-interactions.html" style="--diff:#FB923C">
+        <span class="cicon">✖️</span>
+        <span class="cnum">Practitioner 6 · hands-on</span>
+        <h3>Interactions + aggregations</h3>
+        <p>Ratios, feature crosses and their dimensionality bill, group-level aggregates and the entity-history pattern that most teams never build.</p>
+        <span class="meta"><span class="pill light">Relationships, not columns</span></span>
+      </a>
+      <a class="course-card" href="courses/b7-missing-data.html" style="--diff:#FB923C">
+        <span class="cicon">🕵️</span>
+        <span class="cnum">Practitioner 7 · hands-on</span>
+        <h3>Missing data as signal</h3>
+        <p>Imputation strategies and their assumptions, missingness indicators, NaN as its own category - and when absence predicts better than presence.</p>
+        <span class="meta"><span class="pill light">The empty cell talks</span></span>
+      </a>
+      <a class="course-card" href="courses/b8-selection-importance.html" style="--diff:#FB923C">
+        <span class="cicon">🎚️</span>
+        <span class="cnum">Practitioner 8 · hands-on</span>
+        <h3>Selection + importance</h3>
+        <p>Variance, univariate, RFE and model-based selection, mutual information and its caveats - plus why impurity importance lies and permutation importance does not.</p>
+        <span class="meta"><span class="pill light">Retiring session_hour</span></span>
+      </a>
+      <a class="course-card" href="courses/b9-embeddings-as-features.html" style="--diff:#F87171">
+        <span class="cicon">🧬</span>
+        <span class="cnum">Practitioner 9 · hardest</span>
+        <h3>Embeddings as features</h3>
+        <p>The bridge: a free-text column becomes a vector becomes a tabular feature. Dimensionality and cost tradeoffs, and when learned beats hand-crafted.</p>
+        <span class="meta"><span class="pill light">The honest bridge</span></span>
+      </a>
+      <a class="course-card" href="courses/b10-capstone-feature-spec.html" style="--diff:#F87171">
+        <span class="cicon">🏆</span>
+        <span class="cnum">Practitioner 10 · hardest</span>
+        <h3>Capstone: the feature spec</h3>
+        <p>Assemble the full pipeline on Lumen and write the spec that makes it survivable: definition, source, write-time, leakage check, owner, refresh.</p>
+        <span class="meta"><span class="pill light">Ship the spec</span></span>
+      </a>
+    </div>
+    <div class="diff-legend">
+      <span><i style="background:#34D399"></i>easy - everyone</span>
+      <span><i style="background:#FBBF24"></i>medium</span>
+      <span><i style="background:#FB923C"></i>hands-on / deciding</span>
+      <span><i style="background:#F87171"></i>hardest</span>
+    </div>
+
+    <div class="paths">
+      <h2>Choose your path 🗺️</h2>
+      <p class="plede">Two doors into one conviction: the model is rarely the bottleneck. Leaders learn where to spend and what to ask; practitioners learn to build the columns and prove they are real.</p>
+      <div class="path"><b>🤝 Leader (fund it, review it)</b>
+        <a class="pstep" href="courses/a1-features-decide-roi.html">a1</a><span class="parr">→</span>
+        <a class="pstep" href="courses/a2-leakage-disaster.html">a2</a><span class="parr">→</span>
+        <a class="pstep" href="courses/a3-data-quality-budget.html">a3</a><span class="parr">→</span>
+        <a class="pstep" href="courses/a4-governance-feature-stores.html">a4</a><span class="parr">→</span>
+        <a class="pstep" href="courses/a5-handcrafted-vs-learned.html">a5</a><span class="parr">→</span>
+        <a class="pstep" href="courses/a6-questions-for-your-team.html">a6</a>
+      </div>
+      <div class="path"><b>🧪 Practitioner (build the columns)</b>
+        <a class="pstep" href="courses/b1-what-a-feature-is.html">b1</a><span class="parr">→</span>
+        <a class="pstep" href="courses/b2-numeric-transforms.html">b2</a><span class="parr">→</span>
+        <a class="pstep" href="courses/b3-categorical-encoding.html">b3</a><span class="parr">→</span>
+        <a class="pstep" href="courses/b4-datetime-features.html">b4</a><span class="parr">→</span>
+        <a class="pstep" href="courses/b5-leakage.html">b5</a><span class="parr">→</span>
+        <a class="pstep" href="courses/b6-interactions.html">b6</a><span class="parr">→</span>
+        <a class="pstep" href="courses/b7-missing-data.html">b7</a><span class="parr">→</span>
+        <a class="pstep" href="courses/b8-selection-importance.html">b8</a><span class="parr">→</span>
+        <a class="pstep" href="courses/b9-embeddings-as-features.html">b9</a><span class="parr">→</span>
+        <a class="pstep" href="courses/b10-capstone-feature-spec.html">b10</a>
+      </div>
+      <div class="path"><b>🕳️ Leakage fast lane</b>
+        <a class="pstep" href="courses/b1-what-a-feature-is.html">b1</a><span class="parr">→</span>
+        <a class="pstep" href="courses/b5-leakage.html">b5</a><span class="parr">→</span>
+        <a class="pstep" href="courses/b3-categorical-encoding.html">b3</a><span class="parr">→</span>
+        <a class="pstep" href="courses/b10-capstone-feature-spec.html">b10</a>
+      </div>
+      <div class="path"><b>🚀 Full journey (fund AND build)</b>
+        <a class="pstep" href="courses/a1-features-decide-roi.html">a1-a6</a><span class="parr">→</span>
+        <a class="pstep" href="courses/b1-what-a-feature-is.html">b1-b10</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section mm-section">
+    <h2>The knowledge map 🧠</h2>
+    <p class="mm-lede">Both tracks at a glance - hover a session to spotlight its concepts, click any node to jump in.</p>
+    <div class="mm-wrap"><div id="mindmap"></div></div>
+  </section>
+
+  <footer class="pagefoot">
+    <span>learn-feature-engineering-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a> · taught from the scikit-learn preprocessing, pipelines, feature-selection, permutation-importance and common-pitfalls guides, Google's ML Crash Course data modules + Rules of Machine Learning, Kaggle Learn's Feature Engineering course, Feast's feature-store docs, and the OpenAI + Sentence Transformers embedding guides</span>
+  </footer>
+</main>
+
+<script>
+window.MINDMAP_DATA = {
+  title: "Feature\nEngineering",
+  centerColor: "#3F6212",
+  sessions: [
+    { label: "Features\ndecide ROI", href: "courses/a1-features-decide-roi.html", color: "#34D399",
+      concepts: [
+        { label: "Data time > model time", href: "courses/a1-features-decide-roi.html" },
+        { label: "Where effort pays", href: "courses/a1-features-decide-roi.html" } ] },
+    { label: "Leakage\ndisaster", href: "courses/a2-leakage-disaster.html", color: "#34D399",
+      concepts: [
+        { label: "0.76 on pure noise", href: "courses/a2-leakage-disaster.html" },
+        { label: "Good score = red flag", href: "courses/a2-leakage-disaster.html" } ] },
+    { label: "Quality as\na budget", href: "courses/a3-data-quality-budget.html", color: "#FBBF24",
+      concepts: [
+        { label: "Missingness · cardinality", href: "courses/a3-data-quality-budget.html" },
+        { label: "Upstream vs patch", href: "courses/a3-data-quality-budget.html" } ] },
+    { label: "Governance\n& stores", href: "courses/a4-governance-feature-stores.html", color: "#FBBF24",
+      concepts: [
+        { label: "Training-serving skew", href: "courses/a4-governance-feature-stores.html" },
+        { label: "Point-in-time joins", href: "courses/a4-governance-feature-stores.html" } ] },
+    { label: "Crafted vs\nlearned", href: "courses/a5-handcrafted-vs-learned.html", color: "#FB923C",
+      concepts: [
+        { label: "When to stop", href: "courses/a5-handcrafted-vs-learned.html" },
+        { label: "Cost + interpretability", href: "courses/a5-handcrafted-vs-learned.html" } ] },
+    { label: "Questions\nto ask", href: "courses/a6-questions-for-your-team.html", color: "#FB923C",
+      concepts: [
+        { label: "Review checklist", href: "courses/a6-questions-for-your-team.html" },
+        { label: "The feature spec", href: "courses/a6-questions-for-your-team.html" } ] },
+    { label: "What a\nfeature is", href: "courses/b1-what-a-feature-is.html", color: "#34D399",
+      concepts: [
+        { label: "Column vs feature", href: "courses/b1-what-a-feature-is.html" },
+        { label: "The five groups", href: "courses/b1-what-a-feature-is.html" },
+        { label: "The ladder", href: "courses/b1-what-a-feature-is.html" } ] },
+    { label: "Numeric\ntransforms", href: "courses/b2-numeric-transforms.html", color: "#34D399",
+      concepts: [
+        { label: "Which scaler when", href: "courses/b2-numeric-transforms.html" },
+        { label: "Binning · splines", href: "courses/b2-numeric-transforms.html" } ] },
+    { label: "Categorical\nencoding", href: "courses/b3-categorical-encoding.html", color: "#FBBF24",
+      concepts: [
+        { label: "One-hot params", href: "courses/b3-categorical-encoding.html" },
+        { label: "Cross-fitted target enc", href: "courses/b3-categorical-encoding.html" } ] },
+    { label: "Datetime\nfeatures", href: "courses/b4-datetime-features.html", color: "#FBBF24",
+      concepts: [
+        { label: "Decomposition", href: "courses/b4-datetime-features.html" },
+        { label: "Cyclical encoding", href: "courses/b4-datetime-features.html" } ] },
+    { label: "Leakage:\nthe session", href: "courses/b5-leakage.html", color: "#FB923C",
+      concepts: [
+        { label: "The four families", href: "courses/b5-leakage.html" },
+        { label: "Pipeline as defence", href: "courses/b5-leakage.html" } ] },
+    { label: "Interactions\n& aggregates", href: "courses/b6-interactions.html", color: "#FB923C",
+      concepts: [
+        { label: "Feature crosses", href: "courses/b6-interactions.html" },
+        { label: "Entity history", href: "courses/b6-interactions.html" } ] },
+    { label: "Missing\nas signal", href: "courses/b7-missing-data.html", color: "#FB923C",
+      concepts: [
+        { label: "Imputation choices", href: "courses/b7-missing-data.html" },
+        { label: "Missingness indicators", href: "courses/b7-missing-data.html" } ] },
+    { label: "Selection &\nimportance", href: "courses/b8-selection-importance.html", color: "#FB923C",
+      concepts: [
+        { label: "Mutual information", href: "courses/b8-selection-importance.html" },
+        { label: "Permutation vs impurity", href: "courses/b8-selection-importance.html" } ] },
+    { label: "Embeddings\nas features", href: "courses/b9-embeddings-as-features.html", color: "#F87171",
+      concepts: [
+        { label: "Text to vector", href: "courses/b9-embeddings-as-features.html" },
+        { label: "Dims + cost", href: "courses/b9-embeddings-as-features.html" } ] },
+    { label: "Capstone\nspec", href: "courses/b10-capstone-feature-spec.html", color: "#F87171",
+      concepts: [
+        { label: "Full pipeline", href: "courses/b10-capstone-feature-spec.html" },
+        { label: "Write-time + owner", href: "courses/b10-capstone-feature-spec.html" } ] }
+  ]
+};
+</script>
+<script src="assets/mindmap.js?v=1"></script>
+<script src="assets/app.js?v=1"></script>
+</body>
+</html>

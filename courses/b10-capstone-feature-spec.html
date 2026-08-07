@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Practitioner session 10 · Capstone: the feature spec - learn feature engineering with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-feature-engineering-with-phoebe</a> / Practitioner session 10 of 10</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn Feature Engineering with Phoebe · Practitioner track · Session 10 of 10</div>
+    <h1>Capstone: <span class="accent">the feature spec</span></h1>
+    <p class="sub">Nine sessions of craft, and none of it survives your departure unless it is written down. Tonight you assemble the whole Lumen pipeline into one <code>Pipeline</code> object, then write the artifact that makes it hand-overable: a seven-field spec for every feature, with one field that does more work than the other six combined. Then you defend it. A spec whose every line survives a hostile question is a feature set someone else can own; one that does not is a notebook with ambitions.</p>
+    <div class="chip-row">
+      <span class="chip level">🔴 Practitioner track</span>
+      <span class="chip audience">DS · analysts · ML engineers</span>
+      <span class="chip audience">Python · live workbench on key pages</span>
+      <span class="chip time">45 min</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Welcome</span>
+      <span class="a2" style="flex:4">3-18 · The spec anatomy</span>
+      <span class="a3" style="flex:5">18-42 · Build-along: assemble + defend</span>
+      <span class="a4" style="flex:1">42-45 · Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ PART 1: THE SPEC ANATOMY ============ -->
+  <section class="section" id="anatomy">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · the course synthesis, plus Rules of ML #22</span>
+      <h2>Seven fields, one of which is the whole course <span class="tag concept">9 min live</span></h2>
+    </div>
+    <p class="lede">A feature spec is not documentation you write afterwards to satisfy someone. It is the shortest form of every decision this course taught you, and each field maps to a session you have already run. Write it for <em>every</em> feature, not just the interesting ones - the boring columns are where the surprises hide.</p>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>The seven fields, in order<span class="mini">6 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <div class="steps">
+          <div class="step"><p><strong>1 · Name and a one-sentence definition.</strong> What it is, in language a person outside the team can read. If the sentence needs a second sentence, the feature is doing two things and should be two features (Rule 19: "Use very specific features when you can").</p></div>
+          <div class="step"><p><strong>2 · Source table and column.</strong> Where the raw value comes from, exactly. Not "the warehouse" - the table and the column, so a schema change has an owner and a blast radius.</p></div>
+          <div class="step"><p><strong>3 · WRITE-TIME relative to the outcome.</strong> When is this value written, by which system, relative to the thing you are predicting? This is the leakage field, and it is the single most important line in the document. Everything in b5 exists to make this question askable, and every failure in b5 was a spec that never asked it.</p></div>
+          <div class="step"><p><strong>4 · Transformation applied, and where it is fitted.</strong> Not just "scaled" - scaled by what, fitted on which rows, inside which pipeline stage. b5 Demo 2 is the proof that a transformation is not safe in the abstract, only in the way it is fitted.</p></div>
+          <div class="step"><p><strong>5 · Owner.</strong> A name. Not a team, not a squad - a person who answers when the feature breaks at 2am and nobody remembers why it exists.</p></div>
+          <div class="step"><p><strong>6 · Refresh cadence.</strong> How often the source updates, and therefore how stale the feature can be at serving time. A daily feature serving a real-time model is a defect that produces no error.</p></div>
+          <div class="step"><p><strong>7 · Deprecation status.</strong> Rule 22: "Clean up features you are no longer using." A feature nobody uses is still a column somebody maintains, still a dependency on a source table, and still a line of risk. Mark it, then remove it.</p></div>
+        </div>
+      </div>
+    </details>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A one-page feature spec document with seven labelled fields, the third field highlighted in red as the leakage gate, and a callout naming its hostile question.">
+        <style>
+          .f10T { font: 700 13.5px Inter, sans-serif; fill: #FFFFFF; }
+          .f10S { font: 400 11.5px Inter, sans-serif; fill: #FFFFFF; opacity: .93; }
+          .f10I { font: 700 12.5px Inter, sans-serif; fill: #1E293B; }
+          .f10X { font: 400 12px Inter, sans-serif; fill: #64748B; }
+          .f10R { font: 700 12.5px Inter, sans-serif; fill: #991B1B; }
+          .f10N { font: 600 13px Inter, sans-serif; fill: #7C2D12; }
+          .f10Wire { stroke: #991B1B; stroke-width: 2.5; fill: none; marker-end: url(#f10Hd); }
+        </style>
+        <defs>
+          <marker id="f10Hd" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+            <path d="M0,0 L9,4.5 L0,9 z" fill="#991B1B"/>
+          </marker>
+        </defs>
+
+        <rect x="50" y="34" width="540" height="340" rx="10" fill="#FFFFFF" stroke="#64748B" stroke-width="1.5"/>
+        <rect x="50" y="34" width="540" height="42" rx="10" fill="#3F6212"/>
+        <text class="f10T" x="70" y="61">FEATURE SPEC · one per feature</text>
+
+        <rect x="66" y="92" width="508" height="30" rx="6" fill="#F7FEE7" stroke="#84CC16" stroke-width="1.5"/>
+        <text class="f10I" x="80" y="112">1 · Name + one-sentence definition</text>
+
+        <rect x="66" y="130" width="508" height="30" rx="6" fill="#F7FEE7" stroke="#84CC16" stroke-width="1.5"/>
+        <text class="f10I" x="80" y="150">2 · Source table and column</text>
+
+        <rect x="66" y="168" width="508" height="34" rx="6" fill="#FEF2F2" stroke="#991B1B" stroke-width="2.5"/>
+        <text class="f10R" x="80" y="190">3 · WRITE-TIME relative to the outcome - the leakage gate</text>
+
+        <rect x="66" y="210" width="508" height="30" rx="6" fill="#F7FEE7" stroke="#84CC16" stroke-width="1.5"/>
+        <text class="f10I" x="80" y="230">4 · Transformation applied, and where it is fitted</text>
+
+        <rect x="66" y="248" width="508" height="30" rx="6" fill="#F7FEE7" stroke="#84CC16" stroke-width="1.5"/>
+        <text class="f10I" x="80" y="268">5 · Owner (a person, not a team)</text>
+
+        <rect x="66" y="286" width="508" height="30" rx="6" fill="#F7FEE7" stroke="#84CC16" stroke-width="1.5"/>
+        <text class="f10I" x="80" y="306">6 · Refresh cadence</text>
+
+        <rect x="66" y="324" width="508" height="30" rx="6" fill="#F7FEE7" stroke="#84CC16" stroke-width="1.5"/>
+        <text class="f10I" x="80" y="344">7 · Deprecation status (Rule 22)</text>
+
+        <rect x="626" y="140" width="214" height="92" rx="10" fill="#991B1B"/>
+        <text class="f10T" x="642" y="168">THE LEAKAGE GATE</text>
+        <text class="f10S" x="642" y="192">"when exactly is this</text>
+        <text class="f10S" x="642" y="212">written, and by which</text>
+        <text class="f10S" x="642" y="224">system?"</text>
+
+        <path class="f10Wire" d="M622,186 L580,186"/>
+
+        <rect x="50" y="384" width="14" height="14" rx="3" fill="#B45309"/>
+        <text class="f10N" x="74" y="396">Six fields make a feature maintainable. Field 3 is the one that makes it real.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the one-page spec, with the field that stops a launch</figcaption>
+    </figure>
+  </section>
+
+  <!-- ============ PART 2: ASSEMBLE ============ -->
+  <section class="section" id="assemble">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · covers sklearn preprocessing, compose, pitfalls, selection</span>
+      <h2>The whole course, in one Pipeline <span class="tag concept">10 min live</span></h2>
+    </div>
+    <p class="lede">Here is Lumen, assembled. Every stage below traces to a session you ran, and the ordering is not stylistic: the split comes first because sklearn says "Always split the data into train and test subsets first, particularly before any preprocessing steps," and everything else lives inside the container because "the scikit-learn pipeline is a great way to prevent data leakage as it ensures that the appropriate method is performed on the correct data subset."</p>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>The capstone pipeline<span class="mini">7 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+<pre><code>from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import StandardScaler, OneHotEncoder, TargetEncoder
+from sklearn.feature_selection import SelectKBest, f_classif
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split, cross_val_score
+
+X_train, X_test, y_train, y_test = train_test_split(         # b5 rule 1: FIRST
+    X, y, test_size=0.4, stratify=y, random_state=42)
+
+numeric     = ["prior_30d_spend", "pages_viewed", "tenure_days"]   # b4 derived
+categorical = ["channel", "product_category", "device", "new_vs_returning"]
+high_card   = ["postal_code"]                                # ~1,200 levels
+
+prep = ColumnTransformer([
+    ("num", Pipeline([
+        ("impute", SimpleImputer(strategy="median",          # b7 imputation
+                                 add_indicator=True)),       # b7 missingness
+        ("scale",  StandardScaler()),                        # b2 scaling
+    ]), numeric),
+    ("cat", OneHotEncoder(handle_unknown="ignore",           # b3 encoding
+                          min_frequency=0.01), categorical),
+    ("hc",  TargetEncoder(), high_card),                     # b3 cross-fitted
+])
+
+pipe = Pipeline([                                            # b5 the container
+    ("prep",   prep),
+    ("select", SelectKBest(f_classif, k=25)),                # b8 selection
+    ("model",  LogisticRegression(max_iter=1000)),
+])
+
+pipe.fit(X_train, y_train)                                   # b5 rule 2
+print(cross_val_score(pipe, X_train, y_train, cv=5).mean())</code></pre>
+        <p>Walk the mapping out loud, because this is the moment the ten sessions become one object:</p>
+        <ul>
+          <li><strong>b2 · scaling.</strong> <code>StandardScaler</code> sits after imputation, inside the numeric sub-pipeline, so its mean and variance are learned from training rows only.</li>
+          <li><strong>b3 · encoding.</strong> <code>OneHotEncoder(handle_unknown="ignore")</code> for the low-cardinality columns, with <code>min_frequency</code> grouping rare levels; <code>TargetEncoder</code> for <code>postal_code</code>, whose internal cross-fitting is the only reason a 1,200-level column is safe here at all.</li>
+          <li><strong>b4 · datetime.</strong> <code>tenure_days</code> and the weekday flags were derived from <code>signup_date</code> upstream and enter as ordinary numeric and categorical columns. Decomposition happens before the pipeline; the pipeline only transforms.</li>
+          <li><strong>b5 · the pipeline itself.</strong> Not a convenience. The structure is what makes the wrong thing hard to type, which is worth more than remembering to do the right thing.</li>
+          <li><strong>b7 · imputation.</strong> <code>add_indicator=True</code> keeps the missingness as its own feature, because "this was blank" is frequently the signal.</li>
+          <li><strong>b8 · selection.</strong> <code>SelectKBest</code> sits <em>inside</em>, so it re-fits within every cross-validation fold. Outside, it sees every row before the split - which is precisely the sklearn experiment that scored 0.76 accuracy on pure noise where the honest answer was 0.50.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>What is deliberately not in this pipeline<span class="mini">3 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <ul>
+          <li><strong>The b9 embedding block.</strong> Text encoding runs upstream and caches; the vectors join as columns. Add it only when it beats the hand-crafted flags, per Rule 17.</li>
+          <li><strong>Interactions (b6).</strong> Lumen's spend-times-returning term is derived before the pipeline for readability. Anything you can name explicitly, name explicitly.</li>
+          <li><strong>The leakage lever.</strong> <code>post_purchase_flag</code> is not in <code>numeric</code>, not in <code>categorical</code>, not anywhere. That absence is field 3 doing its job in code.</li>
+        </ul>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 3: VERIFY ============ -->
+  <section class="section" id="verify">
+    <div class="section-kicker">
+      <span class="klabel">Part 3 · two checks against the workbench</span>
+      <h2>Verify, then close the lever for good <span class="tag demo">★ 12 min · everyone runs it</span></h2>
+    </div>
+    <p class="lede">Two last runs. The first reproduces the ladder you have climbed since b1 and then presses the leakage lever one final time, deliberately, so you remember the shape of it. The second is field 4 of the spec, demonstrated: the same transformation, safe or catastrophic depending only on how it was fitted.</p>
+
+    <div class="steps">
+      <div class="step"><p>Turn on the five honest levers one at a time and watch the held-out ladder rebuild itself: <strong>0.500 → 0.696 → 0.785 → 0.806 → 0.812 → 0.813</strong>. Every rung is a session, and the algorithm never changed.</p></div>
+      <div class="step"><p>Now press the dashed <strong>target leakage</strong> lever one last time: train <strong>0.967</strong>, held-out <strong>0.789</strong> - still below the honest 0.813. Then switch it off and leave it off forever.</p></div>
+      <div class="step"><p>The point of pressing it one final time: the spec's field 3 is what prevents that column ever entering the pipeline in the first place. Not vigilance, not code review, not a good week. A written line stating when the value is recorded.</p></div>
+    </div>
+
+    <div class="febox" data-mode="ladder"></div>
+
+    <p class="lede">Second check. Field 4 asks not only <em>what</em> transformation but <em>where it is fitted</em>, and this is why that half of the field exists.</p>
+
+    <div class="steps">
+      <div class="step"><p>Naive encoding of <code>postal_code</code>, a 1,200-level column drawn independently of the target: <strong>train 0.931</strong>, held-out <strong>0.493</strong>. A column that knows nothing, scoring 0.931.</p></div>
+      <div class="step"><p>Cross-fitted, which is what <code>TargetEncoder.fit_transform</code> does internally: <strong>train 0.509</strong>, held-out <strong>0.493</strong>. Honest and boring.</p></div>
+      <div class="step"><p>Read the lesson as a spec rule: a transformation is not safe in the abstract, only in the way it is fitted. "TargetEncoder" in field 4 is an incomplete answer; "TargetEncoder, fit_transform inside the pipeline, cross-fitted over 5 folds" is a complete one.</p></div>
+    </div>
+
+    <div class="febox" data-mode="encode"></div>
+
+    <div class="callout win">
+      <strong>★ The honesty rail, one last time</strong>
+      The model, the split, and every AUC on this page are computed live in your browser from embedded Lumen data. Only the data is synthetic. The sklearn and Google numbers quoted throughout the track come from their own documentation and are cited on the page where they appear.
+    </div>
+  </section>
+
+  <!-- ============ PART 4: DEFEND ============ -->
+  <section class="section" id="defend">
+    <div class="section-kicker">
+      <span class="klabel">Part 4 · the red-team round</span>
+      <h2>Defend the spec <span class="tag concept">8 min live</span></h2>
+    </div>
+    <p class="lede">Pair up. One of you reads a feature spec aloud; the other asks the hostile question for each field and does not accept "I would have to check." Every question below has cost somebody a quarter.</p>
+
+    <table class="clean">
+      <thead>
+        <tr><th>Field</th><th>The hostile question</th><th>What a weak answer means</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>3 · Write-time</strong></td><td>"When exactly is this written, and by which system?"</td><td>You cannot rule out target leakage. Stop here; nothing downstream matters yet.</td></tr>
+        <tr><td><strong>4 · Transformation</strong></td><td>"What did this transform fit on?"</td><td>Preprocessing leakage is live and invisible. Move the transform inside the pipeline before answering anything else.</td></tr>
+        <tr><td><strong>5 · Owner</strong></td><td>"Who do I call when this feature breaks?"</td><td>The feature is unowned, which means it is unmaintained, which means it will drift silently.</td></tr>
+        <tr><td><strong>2 · Source</strong></td><td>"What happens to this feature when the source table changes?"</td><td>No blast radius, no alerting. A schema migration will take the model down and nobody will connect the two.</td></tr>
+        <tr><td><strong>7 · Deprecation</strong></td><td>"Which features here are we no longer using?"</td><td>Feature debt, accumulating. Rule 22 exists because this list is never empty and never volunteers itself.</td></tr>
+        <tr><td><strong>The split</strong></td><td>"Does the split respect time and entities?"</td><td>Families 3 and 4 from b5 are open. Repeat customers on both sides is the commercial default, Lumen included.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>The ship gate, in one sentence.</strong> A spec whose every line survives these questions is a feature set you can hand over - to a colleague, to a platform team, to whoever inherits this in eighteen months. One that does not is a notebook with ambitions. The most common failure is not a wrong answer; it is a confident answer to field 3 that turns out, when someone finally checks the source system, to have been an assumption nobody ever tested.</p>
+    </div>
+  </section>
+
+  <!-- ============ PART 5: WHERE NEXT ============ -->
+  <section class="section" id="next">
+    <div class="section-kicker">
+      <span class="klabel">Part 5 · self-study</span>
+      <h2>Where this goes next <span class="tag exercise">◐ read after class</span></h2>
+    </div>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>The three courses on either side of this one<span class="mini">3 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <ul>
+          <li><strong>learn-model-evaluation-with-phoebe</strong> judges what these features produced: metrics, thresholds, and the cost of being wrong in each direction. This course owns the inputs; that one owns the verdict.</li>
+          <li><strong>learn-intro-ml-with-phoebe</strong> is the modelling mechanics underneath - the estimator, the split, the fit. Worth a revisit now that you know what you were feeding it.</li>
+          <li><strong>The leader track (a1-a6)</strong> is for whoever funds and reviews this work. a5 covers hand-crafted versus learned features for decision-makers, and a6 is the feature review checklist that the seven-field spec is designed to survive.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>The honest frontier<span class="mini">2 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Named, not taught, and you should know they exist:</p>
+        <ul>
+          <li><strong>Automated feature engineering</strong> - featuretools, autoML feature synthesis. They generate candidate features at volume. They do not answer field 3, which means everything in this course still has to happen afterwards, on a much larger pile.</li>
+          <li><strong>Time-series features</strong> - lags, rolling windows, seasonality. That is learn-timeseries-forecasting-with-phoebe.</li>
+          <li><strong>Representation learning</strong> - training the encoder as part of your model rather than calling a frozen one. That is learn-deep-learning-with-phoebe; b9 was the bridge, not the destination.</li>
+          <li><strong>Feature stores</strong> - the concept and when it pays are in the leader track (a4); implementation and ops belong to the data-engineering bucket.</li>
+        </ul>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ HOMEWORK ============ -->
+  <section class="section" id="exercise">
+    <div class="section-kicker">
+      <span class="klabel">Homework</span>
+      <h2>Try it yourself - this week <span class="tag exercise">◐ 45-60 min total</span></h2>
+    </div>
+    <ul>
+      <li>Write the seven-field spec for every feature in one model you currently run. Not the interesting ones - all of them. The count of fields you cannot fill is the honest state of that model.</li>
+      <li>Run the red-team round with a colleague on that spec. Swap roles. Record only the questions that produced "I would have to check", because that list is the actual deliverable.</li>
+      <li>Move every transform in that model inside a <code>Pipeline</code> and compare the cross-validated score before and after. A drop is a leak you just found; a hold is a leak you just made impossible.</li>
+      <li>Open field 7 for the first time: list every feature nobody has used in six months, and delete one this week. Rule 22 is easy to agree with and hard to schedule.</li>
+    </ul>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Source material</span>
+      <h2>Official sources covered</h2>
+    </div>
+    <p class="lede">This capstone synthesizes the whole track. Certificates and graded exercises stay with the official providers (Kaggle Learn, Google MLCC). This page covers:</p>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">sklearn "Preprocessing data" - scalers, encoders, TargetEncoder in one assembled transformer</span><span class="note">Part 2 · every b2 and b3 transform in its production position</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">sklearn "Common pitfalls" - split first, never fit on test, use a Pipeline</span><span class="note">Parts 2-4 · the three rules as pipeline structure and as spec field 3</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">sklearn "Pipelines and composite estimators" - ColumnTransformer + Pipeline</span><span class="note">Part 2 · the container's stated safety purpose, applied end to end</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Google "Rules of Machine Learning" - rules 19, 21, 22 as spec fields</span><span class="note">Parts 1 and 4 · specificity, weight budget, and cleaning up unused features</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">fe-live workbench canon - the ladder, the leak, the encoding demo</span><span class="note">Part 3 · 0.500 to 0.813 honest; 0.967/0.789 leaked; 0.931/0.493 naive encoding</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">sklearn "Feature selection" - SelectKBest inside the pipeline, not before it</span><span class="note">Part 2 · the selection craft itself is b8</span></div>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions before you go 🎯 <span class="tag exercise">◐ 90 seconds</span></h2>
+    </div>
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">1 · Of the seven spec fields, which one carries the most weight, and why?</p>
+      <button class="qopt" type="button">A · Field 5, the owner - without a name, nothing gets maintained</button>
+      <button class="qopt" type="button">B · Field 3, the write-time relative to the outcome - it is the only field that can disqualify a feature outright, before any of the others matter</button>
+      <button class="qopt" type="button">C · Field 1, the definition - if you cannot define it, you cannot build it</button>
+      <p class="qwhy">The other six make a feature maintainable; field 3 makes it real. A feature written at or after the outcome is target leakage no matter how well it is owned, scaled, or documented - and no amount of cross-validation detects it, because the column is contaminated in every fold.</p>
+    </div>
+    <div class="quiz-q" data-answer="2">
+      <p class="qtext">2 · Putting <code>SelectKBest</code> inside the <code>Pipeline</code> rather than before it prevents what, structurally?</p>
+      <button class="qopt" type="button">A · Overfitting caused by selecting too many features</button>
+      <button class="qopt" type="button">B · Nothing, structurally - it is a readability preference</button>
+      <button class="qopt" type="button">C · Preprocessing leakage - inside, the selector re-fits within each cross-validation fold instead of seeing every row before the split</button>
+      <p class="qwhy">sklearn's own words: pipelines "help avoid leaking statistics from your test data into the trained model in cross-validation, by ensuring that the same samples are used to train the transformers and predictors." Their worked example is the price tag: selection fitted before the split scored 0.76 accuracy on pure noise, where the honest score was 0.50 and cross-validation gave 0.43.</p>
+    </div>
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">3 · What is the ship gate for a feature set leaving your hands?</p>
+      <button class="qopt" type="button">A · Every line of the spec survives the red-team questions, with no "I would have to check" on field 3 or field 4</button>
+      <button class="qopt" type="button">B · The held-out score clears the target the business set</button>
+      <button class="qopt" type="button">C · The pipeline runs end to end without raising an error</button>
+      <p class="qwhy">Scores and clean runs are exactly what leakage produces, which is why neither can be the gate. The gate is that someone else can own this: every feature has a stated write-time, a stated fitting location, a named owner, and a deprecation status. A spec that survives is hand-overable; one that does not is a notebook with ambitions.</p>
+    </div>
+    <p class="quiz-score"></p>
+  </section>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <section class="cheat" id="cheatsheet">
+    <h3>Practitioner session 10 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>The seven fields</b><span>Name + definition · source table and column · write-time · transformation and where fitted · owner · refresh cadence · deprecation status.</span></div>
+      <div class="cheat-item"><b>Field 3 is the gate</b><span>"When exactly is this written, and by which system?" The only field that disqualifies a feature outright. Cross-validation cannot substitute for it.</span></div>
+      <div class="cheat-item"><b>Field 4 is half a field</b><span>Not "TargetEncoder" but "TargetEncoder, fit_transform inside the pipeline, cross-fitted." A transform is safe only in how it is fitted.</span></div>
+      <div class="cheat-item"><b>Pipeline order</b><span>split → ColumnTransformer (impute + scale · one-hot · target-encode) → SelectKBest → LogisticRegression → cross_val_score.</span></div>
+      <div class="cheat-item"><b>Stage to session</b><span>b2 scaling · b3 encoding · b4 datetime derived upstream · b5 the container · b7 imputation with add_indicator · b8 selection inside.</span></div>
+      <div class="cheat-item"><b>The ladder, closed</b><span>Held-out 0.500 → 0.696 → 0.785 → 0.806 → 0.812 → 0.813. Leaked: train 0.967, held-out 0.789. Lever off, permanently.</span></div>
+      <div class="cheat-item"><b>The encoding check</b><span>Naive 0.931 train / 0.493 held-out. Cross-fitted 0.509 / 0.493. Same column, same data, different fitting.</span></div>
+      <div class="cheat-item"><b>The ship gate</b><span>Every line survives the hostile question. Hand-overable beats accurate: a score you cannot defend is a launch decision made on fiction.</span></div>
+    </div>
+  </section>
+
+  <footer class="pagefoot">
+    <span>Practitioner session 10 of 10 · learn-feature-engineering-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="b9-embeddings-as-features.html">← b9 · Embeddings as features</a> &nbsp;·&nbsp; <a href="../index.html">Back to all sessions →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/fe-live.js?v=1"></script>
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leader session 2 · The leakage disaster, in plain English - learn feature engineering with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-feature-engineering-with-phoebe</a> / Leader session 2 of 6</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn Feature Engineering with Phoebe · Leader track · Session 2 of 6</div>
+    <h1>The leakage disaster, <span class="accent">in plain English</span></h1>
+    <p class="sub">Every other way a model can fail announces itself with a bad number. This one announces itself with a good one. That single asymmetry is why leakage survives code review, survives the demo, survives the launch meeting, and is discovered by customers. Tonight you press the trap yourself on Lumen's data, watch training AUC hit 0.967, and then watch the honest held-out number come back at 0.789 - below where the model was before anyone touched it. No code. Two numbers you can quote in any meeting, and four questions that catch this before it ships.</p>
+    <div class="chip-row">
+      <span class="chip level">🟢 Leader track</span>
+      <span class="chip audience">Data leads · PMs · DS managers</span>
+      <span class="chip audience">No code, decisions only</span>
+      <span class="chip time">45 min</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Welcome</span>
+      <span class="a2" style="flex:5">3-18 · The failure that looks like success</span>
+      <span class="a3" style="flex:8">18-42 · Live: press the trap</span>
+      <span class="a4" style="flex:1">42-45 · Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ INTRO ============ -->
+  <section class="section" id="intro">
+    <div class="section-kicker">
+      <span class="klabel">Part 0</span>
+      <h2>Where we are</h2>
+    </div>
+    <p class="lede">Session a1 made the case that features carry the return: 0.500 to 0.813 on Lumen's checkout data with the algorithm never changing. Tonight is the other half of that argument, and it is the half that keeps people awake. Because the same lever that lets a person move a score also lets a person move a score <em>dishonestly, by accident, while doing careful work</em>. That is leakage, and it is the reason this course spends a full session on it in both tracks.</p>
+    <div class="callout win">
+      <strong>★ What you walk out with today</strong>
+      A definition of leakage you can state in one sentence, the four shapes it takes in business language, two numbers that end the "but the score is great" conversation, and the four questions to ask before any model ships.
+    </div>
+  </section>
+
+  <!-- ============ PART 1: WHAT IT IS ============ -->
+  <section class="section" id="what-leakage-is">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · covers sklearn "Common pitfalls and recommended practices"</span>
+      <h2>The failure that looks like success <span class="tag concept">8 min live</span></h2>
+    </div>
+    <p class="lede">Start with the definition from scikit-learn's own documentation, because it is precise and you can quote it verbatim: <em>"Data leakage occurs when information that would not be available at prediction time is used when building the model. This results in overly optimistic performance estimates... and thus poorer performance when the model is used on actually novel data."</em></p>
+    <p class="lede">Strip out the machine-learning vocabulary and what is left is an old idea: <strong>the model was tested on an exam it had already seen</strong>. It scores brilliantly. It has learned nothing that transfers. And nowhere in that process does anything look wrong.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A leaked model passes code review, demo day and the launch gate with a high training score of 0.967, then collapses to 0.789 on real requests, while the honest model holds a flat 0.813 throughout.">
+        <style>
+          .d2G { font: 700 13px Inter, sans-serif; fill: #3F6212; }
+          .d2R { font: 700 13px Inter, sans-serif; fill: #991B1B; }
+          .d2X { font: 400 12px Inter, sans-serif; fill: #64748B; }
+          .d2I { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+          .d2N { font: 600 13px Inter, sans-serif; fill: #7C2D12; }
+          .d2Leak { stroke: #B45309; stroke-width: 3; fill: none; stroke-dasharray: 8 5; }
+          .d2True { stroke: #4D7C0F; stroke-width: 3; fill: none; }
+          .d2Gate { stroke: #64748B; stroke-width: 1; stroke-dasharray: 3 4; }
+        </style>
+        <rect x="40" y="44" width="180" height="48" rx="9" fill="#F7FEE7" stroke="#84CC16" stroke-width="2"/>
+        <text class="d2G" x="130" y="74" text-anchor="middle">Code review</text>
+        <rect x="250" y="44" width="180" height="48" rx="9" fill="#F7FEE7" stroke="#84CC16" stroke-width="2"/>
+        <text class="d2G" x="340" y="74" text-anchor="middle">Demo day</text>
+        <rect x="460" y="44" width="180" height="48" rx="9" fill="#F7FEE7" stroke="#84CC16" stroke-width="2"/>
+        <text class="d2G" x="550" y="74" text-anchor="middle">Launch gate</text>
+        <rect x="670" y="44" width="180" height="48" rx="9" fill="#FEF2F2" stroke="#FCA5A5" stroke-width="2"/>
+        <text class="d2R" x="760" y="74" text-anchor="middle">Real requests</text>
+
+        <text class="d2G" x="130" y="114" text-anchor="middle">✓ passes</text>
+        <text class="d2G" x="340" y="114" text-anchor="middle">✓ passes</text>
+        <text class="d2G" x="550" y="114" text-anchor="middle">✓ passes</text>
+        <text class="d2R" x="760" y="114" text-anchor="middle">✗ fails here</text>
+
+        <path class="d2Gate" d="M130,124 L130,314"/>
+        <path class="d2Gate" d="M340,124 L340,314"/>
+        <path class="d2Gate" d="M550,124 L550,314"/>
+        <path class="d2Gate" d="M760,124 L760,314"/>
+
+        <path class="d2Leak" d="M130,196 L340,196 L550,196 L760,300"/>
+        <path class="d2True" d="M130,250 L760,250"/>
+        <circle cx="760" cy="300" r="5" fill="#991B1B"/>
+        <circle cx="760" cy="250" r="5" fill="#3F6212"/>
+
+        <text class="d2I" x="142" y="186">leaked model, train 0.967</text>
+        <text class="d2I" x="142" y="242">honest model, held-out 0.813</text>
+        <text class="d2R" x="576" y="334">collapses to 0.789 in production</text>
+        <text class="d2X" x="142" y="272">flat, unimpressive, and true</text>
+
+        <rect x="40" y="352" width="14" height="14" rx="3" fill="#B45309"/>
+        <text class="d2N" x="64" y="364">Leakage is the only failure that arrives as a BETTER number, so every gate waves it through.</text>
+        <rect x="40" y="378" width="14" height="14" rx="3" fill="#4D7C0F"/>
+        <text class="d2N" x="64" y="390">The honest model looks worse in the room and is the only one that works outside it.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the review gauntlet, and the one gate that is not staffed by people</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>The four families, in business language<span class="mini">5 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>You do not need to detect these yourself. You need to recognise the shape when a team describes their work, so you know which question to ask next:</p>
+        <ul>
+          <li><strong>A column written after the outcome.</strong> The most common and the most human. A field gets filled in by an operational process once the thing you are predicting has already happened. In the historical table it is populated. At prediction time it is empty. The model leans on it entirely.</li>
+          <li><strong>A transform fitted on data you should not have seen.</strong> Averages, scalings, category groupings, feature selection - any of these computed across the whole dataset before splitting it quietly carries information from the test rows into the training process. The team did preprocessing "first" because that felt tidy.</li>
+          <li><strong>A split that ignores time.</strong> If your rows are ordered in time and the split is random, the model trains on next month and is tested on last month. It knows the future. Production never will.</li>
+          <li><strong>The same customer on both sides.</strong> One entity with several rows, split randomly, so the model memorises the person rather than learning the pattern. It scores well on customers it has met and poorly on the new ones you actually want to serve.</li>
+        </ul>
+        <p>Four different mechanisms, one identical symptom: a number that is better than it should be.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Why it survives every gate you have built<span class="mini">4 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Here is the insight worth taking away from the whole session. <strong>Leakage is the only failure mode in your pipeline that shows up as a better number.</strong> Sit with what that does to a review process:</p>
+        <ul>
+          <li><strong>Code review passes.</strong> The code is clean, well tested, and correct - it faithfully does the wrong thing. There is no bug to find.</li>
+          <li><strong>Demo day passes, enthusiastically.</strong> A high score is exactly what everyone came to see. Nobody in that room is incentivised to interrogate a good result, and asking "is this too good?" sounds like scepticism about a colleague's work.</li>
+          <li><strong>The launch gate passes.</strong> Whatever threshold you set, the leaked model clears it more comfortably than the honest one. Your governance process is, without meaning to, selecting for leakage.</li>
+          <li><strong>Real requests fail.</strong> The first gate not staffed by people who want the project to succeed. By then it is in production, it is in a slide deck, and someone has forecast revenue against it.</li>
+        </ul>
+        <div class="callout tip">
+          <strong>The cultural fix is cheaper than the technical one</strong>
+          Make "this looks suspiciously good, what did we check?" a normal, welcome question rather than an accusation. A team that can say that out loud catches leakage at the demo. A team that cannot catches it from customers.
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 2: THE NUMBERS ============ -->
+  <section class="section" id="two-numbers">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · the two numbers to carry into any meeting</span>
+      <h2>Evidence you can quote <span class="tag concept">6 min live</span></h2>
+    </div>
+    <p class="lede">Arguments about leakage go badly when they are arguments about judgement. They go well when they are arguments about two documented results. Memorise these; they do more work than any amount of general caution.</p>
+
+    <table class="clean">
+      <thead>
+        <tr><th>Evidence</th><th>Leaked result</th><th>Honest result</th><th>What it proves</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>sklearn's own experiment, on pure noise</strong></td><td><strong>0.76</strong> accuracy</td><td><strong>0.50</strong> accuracy<br>(0.43 under cross-validation)</td><td>26 points of accuracy manufactured out of data containing no signal whatsoever</td></tr>
+        <tr><td><strong>The Lumen trap, on our own case</strong></td><td><strong>0.967</strong> training AUC<br><strong>0.789</strong> held out</td><td><strong>0.813</strong> held out</td><td>The leak did not merely fake a good model - it produced a worse one than never adding the column</td></tr>
+      </tbody>
+    </table>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Number one: 0.76 from nothing at all<span class="mini">4 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>scikit-learn's documentation includes a worked example that is worth describing precisely, because its power comes from the setup. They generate a dataset of <strong>completely random noise</strong> - no relationship between the inputs and the outcome, none, by construction. There is nothing to learn. The only honest score is a coin flip.</p>
+        <p>Then they do one ordinary-looking thing: they run feature selection across the whole dataset <em>before</em> splitting it into train and test. Everything else is textbook.</p>
+        <ul>
+          <li>Selection fitted on all the data, then split: <strong>0.76 accuracy</strong>.</li>
+          <li>Split first, selection fitted on training rows only: <strong>0.50</strong>.</li>
+          <li>The same honest pipeline under cross-validation: <strong>0.43</strong>.</li>
+        </ul>
+        <p>Twenty-six points of accuracy, conjured from randomness, by a single step done in the wrong order. Nobody cheated. Nobody was careless. The order of two operations was reversed.</p>
+        <p>Why this is the number to quote: it removes the argument that "our data is good, so we would notice." The data in this experiment had no signal at all and the score still looked respectable. <strong>A good number cannot tell you whether it earned itself.</strong></p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Number two: the leak that made the model worse<span class="mini">4 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>The second number is from our own case, and it is the more useful one in a room full of people who have heard general warnings before.</p>
+        <p>Lumen's honest model, with all five feature groups on, scores <strong>0.813</strong> held out. Add one leaked column - a flag recorded after the sale - and:</p>
+        <ul>
+          <li><strong>Training AUC: 0.967.</strong> The best number anyone on the project has ever seen. This is the moment a team messages the group chat.</li>
+          <li><strong>Held-out AUC: 0.789.</strong> A gap of 0.179, and, more importantly, <strong>below the 0.813 they already had</strong>.</li>
+        </ul>
+        <p>Read that last point carefully, because it defeats the most common rationalisation. The comfortable story is "the leak flattered us, so the real performance is what it always was." It is not. The model became <strong>worse than the version without the leaked column</strong>, because it learned to depend on a feature that arrives empty in production and effectively ignored the honest signals it could have used.</p>
+        <p>So leakage is not a measurement error you can subtract out afterwards. It is a design error baked into what the model learned. The cost is not "we over-reported by a few points." The cost is a shipped model that underperforms the one you would have had by doing nothing clever at all.</p>
+      </div>
+    </details>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>The churn model that predicted the retention team.</strong> A field called <code>last_contact_type</code> sits in the customer table and is a superb predictor of churn. It should be. The retention team fills it in <em>after</em> deciding a customer is leaving. The code was clean, the split was correct, the reviewer was competent, and the model was fiction: it had learned to predict what the retention team had already concluded. In production, on a customer nobody has flagged yet, the field is empty and the model has nothing to say. Nothing in a code review catches this. Only someone who knows when that column gets written does.</p>
+    </div>
+  </section>
+
+  <!-- ============ DEMO ============ -->
+  <section class="section" id="demo">
+    <div class="section-kicker">
+      <span class="klabel">Live demo</span>
+      <h2>Press the trap yourself <span class="tag demo">★ 12 min · everyone runs it</span></h2>
+    </div>
+    <p class="lede">The workbench below arrives with the five honest feature groups already switched on and the leakage lever off. It trains a real model in your browser and scores it on 1,200 Lumen sessions it has never seen. What follows is thirty seconds you will remember for the rest of the track.</p>
+
+    <div class="steps">
+      <div class="step"><p>First, <strong>establish the honest baseline</strong>. Press <strong>Score on held-out</strong> and read <strong>0.813</strong>. This is a genuinely useful model on a 3.2% conversion problem. Note it down; everything after this is measured against it.</p></div>
+      <div class="step"><p>Now switch on the dashed <strong>Target leakage</strong> lever. Do not press the held-out button yet. Read the <strong>training</strong> AUC first: <strong>0.967</strong>. Sit in that moment for a second - this is exactly what a team sees on the afternoon they think they have solved it.</p></div>
+      <div class="step"><p>Now press <strong>Score on held-out</strong>: <strong>0.789</strong>. A gap of <strong>0.179</strong>, and below the 0.813 you had two minutes ago. The leak did not just flatter the model. It made it worse.</p></div>
+      <div class="step"><p>Understand the mechanism, because it is the whole lesson. The leaked column is written after the sale. In the historical table it is filled in, so the model learns to rely on it. At prediction time - the only moment that matters - it is empty. The workbench scores held-out rows the way production would, so the column arrives blank and the model's strongest feature evaporates.</p></div>
+      <div class="step"><p>Switch the lever back off and confirm you return to <strong>0.813</strong>. The honest model was always there. Somebody just had to not ship the other one.</p></div>
+      <div class="step"><p>Say the rule out loud: <strong>a feature is only a feature if it exists before the thing you are predicting.</strong> That single sentence catches the most common family of leaks in most organisations.</p></div>
+    </div>
+
+    <div class="febox" data-mode="ladder"></div>
+
+    <div class="callout tip">
+      <strong>How to read the workbench</strong>
+      Training AUC is always visible; the held-out score stays masked until you ask for it, which is deliberate friction. AUC 0.5 is random and 1.0 is perfect. The data is synthetic Lumen; the model, the split, and every number are computed live in your browser, not illustrated.
+    </div>
+  </section>
+
+  <!-- ============ PART 3: FOUR QUESTIONS ============ -->
+  <section class="section" id="four-questions">
+    <div class="section-kicker">
+      <span class="klabel">Part 3 · self-study</span>
+      <h2>Four questions to ask before any model ships <span class="tag exercise">◐ 5 min read</span></h2>
+    </div>
+    <p class="lede">You cannot inspect a pipeline and you should not try. What you can do is ask four questions that a healthy team answers in two minutes and an unhealthy one cannot answer at all. Use them as a standing item at the launch gate, not as an interrogation after something breaks.</p>
+
+    <div class="steps">
+      <div class="step"><p><strong>1 · "When is each feature written, relative to the outcome?"</strong> Not where it comes from - <em>when</em>. Any column populated by a process that runs after the event you are predicting is a leak, no matter how clean the code around it is. This one question catches the churn-model family.</p></div>
+      <div class="step"><p><strong>2 · "What data did each transform get fitted on?"</strong> Averages, scalings, category groupings, feature selection. The honest answer is "training rows only." If the answer involves the whole dataset, that is sklearn's 0.76-on-noise scenario, exactly.</p></div>
+      <div class="step"><p><strong>3 · "Does time or entity matter in how we split?"</strong> If rows are ordered in time, the split must respect it. If one customer has many rows, they belong on one side only. A random split is the default, and the default is wrong more often than people expect.</p></div>
+      <div class="step"><p><strong>4 · "Is this result suspiciously good, and what did we check?"</strong> The cultural one, and the most valuable. A model that dramatically outperforms the previous one is a hypothesis, not a result. Make asking this normal so it costs nobody anything socially.</p></div>
+    </div>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>What the good answers sound like<span class="mini">3 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>You are listening for specificity and for speed. Compare:</p>
+        <ul>
+          <li><strong>Weak:</strong> "We were careful about leakage." <strong>Strong:</strong> "We listed every feature with its write-time; two were populated post-outcome and we dropped them."</li>
+          <li><strong>Weak:</strong> "We used a standard pipeline." <strong>Strong:</strong> "Every transform is fitted on training rows only, and the structure enforces that rather than relying on us remembering." (Your practitioner colleagues learn exactly this in b5.)</li>
+          <li><strong>Weak:</strong> "We did a normal split." <strong>Strong:</strong> "Split by customer and by date, because both matter here, and here is why."</li>
+          <li><strong>Weak:</strong> "The score is 0.95." <strong>Strong:</strong> "The score is 0.95, which is far above our previous model, so we checked X and Y before believing it."</li>
+        </ul>
+        <p>None of this requires you to understand the implementation. It requires the team to have thought about write-time, fit-scope, split design, and their own scepticism - and to be able to say so without preparing.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Where the rest of the answer lives<span class="mini">3 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Two structural defences get covered later on this track, and both are worth knowing exist:</p>
+        <ul>
+          <li><strong>Structure beats vigilance.</strong> scikit-learn's own guidance is that pipelines exist to prevent this class of error, "by ensuring that the same samples are used to train the transformers and predictors." The point for you is that leakage prevention should be a property of how the work is built, not a thing people remember on a good day. Your team should not be relying on care alone.</li>
+          <li><strong>Some leaks are subtle enough to survive a correct split.</strong> Encoding a high-cardinality column such as postal code using outcome information is the classic case - on our own data, a column that knows literally nothing about the target scored <strong>0.931</strong> in training and <strong>0.493</strong> held out. The fix is a technique your team should be able to name; it is covered in practitioner session b3. You do not need the mechanism, only the awareness that "we split correctly" is not by itself a complete answer.</li>
+          <li><strong>Consistency between training and serving</strong> is the governance version of this whole session, and it is a4: feature stores, point-in-time correctness, and why "train like you serve" is a leadership concern rather than an engineering detail.</li>
+        </ul>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ HOMEWORK ============ -->
+  <section class="section" id="exercise">
+    <div class="section-kicker">
+      <span class="klabel">Before session 3</span>
+      <h2>Two things to do this week <span class="tag exercise">◐ 20 min total</span></h2>
+    </div>
+    <ul>
+      <li>Take one model in production and ask its owner question one: when is each feature written, relative to the outcome? Ask for the list, not the reassurance. Note how long it takes.</li>
+      <li>Look at your launch checklist. If it has a minimum score but no question about whether the score is believable, add the fourth question to it. That edit costs one line and catches the failure mode this session is about.</li>
+    </ul>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Source material</span>
+      <h2>Official sources covered</h2>
+    </div>
+    <p class="lede">Every number on this page is either from scikit-learn's own documentation or computed live in your browser on the Lumen case. Nothing here is estimated or illustrative. Certificates and graded exercises stay with the official providers, linked each session. This page covers:</p>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">sklearn "Common pitfalls and recommended practices" - the leakage chapter</span><span class="note">Parts 1-2 · the verbatim definition and the 0.76-versus-0.50 noise experiment</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">fe-live leakage canon - train 0.967, held out 0.789, honest 0.813</span><span class="note">The demo · pressed live, scored the way production would score it</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">sklearn "Pipelines and composite estimators" - the stated safety purpose</span><span class="note">Named as structure over vigilance · the working pattern is practitioner b5</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">sklearn TargetEncoder cross-fitting demo - the leak that survives a correct split</span><span class="note">Awareness only · the mechanism and its numbers are practitioner b3</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Lumen canon (learn-intro-ml) - the dataset under improvement</span><span class="note">Reused, never re-derived · the leaked column is this course's addition</span></div>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions before you go 🎯 <span class="tag exercise">◐ 90 seconds</span></h2>
+    </div>
+    <div class="quiz-q" data-answer="2">
+      <p class="qtext">1 · Why does leakage get through code review, the demo, and the launch gate?</p>
+      <button class="qopt" type="button">A · It is hidden in library internals that reviewers cannot inspect</button>
+      <button class="qopt" type="button">B · Most review processes skip machine-learning work because nobody feels qualified to judge it</button>
+      <button class="qopt" type="button">C · It is the only failure mode that shows up as a better number, so every human gate has a reason to wave it through</button>
+      <p class="qwhy">The code is clean, the demo is impressive, and the model clears whatever threshold you set more comfortably than the honest one. Your governance process ends up selecting for leakage without anyone intending it. The first gate that catches it is real customer requests.</p>
+    </div>
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">2 · In scikit-learn's own experiment on data made of pure random noise, what did the leaked pipeline score?</p>
+      <button class="qopt" type="button">A · 0.76 accuracy, where the honest version scored 0.50 and 0.43 under cross-validation</button>
+      <button class="qopt" type="button">B · 0.99 accuracy, which is why extreme scores are the warning sign</button>
+      <button class="qopt" type="button">C · 0.50 accuracy, proving that leakage cannot help when there is no signal</button>
+      <p class="qwhy">Twenty-six points of accuracy manufactured out of data with no signal in it at all, purely because feature selection was run before the train/test split instead of after. This is the number to quote when someone argues their data is too good to fool them.</p>
+    </div>
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">3 · The Lumen leak produced training AUC 0.967 and held-out 0.789, against an honest 0.813. Why was the leaked model worse, not just falsely good?</p>
+      <button class="qopt" type="button">A · The held-out set is smaller, so its scores are always lower than training scores</button>
+      <button class="qopt" type="button">B · The model learned to depend on a column that arrives empty at prediction time, so it under-used the honest signals it could have relied on</button>
+      <button class="qopt" type="button">C · Adding any extra column reduces performance once the feature count is high</button>
+      <p class="qwhy">This is why leakage cannot be corrected by subtracting a few points afterwards. It changes what the model learned. Shipping it means shipping something that performs below the version you would have had if nobody had added the column at all.</p>
+    </div>
+    <p class="quiz-score"></p>
+  </section>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <section class="cheat" id="cheatsheet">
+    <h3>Leader session 2 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>Leakage in one sentence</b><span>Information "that would not be available at prediction time" is used when building the model (sklearn). The exam was seen in advance.</span></div>
+      <div class="cheat-item"><b>Why it survives review</b><span>It is the only failure mode that arrives as a BETTER number. Clean code, great demo, cleared gate, failed customer.</span></div>
+      <div class="cheat-item"><b>The four families</b><span>A column written after the outcome · a transform fitted on data you should not have seen · a split that ignores time · the same customer on both sides.</span></div>
+      <div class="cheat-item"><b>Number one</b><span>sklearn on PURE NOISE: leaked selection 0.76 accuracy, honest 0.50, 0.43 under cross-validation. 26 points from randomness.</span></div>
+      <div class="cheat-item"><b>Number two</b><span>Lumen trap: train 0.967, held out 0.789, versus honest 0.813. The leak made the model worse, not just falsely good.</span></div>
+      <div class="cheat-item"><b>The one-line rule</b><span>A feature is only a feature if it exists before the thing you are predicting.</span></div>
+      <div class="cheat-item"><b>The four questions</b><span>Write-time of every feature? What did each transform fit on? Does time or entity matter in the split? Is this suspiciously good?</span></div>
+      <div class="cheat-item"><b>Structure over vigilance</b><span>Leakage prevention should be a property of how the work is built, not a thing people remember on a good day.</span></div>
+    </div>
+  </section>
+
+  <footer class="pagefoot">
+    <span><a href="a1-features-decide-roi.html">← a1 · Why features decide ROI</a> &nbsp;·&nbsp; <a href="../index.html">All sessions</a></span>
+    <span><a href="a3-data-quality-budget.html">Next: Data quality is a feature budget →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/fe-live.js?v=1"></script>
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>

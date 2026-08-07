@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Practitioner session 2 · Numeric transforms - learn feature engineering with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-feature-engineering-with-phoebe</a> / Practitioner session 2 of 10</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn Feature Engineering with Phoebe · Practitioner track · Session 2 of 10</div>
+    <h1>Numeric <span class="accent">transforms</span></h1>
+    <p class="sub">A number is already a number, so surely you can hand it straight to the model. Sometimes yes. But a right-skewed spend column, a bounded page count and a fat-tailed order value are three different animals, and the transform that suits one actively hurts another. Tonight you learn to read a distribution's shape and pick the matching transform - scaling, log, clipping, binning, splines - with Google's when-to-use table and sklearn's own scaler guidance as the rails.</p>
+    <div class="chip-row">
+      <span class="chip level">🟢 Practitioner track</span>
+      <span class="chip audience">DS · analysts · ML engineers</span>
+      <span class="chip audience">Python · live workbench on key pages</span>
+      <span class="chip time">45 min</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Welcome</span>
+      <span class="a2" style="flex:5">3-18 · Scaling + shape</span>
+      <span class="a3" style="flex:8">18-42 · Build-along: transform Lumen's numerics</span>
+      <span class="a4" style="flex:1">42-45 · Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ PART 1: WHY NORMALIZE ============ -->
+  <section class="section" id="why-normalize">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · covers Google MLCC "Working with numerical data"</span>
+      <h2>Why normalize at all <span class="tag concept">8 min live</span></h2>
+    </div>
+    <p class="lede">Normalization is the least glamorous thing in this course and one of the highest-yield. Google's crash course gives four concrete reasons, and it is worth knowing all four rather than the vague "it helps" you usually hear. Models trained on normalized features:</p>
+
+    <div class="callout tip">
+      <strong>Google's four reasons, in their words</strong>
+      converge more quickly during training · infer better predictions · avoid the "NaN trap" (when one value in the model exceeds the floating-point precision limit and the arithmetic collapses) · learn appropriate weights for each feature instead of over-weighting the one with the widest range.
+    </div>
+
+    <p>The fourth is the one people underrate. If <code>prior_30d_spend</code> runs 0 to 4,000 and <code>pages_viewed</code> runs 1 to 20, a gradient-descent model does not see "spend matters 200 times more" - it sees a loss surface stretched 200 times along one axis, and it wobbles down that valley slowly. The weights it eventually learns are shaped by the units you happened to record in, not by the signal.</p>
+
+    <p class="lede">Which transform, though? Google ties the choice to the <strong>shape of the distribution</strong>, not to the column's name or business meaning. Learn this table and most of the guesswork disappears.</p>
+
+    <table class="clean">
+      <thead>
+        <tr><th>Technique</th><th>Formula</th><th>Use when the feature...</th><th>Shape</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Linear (min-max) scaling</strong></td><td><code>x' = (x - min) / (max - min)</code></td><td>"is mostly uniformly distributed across a fixed range"</td><td>Flat</td></tr>
+        <tr><td><strong>Z-score scaling</strong></td><td><code>x' = (x - μ) / σ</code></td><td>"is normally distributed (peak close to the mean)"</td><td>Bell</td></tr>
+        <tr><td><strong>Log scaling</strong></td><td><code>x' = log(x)</code></td><td>"is heavy skewed on at least either side of the tail"</td><td>Long tail</td></tr>
+        <tr><td><strong>Clipping</strong></td><td>cap at a chosen max or min</td><td>"contains extreme outliers"</td><td>Spikes at the edge</td></tr>
+      </tbody>
+    </table>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 350" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three distribution shapes - flat, bell and heavy tail - each with an arrow pointing to the numeric transform that suits it.">
+        <style>
+          .n2T { font: 700 14px Inter, sans-serif; fill: #FFFFFF; }
+          .n2S { font: 400 12px Inter, sans-serif; fill: #FFFFFF; opacity: .93; }
+          .n2L { font: 700 12px Inter, sans-serif; fill: #1E293B; }
+          .n2N { font: 600 13px Inter, sans-serif; fill: #7C2D12; }
+          .n2W { stroke: #4D7C0F; stroke-width: 2.5; fill: none; marker-end: url(#n2Hd); }
+        </style>
+        <defs>
+          <marker id="n2Hd" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+            <path d="M0,0 L9,4.5 L0,9 z" fill="#4D7C0F"/>
+          </marker>
+        </defs>
+
+        <text class="n2L" x="40" y="30">DISTRIBUTION SHAPE</text>
+        <text class="n2L" x="420" y="30">MATCHING TRANSFORM</text>
+
+        <text class="n2L" x="40" y="95">Mostly uniform</text>
+        <rect x="180" y="55" width="180" height="70" rx="8" fill="#F7FEE7" stroke="#84CC16" stroke-width="2"/>
+        <rect x="196" y="86" width="148" height="28" fill="#BEF264"/>
+        <path class="n2W" d="M365,90 L412,90"/>
+        <rect x="420" y="55" width="420" height="70" rx="10" fill="#4D7C0F"/>
+        <text class="n2T" x="442" y="84">Linear min-max scaling</text>
+        <text class="n2S" x="442" y="106">x' = (x - min) / (max - min), lands in 0 to 1</text>
+
+        <text class="n2L" x="40" y="185">Normal, peak at mean</text>
+        <rect x="180" y="145" width="180" height="70" rx="8" fill="#F7FEE7" stroke="#84CC16" stroke-width="2"/>
+        <path d="M196,204 Q270,140 344,204 Z" fill="#BEF264"/>
+        <path class="n2W" d="M365,180 L412,180"/>
+        <rect x="420" y="145" width="420" height="70" rx="10" fill="#3F6212"/>
+        <text class="n2T" x="442" y="174">Z-score scaling</text>
+        <text class="n2S" x="442" y="196">x' = (x - mu) / sigma, most values sit in -3 to +3</text>
+
+        <text class="n2L" x="40" y="275">Heavy skewed tail</text>
+        <rect x="180" y="235" width="180" height="70" rx="8" fill="#F7FEE7" stroke="#84CC16" stroke-width="2"/>
+        <path d="M196,294 Q206,244 226,266 Q260,292 344,296 L344,294 Z" fill="#BEF264"/>
+        <path class="n2W" d="M365,270 L412,270"/>
+        <rect x="420" y="235" width="420" height="70" rx="10" fill="#7C2D12"/>
+        <text class="n2T" x="442" y="264">Log scaling</text>
+        <text class="n2S" x="442" y="286">x' = log(x), compresses the tail, keeps the order</text>
+
+        <rect x="40" y="326" width="14" height="14" rx="3" fill="#B45309"/>
+        <text class="n2N" x="64" y="338">Fourth case: extreme outliers, so clip. Cap the value at a chosen max or min, do not drop the row.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - shape first, transform second</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>Three numbers to carry in your head<span class="mini">4 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Google works each technique with a small example. Memorize these three and you can sanity-check any transform on a whiteboard.</p>
+        <ul>
+          <li><strong>Min-max.</strong> A feature spanning <strong>100 to 900</strong>. The raw value <strong>300</strong> becomes <strong>0.25</strong>, because it sits a quarter of the way along the range. Every value lands in 0 to 1, and the shape of the distribution is unchanged - only the axis moves.</li>
+          <li><strong>Z-score.</strong> With <strong>μ = 100</strong> and <strong>σ = 20</strong>, the raw value <strong>130</strong> becomes <strong>+1.5</strong>: one and a half standard deviations above the mean. The unit is now "how unusual is this", which is exactly what a bell-shaped feature is telling you.</li>
+          <li><strong>Log.</strong> Google's line is the one to quote when someone asks why a log helps at all: <em>"the log of 1,000,000 is only about three times larger than the log of 100."</em> A ratio of ten thousand to one becomes a ratio of three to one. The order survives, the tyranny of the tail does not.</li>
+        </ul>
+        <div class="callout example">
+          <span class="ex-pill">Real world</span>
+          <p><strong>Lumen's spend column is the textbook case.</strong> <code>prior_30d_spend</code> is gamma-shaped and right-skewed - most sessions cluster near zero, a thin tail runs into the thousands. Min-max scaling would squash 95% of your customers into the bottom few percent of the range. Log or a power transform is what the shape is asking for, and the tail customers stay distinguishable from each other instead of all mapping to "high".</p>
+        </div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Clipping is not cheating<span class="mini">3 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Clipping caps a feature at a chosen ceiling or floor. A session with 4,000 dollars of prior spend becomes 1,000 if that is where you clip, and the row stays in the dataset. Two things worth being clear about:</p>
+        <ul>
+          <li>Clipping <strong>keeps the row</strong>. Deleting outlier rows throws away real customers and quietly biases the model against the segment that spends the most. Capping keeps the customer and only limits how far one number can drag the loss.</li>
+          <li>Clipping <strong>destroys information above the cap</strong>. Everything past the ceiling becomes identical. If the difference between a 1,200-dollar customer and a 4,000-dollar customer matters to you, log-scale instead, or do both: log first, then clip the residual extremes.</li>
+        </ul>
+        <p>The honest framing: clipping is a statement that values beyond a point are noise or data-entry error, not signal. Make that statement deliberately, and write down where you clipped - it belongs in the feature spec you build in b10.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 2: THE SCALER FAMILY ============ -->
+  <section class="section" id="scaler-family">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · covers sklearn "Preprocessing data"</span>
+      <h2>sklearn's scaler family, and its own advice <span class="tag concept">9 min live</span></h2>
+    </div>
+    <p class="lede">sklearn ships half a dozen scalers and its user guide is unusually opinionated about when each one applies. The guidance below is quoted from the preprocessing chapter itself - anchor by section name rather than number, because sklearn renumbered its user-guide chapters and any number you memorize will rot.</p>
+
+    <table class="clean">
+      <thead>
+        <tr><th>Transformer</th><th>What sklearn says about it</th><th>Reach for it when</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>StandardScaler</strong></td><td>Zero mean, unit variance. On sparse input it needs <code>with_mean=False</code> or it raises a ValueError, because "silently centering would break the sparsity"</td><td>Roughly bell-shaped, dense data</td></tr>
+        <tr><td><strong>RobustScaler</strong></td><td>A "drop-in replacement" that uses "more robust estimates for the center and range" of the data</td><td>The column has outliers you do not want steering the mean</td></tr>
+        <tr><td><strong>MinMaxScaler / MaxAbsScaler</strong></td><td>MaxAbsScaler is "specifically designed for scaling sparse data, and is the recommended way to go about this"</td><td>Bounded ranges; MaxAbs for sparse matrices</td></tr>
+        <tr><td><strong>PowerTransformer</strong></td><td>Two methods: <code>yeo-johnson</code> and <code>box-cox</code>. "Box-Cox can only be applied to strictly positive data." Applies zero-mean unit-variance to the output by default</td><td>You want the column mapped toward Gaussian</td></tr>
+        <tr><td><strong>QuantileTransformer</strong></td><td>Maps to a uniform or normal output distribution by rank. Non-linear, so it collapses distances between values</td><td>Shape is a mess and rank is what you trust</td></tr>
+        <tr><td><strong>Normalizer</strong></td><td>Scales each <em>row</em> to unit norm, not each column</td><td>Text or count vectors where direction matters, not magnitude</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip">
+      <strong>The box-cox trap, stated plainly</strong>
+      <code>method="box-cox"</code> will fail on any column containing a zero or a negative number. Lumen's <code>prior_30d_spend</code> has plenty of zeros - customers who bought nothing in the last thirty days. Use <code>yeo-johnson</code>, which handles zero and negative values, unless you have already established your column is strictly positive.
+    </div>
+
+    <p>Here is the same reasoning applied to Lumen's numerics. Notice that each column gets the transformer its shape asks for, and that everything lives inside a <code>Pipeline</code> so the fitting happens on training rows only - the discipline b5 makes into a rule.</p>
+
+    <div class="prompt-box"><span class="label">Python</span>from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import PowerTransformer, StandardScaler, RobustScaler
+
+# prior_30d_spend: gamma-shaped, right-skewed, contains zeros -> yeo-johnson
+# pages_viewed:    small bounded count, roughly symmetric  -> standard
+# order_value:     mean around $74 with a fat tail          -> robust
+numerics = ColumnTransformer([
+    ("skewed",   PowerTransformer(method="yeo-johnson"), ["prior_30d_spend"]),
+    ("bounded",  StandardScaler(),                       ["pages_viewed"]),
+    ("outliers", RobustScaler(),                         ["order_value"]),
+])
+
+model = Pipeline([
+    ("prep", numerics),
+    ("clf",  LogisticRegression(max_iter=1000)),
+])
+
+model.fit(X_train, y_train)    # fit_transform runs on train rows only
+model.score(X_test, y_test)    # test rows are transformed, never fitted on</div>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Which models actually care<span class="mini">4 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Scaling is not universally required, and knowing where it is optional saves you arguing about it in a code review.</p>
+        <ul>
+          <li><strong>Trees do not need it.</strong> Decision trees, random forests and gradient boosting split on thresholds within a single column. A monotonic rescaling moves the threshold and changes nothing else. If your whole stack is XGBoost, scaling is mostly wasted effort.</li>
+          <li><strong>Anything with gradient descent does.</strong> Logistic regression, linear regression, neural nets. Unequal feature ranges stretch the loss surface and slow convergence - Google's first reason, restated.</li>
+          <li><strong>Anything with a distance or a penalty does, badly.</strong> kNN, SVM with an RBF kernel, k-means, and any L1 or L2 penalized model. Here scaling is not a convenience: an unscaled feature with a wide range dominates the distance metric outright, and a penalty applied to unscaled coefficients is not penalizing what you think it is.</li>
+        </ul>
+        <div class="callout example">
+          <span class="ex-pill">Real world</span>
+          <p><strong>The nuance tonight's workbench makes visible.</strong> The in-browser model is a logistic regression trained by gradient descent, and its numerics arrive <em>unscaled</em>. It still learns - raw numerics take held-out AUC from 0.500 to 0.696. Scaling would have bought faster convergence and better-behaved coefficients, not a different ranking of customers. It is worth being honest about that: scaling is mandatory for penalized and distance-based models, and is mostly a convergence and interpretability tool for a plain logistic fit.</p>
+        </div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Sparse data has its own rules<span class="mini">3 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>A sparse matrix stores only the non-zero entries. That is the entire point, and centering a column - subtracting the mean from every value - turns every stored zero into a non-zero. A 40,000-row one-hot matrix that fit comfortably in memory becomes a dense block that does not.</p>
+        <p>sklearn refuses to do this by accident. <code>StandardScaler</code> raises a ValueError on sparse input unless you pass <code>with_mean=False</code>, because in its own words "silently centering would break the sparsity structure of the data". The recommended path is <code>MaxAbsScaler</code>, which sklearn describes as "specifically designed for scaling sparse data, and is the recommended way to go about this" - it divides by the maximum absolute value, so zeros stay zeros.</p>
+        <p>This matters directly after b3, where one-hot encoding a high-cardinality column is exactly how you end up holding a sparse matrix.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 3: BINNING AND CURVATURE ============ -->
+  <section class="section" id="binning">
+    <div class="section-kicker">
+      <span class="klabel">Part 3 · covers Google MLCC binning + sklearn KBinsDiscretizer and SplineTransformer</span>
+      <h2>Binning, splines, and buying curvature <span class="tag concept">7 min live</span></h2>
+    </div>
+    <p class="lede">Scaling moves a feature. Binning changes what the model is allowed to learn from it. Google defines it simply - binning "groups different numerical subranges into bins or buckets" - and gives two criteria for when it is the right move. Both are about the same thing: the relationship is not a straight line.</p>
+
+    <div class="callout tip">
+      <strong>Google's two criteria for binning, verbatim</strong>
+      "The overall linear relationship between the feature and the label is weak or nonexistent" · OR · "the feature values are clustered". Once binned, "the model learns separate weights for each bin" - which is precisely how a linear model gets to draw a non-linear response without stopping being linear.
+    </div>
+
+    <p>The choice of <em>bin edges</em> then matters more than the choice to bin. Equal-width buckets on a skewed column put almost every row in bucket one. Quantile bucketing fixes this, and Google's description of why is the clearest sentence on the topic: it "gives extra information space to the large torso while compacting the long tail into a single bucket". The dense middle of your distribution, where most customers live, gets resolution. The tail, where a handful of rows live, gets one bucket and stops distorting everything.</p>
+
+    <div class="prompt-box"><span class="label">Python</span>from sklearn.preprocessing import KBinsDiscretizer, SplineTransformer
+
+# strategy: "uniform"  -> equal-width edges
+#           "quantile" -> equally populated bins (the torso/tail fix)
+#           "kmeans"   -> edges from a 1D k-means on the column
+binner = KBinsDiscretizer(
+    n_bins=[3, 2, 2],            # per-feature bin counts, not one global number
+    encode="onehot-dense",
+    strategy="quantile",
+)
+
+# Curvature without the polynomial pathologies
+splines = SplineTransformer(degree=3, n_knots=5, extrapolation="constant")
+
+# The documented equivalence worth knowing:
+# SplineTransformer(degree=0, n_knots=k) == KBinsDiscretizer(encode="onehot-dense")
+# with n_bins = n_knots - 1</div>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Splines versus polynomials, and why sklearn prefers splines<span class="mini">5 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Both <code>PolynomialFeatures</code> and <code>SplineTransformer</code> let a linear model fit a curve. sklearn's preprocessing guide lays out four reasons splines usually win:</p>
+        <ul>
+          <li><strong>No wild edges.</strong> High-degree polynomials show "oscillatory behaviour at the boundaries" - the guide names it: <em>Runge's phenomenon</em>. Your fit looks reasonable in the middle of the data and swings violently at the ends, which is exactly where your unusual customers sit.</li>
+          <li><strong>Better extrapolation.</strong> Splines extrapolate more sensibly beyond the observed range, and <code>extrapolation="constant"</code> makes the behaviour explicit instead of accidental.</li>
+          <li><strong>Numerically better behaved.</strong> The spline basis produces a banded matrix with a low condition number; the polynomial basis produces a Vandermonde matrix, which is famously ill-conditioned at higher degrees.</li>
+          <li><strong>But no interactions.</strong> Straight from the docs: <em>"The SplineTransformer treats each feature separately, i.e. it won't give you interaction terms."</em> If you need spend-times-returning, splines will not produce it. That is b6's job.</li>
+        </ul>
+        <p>And the tidy equivalence to file away: a <code>degree=0</code> spline is exactly <code>KBinsDiscretizer(encode='onehot-dense')</code> with <code>n_bins = n_knots - 1</code>. Binning is the crudest spline. Raising the degree is how you buy smoothness back.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>The polynomial caution nobody reads<span class="mini">2 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Google's numerical-data module attaches a warning to polynomial transforms that applies to any derived numeric feature: <em>"If you transform a feature in a way that changes its scale, you should consider experimenting with normalizing it as well."</em></p>
+        <p>Square a feature that ranges 0 to 4,000 and the new column ranges 0 to 16,000,000. You have just re-created, at a larger scale, the exact imbalance normalization existed to fix - and if you built the polynomial after your scaler in the pipeline, nothing is going to catch it. Order matters: derive, then scale, and check the ranges of what you actually handed the model rather than the ranges of what you started with.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ DEMO ============ -->
+  <section class="section" id="demo">
+    <div class="section-kicker">
+      <span class="klabel">Build-along</span>
+      <h2>Rung one, earned <span class="tag demo">★ 12 min · everyone runs it</span></h2>
+    </div>
+    <p class="lede">The workbench opens with <strong>raw numerics</strong> already on - the first real rung of the ladder you climbed in b1. Toggle it off and back on, pressing <strong>Score on held-out</strong> each time, and watch what the plain numbers are worth before any shaping at all.</p>
+
+    <div class="steps">
+      <div class="step"><p>Levers off: held-out AUC <strong>0.500</strong>. A coin flip. Nothing about the algorithm gets you above this line.</p></div>
+      <div class="step"><p>Raw numerics on: held-out <strong>0.696</strong>. Spend, pages viewed and session hour, straight from the table, unscaled and untransformed. This is the ladder's first real rung and it is free - the columns were already there.</p></div>
+      <div class="step"><p>Note what the workbench is <em>not</em> doing: those numerics are unscaled, and the logistic regression still learns from them. Be honest about this rather than overselling normalization. Scaling matters most for convergence speed and for penalized or distance-based models; for a plain logistic fit on three well-behaved columns, it buys stability rather than a different answer.</p></div>
+      <div class="step"><p>Now ask the question this session is really about: <em>which</em> of those three numerics is shaped badly? <code>prior_30d_spend</code> is the skewed one. Everything in Part 1 and Part 2 is about what you would do to it before it reaches a model that cares.</p></div>
+    </div>
+
+    <div class="febox" data-mode="ladder" data-levers="numeric"></div>
+
+    <div class="callout tip">
+      <strong>How to read the workbench</strong>
+      Training AUC is always visible; held-out stays masked until you ask for it. The model, the 60/40 split and every AUC are computed live in your browser on 3,000 Lumen sessions - 1,800 train, 1,200 held-out. Only the data is synthetic.
+    </div>
+  </section>
+
+  <!-- ============ HOMEWORK ============ -->
+  <section class="section" id="exercise">
+    <div class="section-kicker">
+      <span class="klabel">Homework</span>
+      <h2>Try it yourself - this week <span class="tag exercise">◐ 25-35 min total</span></h2>
+    </div>
+    <ul>
+      <li>Take five numeric columns from a table you own and histogram each one. Label each shape flat, bell, or heavy tail, then write the transform Google's table prescribes. You will be surprised how many are heavy-tailed.</li>
+      <li>Pick your most skewed column and fit <code>PowerTransformer(method="yeo-johnson")</code> on it. Plot before and after. Then try <code>box-cox</code> and confirm for yourself that it fails the moment a zero appears.</li>
+      <li>Take one column where you suspect the relationship is not linear. Bin it with <code>strategy="quantile"</code>, then with <code>strategy="uniform"</code>, and compare how many rows land in each bucket. That difference is the "torso versus tail" sentence made concrete.</li>
+      <li>Find one place in your existing code where a scaler is fitted before the train/test split. Move it inside a <code>Pipeline</code>. That is a b5 fix you can make today.</li>
+    </ul>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Source material</span>
+      <h2>Official sources covered</h2>
+    </div>
+    <p class="lede">Tonight leans on Google's numerical-data module for the when-to-use logic and sklearn's preprocessing chapter for the implementations and their caveats. Certificates and graded exercises stay with the official providers. This page covers:</p>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Google MLCC "Working with numerical data" - normalization, the when-to-use table, binning</span><span class="note">Parts 1 and 3 · the four reasons and the three worked numbers</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">sklearn "Preprocessing data" - the scaler family and its guidance</span><span class="note">Part 2 · Robust, MaxAbs, Power, Quantile, Normalizer</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">sklearn KBinsDiscretizer and SplineTransformer - strategies and the degree-0 equivalence</span><span class="note">Part 3 · Runge's phenomenon and the no-interactions limit</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">fe-live workbench canon - the ladder's numeric rung</span><span class="note">Held-out 0.500 to 0.696 · the rest of the ladder resumes in b3</span></div>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions before you go 🎯 <span class="tag exercise">◐ 90 seconds</span></h2>
+    </div>
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">1 · A column has a handful of extreme values that you do not want dragging the center and the spread around. Which sklearn scaler does the documentation point you to?</p>
+      <button class="qopt" type="button">A · Normalizer, because it rescales each row to unit norm</button>
+      <button class="qopt" type="button">B · RobustScaler, a "drop-in replacement" that uses "more robust estimates for the center and range"</button>
+      <button class="qopt" type="button">C · MaxAbsScaler, because dividing by the maximum removes the outlier</button>
+      <p class="qwhy">RobustScaler is the documented answer for outliers. Normalizer works across a row rather than down a column, and MaxAbsScaler is sklearn's recommendation for <em>sparse</em> data, where it preserves zeros - a different problem entirely.</p>
+    </div>
+    <div class="quiz-q" data-answer="2">
+      <p class="qtext">2 · You reach for <code>PowerTransformer(method="box-cox")</code> on Lumen's <code>prior_30d_spend</code>. What stops you?</p>
+      <button class="qopt" type="button">A · Box-Cox only works on features already scaled to 0 to 1</button>
+      <button class="qopt" type="button">B · Box-Cox cannot be used inside a Pipeline</button>
+      <button class="qopt" type="button">C · "Box-Cox can only be applied to strictly positive data", and the column is full of zeros for customers who bought nothing</button>
+      <p class="qwhy">Straight from the docs. Yeo-Johnson is the method that tolerates zero and negative values, which is why it is the default choice on any spend, balance or delta column.</p>
+    </div>
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">3 · Google gives two criteria for binning a numeric feature. What are they?</p>
+      <button class="qopt" type="button">A · "The overall linear relationship between the feature and the label is weak or nonexistent" or "the feature values are clustered"</button>
+      <button class="qopt" type="button">B · The feature has more than 1,000 distinct values, or it contains missing data</button>
+      <button class="qopt" type="button">C · The model is tree-based, or the feature is measured in currency</button>
+      <p class="qwhy">Both criteria say the same thing from different angles: a straight line is the wrong shape for this relationship. Binning lets the model learn "separate weights for each bin" and draw a step response instead.</p>
+    </div>
+    <p class="quiz-score"></p>
+  </section>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <section class="cheat" id="cheatsheet">
+    <h3>Practitioner session 2 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>Why normalize (Google)</b><span>Converge more quickly · infer better predictions · avoid the "NaN trap" · learn appropriate weights per feature.</span></div>
+      <div class="cheat-item"><b>Shape picks the transform</b><span>Flat → min-max. Bell → z-score. Heavy tail → log. Extreme outliers → clipping.</span></div>
+      <div class="cheat-item"><b>The three numbers</b><span>Range 100-900, x=300 → 0.25. μ=100 σ=20, x=130 → +1.5. "The log of 1,000,000 is only about three times larger than the log of 100."</span></div>
+      <div class="cheat-item"><b>Scaler cheat</b><span>Outliers → RobustScaler. Sparse → MaxAbsScaler. StandardScaler on sparse needs with_mean=False or it raises ValueError.</span></div>
+      <div class="cheat-item"><b>PowerTransformer</b><span>yeo-johnson handles zeros and negatives. "Box-Cox can only be applied to strictly positive data."</span></div>
+      <div class="cheat-item"><b>Who cares about scaling</b><span>Trees do not. Gradient descent, penalized models, kNN and SVM do. Distance and penalty are the non-negotiable cases.</span></div>
+      <div class="cheat-item"><b>Binning</b><span>Bin when the linear relationship is weak or values are clustered. Quantile "gives extra information space to the large torso while compacting the long tail into a single bucket."</span></div>
+      <div class="cheat-item"><b>Splines vs polynomials</b><span>Splines dodge "Runge's phenomenon", extrapolate better, banded low-condition matrix. But: "it won't give you interaction terms." degree=0 == KBins with n_bins = n_knots - 1.</span></div>
+    </div>
+  </section>
+
+  <footer class="pagefoot">
+    <span>Practitioner session 2 of 10 · learn-feature-engineering-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="b1-what-a-feature-is.html">← b1 · What a feature actually is</a> &nbsp;·&nbsp; <a href="../index.html">All sessions</a> &nbsp;·&nbsp; <a href="b3-categorical-encoding.html">Next: Categorical encoding →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/fe-live.js?v=1"></script>
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>

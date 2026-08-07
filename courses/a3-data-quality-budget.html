@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leader session 3 · Data quality is a feature budget - learn feature engineering with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-feature-engineering-with-phoebe</a> / Leader session 3 of 6</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn Feature Engineering with Phoebe · Leader track · Session 3 of 6</div>
+    <h1>Data quality is a <span class="accent">feature budget</span></h1>
+    <p class="sub">Every quality problem in your tables gets paid for twice: once as a recurring tax on the data science team who patch around it, and once as a ceiling on what any model built from it can ever do. This session gives you the four kinds of bad data, the language to tell them apart, and the one decision only you can make - whether to fix a problem upstream where it is born, or keep funding the downstream patch forever.</p>
+    <div class="chip-row">
+      <span class="chip level">🟡 Leader track</span>
+      <span class="chip audience">Data leads · PMs · DS managers</span>
+      <span class="chip audience">No code, decisions only</span>
+      <span class="chip time">45 min</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Welcome</span>
+      <span class="a2" style="flex:4">3-18 · The four kinds of bad data</span>
+      <span class="a3" style="flex:5">18-42 · Upstream vs downstream: the spend decision</span>
+      <span class="a4" style="flex:1">42-45 · Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ INTRO ============ -->
+  <section class="section" id="intro">
+    <div class="section-kicker">
+      <span class="klabel">Part 0</span>
+      <h2>Why a quality session sits inside a feature course</h2>
+    </div>
+    <p class="lede">Session a1 argued that features decide return on investment before models do. Session a2 showed how a leak fakes a good result. This session is the quieter, more expensive cousin of both: the data is not leaking and nobody is cheating, the inputs are simply <strong>dirty</strong>, and the cost shows up as a permanent drag rather than a scandal. The good news is that dirty data is a budget problem, and budget problems are the kind leaders are actually equipped to solve.</p>
+    <div class="legend">
+      <span class="pill solid">Live - presented in session</span>
+      <span class="pill light">Self-study - read after class</span>
+      <span class="pill inkpill">Official sources covered</span>
+    </div>
+    <div class="callout win">
+      <strong>★ What you walk out with today</strong>
+      Four named categories of bad data with concrete examples you can repeat in a meeting, a table that prices each common quality problem as a downstream cost versus an upstream fix, the rule for deciding which side of that line to spend on, and the four questions to ask in any data review.
+    </div>
+  </section>
+
+  <!-- ============ PART 1: FOUR KINDS OF BAD DATA ============ -->
+  <section class="section" id="four-kinds">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · covers Google MLCC "Working with numerical data" - scrubbing</span>
+      <h2>The four kinds of bad data <span class="tag concept">15 min live</span></h2>
+    </div>
+    <p class="lede">Google's crash course names four categories of unreliable example, and the value of the list is that each one has a different owner and a different fix. When your team says "the data is messy," your first job is to make them say <em>which of these four</em>, because the answer determines who pays.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 396" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Four categories of bad data feeding one dataset, split into a lane detectable by script covering omitted values, duplicates and out-of-range values, and a second lane needing human or statistical checks covering bad labels.">
+        <style>
+          .q3T { font: 700 13px Inter, sans-serif; fill: #FFFFFF; }
+          .q3S { font: 400 11.5px Inter, sans-serif; fill: #FFFFFF; opacity: .92; }
+          .q3L { font: 700 12px Inter, sans-serif; fill: #3F6212; letter-spacing: .5px; }
+          .q3LR { font: 700 12px Inter, sans-serif; fill: #991B1B; letter-spacing: .5px; }
+          .q3B { font: 700 12px Inter, sans-serif; fill: #1E293B; }
+          .q3X { font: 400 11px Inter, sans-serif; fill: #64748B; }
+          .q3N { font: 600 13px Inter, sans-serif; fill: #7C2D12; }
+          .q3W { stroke: #4D7C0F; stroke-width: 2.5; fill: none; marker-end: url(#q3Hd); }
+          .q3WR { stroke: #991B1B; stroke-width: 2.5; fill: none; marker-end: url(#q3HdR); }
+        </style>
+        <defs>
+          <marker id="q3Hd" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+            <path d="M0,0 L9,4.5 L0,9 z" fill="#4D7C0F"/>
+          </marker>
+          <marker id="q3HdR" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+            <path d="M0,0 L9,4.5 L0,9 z" fill="#991B1B"/>
+          </marker>
+        </defs>
+
+        <rect x="40" y="44" width="520" height="196" rx="10" fill="#F7FEE7" stroke="#84CC16" stroke-width="2"/>
+        <text class="q3L" x="58" y="66">DETECTABLE BY SCRIPT</text>
+        <rect x="58" y="76" width="484" height="46" rx="7" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.5"/>
+        <text class="q3B" x="74" y="95">Omitted values</text>
+        <text class="q3X" x="74" y="112">A census taker fails to record a resident's age.</text>
+        <rect x="58" y="128" width="484" height="46" rx="7" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.5"/>
+        <text class="q3B" x="74" y="147">Duplicate examples</text>
+        <text class="q3X" x="74" y="164">A server uploads the same logs twice.</text>
+        <rect x="58" y="180" width="484" height="46" rx="7" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.5"/>
+        <text class="q3B" x="74" y="199">Out-of-range values</text>
+        <text class="q3X" x="74" y="216">A human accidentally types an extra digit.</text>
+
+        <rect x="40" y="254" width="520" height="92" rx="10" fill="#FEF2F2" stroke="#FCA5A5" stroke-width="2"/>
+        <text class="q3LR" x="58" y="276">NEEDS HUMAN OR STATISTICAL CHECKS</text>
+        <rect x="58" y="284" width="484" height="46" rx="7" fill="#FFFFFF" stroke="#FCA5A5" stroke-width="1.5"/>
+        <text class="q3B" x="74" y="303">Bad labels</text>
+        <text class="q3X" x="74" y="320">A human evaluator mislabels an oak tree as a maple.</text>
+
+        <rect x="610" y="150" width="230" height="120" rx="10" fill="#3F6212"/>
+        <text class="q3T" x="630" y="182">THE DATASET</text>
+        <text class="q3S" x="630" y="206">every model, dashboard</text>
+        <text class="q3S" x="630" y="226">and feature is built</text>
+        <text class="q3S" x="630" y="246">on top of this</text>
+
+        <path class="q3W" d="M562,142 L605,190"/>
+        <path class="q3WR" d="M562,300 L605,240"/>
+
+        <rect x="40" y="364" width="14" height="14" rx="3" fill="#B45309"/>
+        <text class="q3N" x="64" y="376">Three of the four a script can catch. The fourth needs people, and that is the expensive one.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - four categories, two very different costs to detect</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>The four categories, in Google's own examples<span class="mini">6 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Read these out loud in your next data review. The examples are deliberately mundane, which is the point - none of them require a villain:</p>
+        <ul>
+          <li><strong>Omitted values.</strong> "A census taker fails to record a resident's age." Nothing was corrupted; a value simply never arrived. Your team then has to decide what to put in its place, and every choice they make is a guess your business will act on.</li>
+          <li><strong>Duplicate examples.</strong> "A server uploads the same logs twice." The rows are all individually correct. The dataset is still wrong, because the duplicated slice now counts twice in every average, every rate, and every model weight.</li>
+          <li><strong>Out-of-range values.</strong> "A human accidentally types an extra digit." One order becomes ten times its real size. A single fat finger can move a monthly mean, and a model trained on it learns from the typo.</li>
+          <li><strong>Bad labels.</strong> "A human evaluator mislabels a picture of an oak tree as a maple." Here the input is perfect and the <em>answer</em> is wrong, which is why no amount of cleaning the inputs will find it.</li>
+        </ul>
+        <div class="callout tip">
+          <strong>The sentence to repeat</strong>
+          Google's guidance is blunt about the stakes: "Even a few bad apples can spoil a large dataset." Quality is not proportional. A small share of bad examples can bend a model's behaviour well past their share of the rows.
+        </div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Why three lanes are cheap and one is not<span class="mini">5 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Look again at the two lanes in the diagram. Omitted values, duplicates and out-of-range values all share one property: <strong>a rule can find them</strong>. A null count, a uniqueness check, a plausibility range. These are engineering tasks with a finish line, and they belong in an automated check that runs every day rather than in a person's notebook.</p>
+        <p>Bad labels have no such rule. The row looks perfectly well formed; only the outcome attached to it is wrong. Finding them takes re-labelling a sample by hand, agreement scores between reviewers, or statistical detective work on rows the model gets confidently wrong. That is a staffing decision, not a script.</p>
+        <p>This is also where the time actually goes. Google's crash course warns what happens when nobody owns the problem upstream: "you'll spend enormous amounts of your time tossing out bad examples and cleaning up the salvageable ones." Note the verb - <em>your</em> time, meaning your team's, every cycle, forever.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>What "clean" actually means before a model is involved<span class="mini">3 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Two habits worth carrying into any review, both of them boring and both of them cheap:</p>
+        <ul>
+          <li><strong>Look at your data before you model it.</strong> Summary statistics tell you the shape; a scan of actual rows tells you the truth. Most out-of-range values are visible to a human in about thirty seconds and invisible in a mean.</li>
+          <li><strong>Write the check down as a rule, not a memory.</strong> "Order value is never negative and never above $5,000" is a sentence that can run nightly. "Ravi usually spots the weird ones" is a sentence that leaves when Ravi does.</li>
+        </ul>
+        <p>The four categories are also a good vocabulary test for a vendor or a new hire. If someone describes data quality only as "missing values," they are seeing one lane of four.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 2: THE BUDGET DECISION ============ -->
+  <section class="section" id="budget">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · the decision only a leader can make</span>
+      <h2>Upstream vs downstream: the spend decision <span class="tag concept">24 min live</span></h2>
+    </div>
+    <p class="lede">Every quality problem can be handled in two places. <strong>Downstream</strong> means the data science team patches it in code, every project, every retrain. <strong>Upstream</strong> means somebody changes the form, the pipeline, or the process so the bad data is never created. Both are real options. They have very different cost curves, and choosing between them is a budget call that sits with you, not with the analyst who noticed the problem.</p>
+
+    <table class="clean">
+      <thead>
+        <tr><th>Problem</th><th>Patch downstream (recurring)</th><th>Fix upstream (one-off)</th><th>Who owns the fix</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Missingness</strong></td>
+          <td>Imputation guesswork - every model invents a plausible value and inherits the guess</td>
+          <td>Instrument the form so the field is captured at source</td>
+          <td>Product plus the team that owns the form</td>
+        </tr>
+        <tr>
+          <td><strong>High cardinality</strong></td>
+          <td>Encoding complexity - special handling, more code, more ways to get it wrong</td>
+          <td>A governed lookup with an agreed, maintained list of values</td>
+          <td>Data governance plus the domain owner</td>
+        </tr>
+        <tr>
+          <td><strong>Drift-prone columns</strong></td>
+          <td>Constant re-training as the meaning of the column keeps moving underneath</td>
+          <td>A stable definition, versioned, with changes announced</td>
+          <td>The system owner who keeps changing it</td>
+        </tr>
+        <tr>
+          <td><strong>Bad labels</strong></td>
+          <td>A silent ceiling on every model built from the data, forever</td>
+          <td>Labeling quality assurance - sampling, review, agreement checks</td>
+          <td>Operations plus whoever funds the labelling</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>The leader's rule, in one line<span class="mini">6 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p><strong>Patching downstream is a recurring cost paid by data science forever. Fixing upstream is a one-off paid by engineering.</strong></p>
+        <p>That asymmetry is the whole session. A downstream patch feels cheaper because it is invisible on any budget line - it is absorbed into the sprint, the notebook, the retrain, and nobody ever writes an invoice for it. An upstream fix is visible, has an owner, has a cost, and therefore has to be argued for. The cheaper-looking option is usually the more expensive one, precisely because its cost is hidden.</p>
+        <p>Three practical tests before you commit money upstream:</p>
+        <ul>
+          <li><strong>How many teams pay the tax?</strong> One team patching one column is tolerable. Five teams each writing their own patch means five slightly different definitions, which is now a governance problem too.</li>
+          <li><strong>Does the patch require a guess?</strong> Deduplication is deterministic. Imputation is not. Anywhere the patch invents information, you are shipping an assumption into decisions.</li>
+          <li><strong>Will the fix hold?</strong> An upstream fix only pays off if the process that produces the data actually changes. If the field goes back to optional next quarter, you bought nothing.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Where downstream patching is the right answer<span class="mini">5 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>The rule is not "always spend upstream." Downstream is correct when the problem is small, local, and cheap to detect:</p>
+        <ul>
+          <li><strong>A one-off historical mess.</strong> Data from a system you already retired cannot be fixed at source. Clean it once, document what you did, move on.</li>
+          <li><strong>A single low-stakes model.</strong> If exactly one internal report depends on the column, the recurring cost is genuinely small.</li>
+          <li><strong>When the upstream owner is outside your reach.</strong> A vendor feed you cannot change is a downstream problem by definition - but then the recurring cost belongs in the vendor conversation at renewal.</li>
+        </ul>
+        <p>What makes a leader useful here is naming the choice out loud. The failure mode is not choosing downstream; it is drifting into downstream because nobody framed it as a decision with a price tag.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Making the upstream case to the person who has to pay<span class="mini">5 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>The awkward part of this decision is that the team who benefits and the team who pays are almost never the same team. Data science gets the relief; engineering, product, or operations gets the work. Three moves that make that conversation land:</p>
+        <ul>
+          <li><strong>Price the recurring cost, roughly.</strong> Not to the dollar - to the order of magnitude. "Four analysts, half a day each, every retrain, four times a year" is a number a sponsor can compare against a two-week engineering change. An unpriced tax always loses to a priced fix.</li>
+          <li><strong>Show the divergence, not the effort.</strong> Two teams reporting different figures for the same metric is more persuasive than any hours estimate, because it threatens something the sponsor already cares about: trust in the numbers.</li>
+          <li><strong>Ask for the smallest durable change.</strong> Making one field required is a change a product owner can actually schedule. Rebuilding the intake system is a change that gets deferred for two years while the tax keeps running.</li>
+        </ul>
+        <p>And say the timeline honestly. An upstream fix improves data from the day it ships forward; the history stays as dirty as it always was. That is still worth doing, but a sponsor who expects the back catalogue to heal will feel misled in six months.</p>
+      </div>
+    </details>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>Bad labels are the one problem money must go upstream for.</strong> The other three categories are annoying but recoverable - a patched pipeline can still produce a good model. Bad labels are different: if the answers in your training data are wrong, they put a hard ceiling on model quality that no amount of feature work, no better algorithm, and no larger budget for modelling can lift. Google's example is a human evaluator mislabelling a picture of an oak tree as a maple, and there is no clever transformation that turns that maple back into an oak. When a team tells you the model has plateaued and the features are already good, ask who audits the labels before you approve another modelling sprint.</p>
+    </div>
+  </section>
+
+  <!-- ============ PART 3: THE REVIEW QUESTIONS ============ -->
+  <section class="section" id="review">
+    <div class="section-kicker">
+      <span class="klabel">Part 3 · self-study</span>
+      <h2>The quality questions for a data review <span class="tag exercise">◐ 10 min read</span></h2>
+    </div>
+    <p class="lede">Four questions, one per row of the table above. They are deliberately answerable - if your team cannot answer them, that itself is the finding.</p>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>The four questions, and what a good answer sounds like<span class="mini">6 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <div class="steps">
+          <div class="step"><p><strong>What fraction is missing per column, and is it random?</strong> A single overall number hides everything. The follow-up matters more than the number: missing at random is a modelling inconvenience, but missing <em>because of something</em> - only unhappy customers skip the field - means the gap itself carries information, and imputing it quietly erases a signal.</p></div>
+          <div class="step"><p><strong>How many distinct categories does this column have, and is the list governed?</strong> Twelve values with an owner is a dimension. Twelve hundred free-text values with no owner is a maintenance liability that grows every month. Ask who can add a new value and whether anyone reviews it.</p></div>
+          <div class="step"><p><strong>Which columns changed definition in the last year?</strong> Nobody volunteers this. Ask it directly, and ask where the change was announced. A column whose meaning shifted silently is the reason a model that worked in March stopped working in September, and it will keep happening until definitions are versioned.</p></div>
+          <div class="step"><p><strong>Who audits the labels?</strong> If the answer is a name, ask how often and on what sample size. If the answer is "nobody," you have found the ceiling on every model in that domain, and you have found it before spending another quarter of modelling effort against it.</p></div>
+        </div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Retiring features is a quality decision too<span class="mini">3 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Google's "Rules of Machine Learning" includes a rule that reads like housekeeping and behaves like risk management. <strong>Rule 22: "Clean up features you are no longer using."</strong></p>
+        <p>Unused features are not free. Each one is a column somebody still maintains, still monitors, still has to explain in an audit, and still might reintroduce into a model by accident. Feature debt behaves exactly like technical debt: it accumulates quietly, and the interest is paid by whoever inherits the system.</p>
+        <p>Practically, this means a deprecation process needs to exist before you need it - a way to mark a feature unused, a waiting period, and then an actual removal. Session a4 puts that process inside a wider governance frame.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Source material</span>
+      <h2>Official sources covered</h2>
+    </div>
+    <p class="lede">This leader track teaches the decision-relevant core of the canonical sources - Google's crash-course data modules and Rules of Machine Learning, sklearn's preprocessing and pitfalls guides - with no code and no notebooks. Certificates and graded exercises stay with the official providers. This page covers:</p>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Google MLCC - scrubbing, the four categories of unreliable examples</span><span class="note">Part 1 · omitted values, duplicates, out-of-range values, bad labels</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Google "Rules of Machine Learning" - Rule 22</span><span class="note">Part 3 · feature debt and the deprecation process · Rule 29 lands in a4</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">sklearn "Preprocessing data" - missingness and cardinality as handling cost</span><span class="note">Part 2 · named as downstream cost only · the mechanics live in the practitioner track</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">fe-live canon (Lumen) - the columns this course adds to the case</span><span class="note">postal_code at ~1,200 levels is the high-cardinality example behind Part 2</span></div>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions before you go 🎯 <span class="tag exercise">◐ 90 seconds</span></h2>
+    </div>
+    <div class="quiz-q" data-answer="2">
+      <p class="qtext">1 · Which set names the four categories of bad data from Google's crash course?</p>
+      <button class="qopt" type="button">A · Nulls, outliers, stale records, and schema changes</button>
+      <button class="qopt" type="button">B · Missing values, leakage, drift, and bias</button>
+      <button class="qopt" type="button">C · Omitted values, duplicate examples, out-of-range values, and bad labels</button>
+      <p class="qwhy">The four come with deliberately ordinary examples: a census taker failing to record a resident's age, a server uploading the same logs twice, a human typing an extra digit, and an evaluator mislabelling an oak tree as a maple. The first three a script can catch; the fourth cannot be caught by a rule.</p>
+    </div>
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">2 · Why are bad labels the expensive category, even when every input column is perfectly clean?</p>
+      <button class="qopt" type="button">A · Wrong answers in the training data set a hard ceiling on model quality that no feature work or modelling can lift</button>
+      <button class="qopt" type="button">B · Labels take up more storage than features, so the cost is in the warehouse bill</button>
+      <button class="qopt" type="button">C · Label errors always cause the training job to fail, which wastes compute</button>
+      <p class="qwhy">A mislabelled row is structurally valid, so no data quality script flags it, and the model faithfully learns the wrong answer. Detecting the problem takes people - sampling, review, agreement checks - which is why it is the one category where money has to go upstream.</p>
+    </div>
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">3 · Your team has been imputing a missing field for three years and five teams now write their own version of the patch. What does the ownership rule say?</p>
+      <button class="qopt" type="button">A · Keep patching downstream, since the cost never appears on a budget line</button>
+      <button class="qopt" type="button">B · Fix it upstream - the downstream patch is a recurring cost paid by data science forever, while the upstream fix is a one-off paid by engineering</button>
+      <button class="qopt" type="button">C · Drop the column, because any column needing a patch is not worth keeping</button>
+      <p class="qwhy">Five teams patching means five slightly different guesses about the same missing value, so it is a definition problem as well as a cost problem. The downstream patch looks cheap only because its cost is absorbed invisibly into every sprint, and Google warns exactly what that adds up to: "you'll spend enormous amounts of your time tossing out bad examples and cleaning up the salvageable ones."</p>
+    </div>
+    <p class="quiz-score"></p>
+  </section>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <section class="cheat" id="cheatsheet">
+    <h3>Leader session 3 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>The four categories</b><span>Omitted values · duplicate examples · out-of-range values · bad labels. Make your team name which one before agreeing it is "messy".</span></div>
+      <div class="cheat-item"><b>The examples, verbatim</b><span>A census taker fails to record an age · a server uploads the same logs twice · a human types an extra digit · an evaluator calls an oak a maple.</span></div>
+      <div class="cheat-item"><b>Two lanes</b><span>The first three are detectable by script. Bad labels need human or statistical checks, which is a staffing decision, not a rule.</span></div>
+      <div class="cheat-item"><b>Quality is not proportional</b><span>"Even a few bad apples can spoil a large dataset" (Google MLCC). A small share of bad rows bends behaviour well past its share.</span></div>
+      <div class="cheat-item"><b>The hidden bill</b><span>Unowned quality means "you'll spend enormous amounts of your time tossing out bad examples and cleaning up the salvageable ones."</span></div>
+      <div class="cheat-item"><b>The leader's rule</b><span>Downstream patching is a recurring cost paid by data science forever. Upstream fixing is a one-off paid by engineering.</span></div>
+      <div class="cheat-item"><b>The label ceiling</b><span>Bad labels cap every model built on the data. No feature work, no better algorithm, no modelling budget lifts it. Money goes upstream.</span></div>
+      <div class="cheat-item"><b>Four review questions</b><span>What fraction is missing and is it random? How many categories and is the list governed? Which definitions changed this year? Who audits the labels?</span></div>
+    </div>
+  </section>
+
+  <footer class="pagefoot">
+    <span>Leader session 3 of 6 · learn-feature-engineering-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="a2-leakage-disaster.html">← a2 · The leakage disaster</a> &nbsp;·&nbsp; <a href="../index.html">All sessions</a> &nbsp;·&nbsp; <a href="a4-governance-feature-stores.html">Next: Feature governance + feature stores →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>

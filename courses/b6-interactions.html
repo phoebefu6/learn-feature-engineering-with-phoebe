@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Practitioner session 6 · Interactions + aggregations - learn feature engineering with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-feature-engineering-with-phoebe</a> / Practitioner session 6 of 10</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn Feature Engineering with Phoebe · Practitioner track · Session 6 of 10</div>
+    <h1>Interactions and <span class="accent">aggregations</span></h1>
+    <p class="sub">Sessions 2 to 4 improved columns one at a time. Tonight you build the features that live <em>between</em> columns: the relationships no single column carries, the crosses that turn two categoricals into one, and the group-level history that describes an entity rather than a row. This is the most creative session in the track and the one with the sharpest edges - both of tonight's techniques can blow up your feature width or quietly leak the future, and you will learn where each line is.</p>
+    <div class="chip-row">
+      <span class="chip level">🟠 Practitioner track</span>
+      <span class="chip audience">DS · analysts · ML engineers</span>
+      <span class="chip audience">Python · live workbench on key pages</span>
+      <span class="chip time">45 min</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Welcome</span>
+      <span class="a2" style="flex:4">3-18 · Relationships no column holds</span>
+      <span class="a3" style="flex:5">18-42 · Build-along: crosses + entity history</span>
+      <span class="a4" style="flex:1">42-45 · Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ PART 1: INTERACTIONS ============ -->
+  <section class="section" id="interactions">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · covers Kaggle Learn "Creating Features", Rules of ML #20</span>
+      <h2>When one feature depends on another <span class="tag concept">7 min live</span></h2>
+    </div>
+    <p class="lede">An interaction exists when the effect of one feature <strong>depends on the value of another</strong>. Lumen has a real one, and you have been carrying it since b1: spend matters more for returning customers than for new ones. A returning customer with high prior spend is not simply "returning plus high spend" - the combination behaves differently from what either column predicts on its own. A linear model, given only the two main effects, has no way to say that.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A two by two grid of new versus returning customers against low versus high prior spend, where the returning and high-spend cell behaves differently from what the two main effects would add up to.">
+        <style>
+          .i6T { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+          .i6H { font: 700 12.5px Inter, sans-serif; fill: #3F6212; }
+          .i6X { font: 400 12px Inter, sans-serif; fill: #64748B; }
+          .i6W { font: 400 12px Inter, sans-serif; fill: #FFFFFF; }
+          .i6WB { font: 700 12.5px Inter, sans-serif; fill: #FFFFFF; }
+          .i6N { font: 600 13px Inter, sans-serif; fill: #7C2D12; }
+        </style>
+
+        <text class="i6T" x="30" y="40">prior_30d_spend x new_vs_returning</text>
+
+        <text class="i6H" x="250" y="80">LOW prior spend</text>
+        <text class="i6H" x="500" y="80">HIGH prior spend</text>
+        <text class="i6H" x="40" y="150">NEW</text>
+        <text class="i6H" x="40" y="252">RETURNING</text>
+
+        <rect x="180" y="96" width="250" height="96" rx="8" fill="#F7FEE7" stroke="#84CC16" stroke-width="2"/>
+        <text class="i6X" x="198" y="128">baseline behaviour</text>
+        <text class="i6X" x="198" y="150">nothing to explain here</text>
+
+        <rect x="440" y="96" width="250" height="96" rx="8" fill="#BEF264"/>
+        <text class="i6X" x="458" y="128">a little above baseline</text>
+        <text class="i6X" x="458" y="150">the spend main effect</text>
+
+        <rect x="180" y="200" width="250" height="96" rx="8" fill="#BEF264"/>
+        <text class="i6X" x="198" y="232">a little above baseline</text>
+        <text class="i6X" x="198" y="254">the returning main effect</text>
+
+        <rect x="440" y="200" width="250" height="96" rx="8" fill="#7C2D12"/>
+        <text class="i6WB" x="458" y="230">THE INTERACTION CELL</text>
+        <text class="i6W" x="458" y="252">further from baseline than the</text>
+        <text class="i6W" x="458" y="272">two main effects add up to</text>
+
+        <rect x="30" y="326" width="14" height="14" rx="3" fill="#B45309"/>
+        <text class="i6N" x="54" y="338">If this cell were just the sum of the other two, no interaction term would be needed.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the cell neither main effect can predict</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>The four shapes an interaction takes<span class="mini">5 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Rule #20 from Google's <em>Rules of Machine Learning</em> is the licence for all of this: <em>"Combine and modify existing features to create new features in human-understandable ways."</em> The last four words are the discipline - if you cannot say out loud what the new column means, it will not survive review or debugging.</p>
+        <ul>
+          <li><strong>Products.</strong> <code>spend * returning</code> is the Lumen one, and it is worth <strong>+0.006</strong> on the workbench ladder. Multiplication is the plain arithmetic form of "these two matter together."</li>
+          <li><strong>Ratios.</strong> Spend per page viewed, items per order, revenue per session. Ratios are often the most human-readable features on the whole sheet, because they are the numbers the business already talks in.</li>
+          <li><strong>Differences.</strong> Price minus category median, order value minus this customer's own average. A difference reframes an absolute number as "relative to what is normal here."</li>
+          <li><strong>Polynomial expansion.</strong> When you want every pair at once rather than a chosen few.</li>
+        </ul>
+<pre><code>from sklearn.preprocessing import PolynomialFeatures
+
+# every pairwise product, no squares, no constant column
+PolynomialFeatures(degree=2, interaction_only=True, include_bias=False)</code></pre>
+        <div class="callout tip">
+          <strong>Chosen beats exhaustive, most of the time</strong>
+          <code>interaction_only=True</code> on twenty columns gives you 190 new ones, and Rule #21 is waiting: "The number of feature weights you can learn in a linear model is roughly proportional to the amount of data you have." Expansion is a fine way to explore. Shipping the three pairs you can explain is usually the better model.
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 2: FEATURE CROSSES ============ -->
+  <section class="section" id="crosses">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · covers Google MLCC "Working with categorical data" - feature crosses</span>
+      <h2>Crosses, and the number that should stop you <span class="tag concept">8 min live</span></h2>
+    </div>
+    <p class="lede">A feature cross is the categorical version of an interaction. Google's definition: feature crosses are <em>"created by crossing (taking the Cartesian product of) two or more categorical or bucketed features"</em>. Instead of asking the model to combine two one-hot blocks itself, you hand it one block whose levels <em>are</em> the combinations.</p>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Google's leaf example, exactly<span class="mini">4 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Two categorical features describing a leaf. Edges: <strong>{smooth, toothed, lobed}</strong>. Arrangement: <strong>{opposite, alternate}</strong>. Crossing them gives 3 x 2 = <strong>6 combinations</strong>, and a leaf that is lobed with alternate arrangement is represented as <strong>{0, 0, 0, 0, 0, 1}</strong>.</p>
+        <p>Notice what the model gains. With separate one-hot blocks it can learn "lobed matters" and "alternate matters" and add them. With the cross it can learn that <em>lobed-and-alternate specifically</em> behaves unlike either piece - the same thing the 2x2 grid above showed for numerics.</p>
+      </div>
+    </details>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Four feature crosses drawn as bars on a log scale, from a six-column leaf cross up to Google's documented twenty thousand element sparse cross.">
+        <style>
+          .xc6T { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+          .xc6X { font: 400 12px Inter, sans-serif; fill: #64748B; }
+          .xc6C { font: 700 12.5px Inter, sans-serif; fill: #1E293B; }
+          .xc6R { font: 700 12.5px Inter, sans-serif; fill: #991B1B; }
+          .xc6N { font: 600 13px Inter, sans-serif; fill: #7C2D12; }
+        </style>
+
+        <text class="xc6T" x="30" y="36">Columns produced by the cross (log scale)</text>
+
+        <text class="xc6X" x="30" y="76">leaf edges x arrangement (3 x 2)</text>
+        <rect x="300" y="62" width="73" height="20" rx="4" fill="#84CC16"/>
+        <text class="xc6C" x="710" y="78">6</text>
+
+        <text class="xc6X" x="30" y="126">channel x device (9 x 3)</text>
+        <rect x="300" y="112" width="133" height="20" rx="4" fill="#84CC16"/>
+        <text class="xc6C" x="710" y="128">27</text>
+
+        <text class="xc6X" x="30" y="176">channel x postal_code (9 x 1,200)</text>
+        <rect x="300" y="162" width="375" height="20" rx="4" fill="#B45309"/>
+        <text class="xc6R" x="710" y="178">10,800</text>
+
+        <text class="xc6X" x="30" y="226">Google's warning case (100 x 200)</text>
+        <rect x="300" y="212" width="400" height="20" rx="4" fill="#991B1B"/>
+        <text class="xc6R" x="710" y="228">20,000</text>
+
+        <line x1="300" y1="50" x2="300" y2="244" stroke="#64748B" stroke-width="1.5"/>
+
+        <rect x="30" y="266" width="14" height="14" rx="3" fill="#B45309"/>
+        <text class="xc6N" x="54" y="278">Cross bucketed or low-cardinality features - and check the width before you fit.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - two of these are fine, two are a sparsity problem</figcaption>
+    </figure>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>Google's warning, verbatim.</strong> <em>"Crossing two sparse features produces an even sparser new feature than the two original features."</em> Their worked case: a 100-element feature crossed with a 200-element feature produces a <strong>20,000-element sparse feature</strong>. On Lumen the same arithmetic decides the design for you - <code>channel</code> x <code>device</code> is 9 x 3 = <strong>27 columns</strong>, perfectly reasonable, while <code>channel</code> x <code>postal_code</code> is 9 x 1,200 = <strong>roughly 10,800 columns</strong>, almost all of them empty almost all of the time. Rule #21 again: you cannot learn 10,800 weights from 40,000 rows with a 3.2% base rate.</p>
+    </div>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>The discipline, in three checks<span class="mini">3 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <ul>
+          <li><strong>Bucket first, then cross.</strong> Continuous features get discretized before crossing, which is why b2's binning work comes before tonight. A crossed pair of 4-bucket features is 16 columns, not thousands.</li>
+          <li><strong>Multiply the cardinalities before you write the code.</strong> Two numbers and ten seconds. If the product is in the thousands, you are building a sparsity problem, not a feature.</li>
+          <li><strong>For genuinely high-cardinality categoricals, cross is the wrong tool.</strong> b3 gave you the right one: target encoding with cross-fitting, which turns <code>postal_code</code> into a single column instead of 1,200. And per Google, "For natural-language data, the main method of reducing dimensionality is to convert feature vectors to embedding vectors" - the b9 bridge.</li>
+        </ul>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 3: AGGREGATIONS ============ -->
+  <section class="section" id="aggregations">
+    <div class="section-kicker">
+      <span class="klabel">Part 3 · the pattern most teams never build</span>
+      <h2>Group aggregates and entity history <span class="tag concept">8 min live</span></h2>
+    </div>
+    <p class="lede">Every feature so far describes a row. Aggregations describe the <strong>group the row belongs to</strong>: this customer's mean order value, this channel's conversion rate, this category's return rate. They give a single session the context of everything else in its group, and they are usually cheap, because the data is already in your warehouse.</p>
+
+    <p>The version most teams never build is the one worth the most: features describing an entity's <strong>history up to the prediction moment</strong>. Orders in the prior 30 and 90 days. Days since last order. Lifetime value to date. Sessions in the last week. These are not group statistics, they are a small biography of the customer as of the instant you have to decide something about them.</p>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>The groupby and merge, with the cutoff in it<span class="mini">5 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Read the filter on the first line before anything else. It is the whole session.</p>
+<pre><code>hist = (
+    orders[orders["order_ts"] &lt; orders["cutoff_ts"]]   # the rail
+    .groupby("customer_id")
+    .agg(
+        orders_prior_90d=("order_id", "count"),
+        mean_order_value=("order_value", "mean"),
+        last_order_ts=("order_ts", "max"),
+    )
+    .reset_index()
+)
+
+sessions = sessions.merge(hist, on="customer_id", how="left")
+sessions["days_since_last_order"] = (
+    sessions["prediction_ts"] - sessions["last_order_ts"]
+).dt.days</code></pre>
+        <p>Without that filter this is a four-line snippet that any analyst would wave through in review. With it, it is a correct feature. The difference is invisible in the output and worth everything in production.</p>
+      </div>
+    </details>
+
+    <div class="callout tip">
+      <strong>The leakage rail - say this one out loud</strong>
+      Aggregates must be computed only from data that existed <em>before</em> each row's timestamp. A naive <code>groupby</code> over the whole table is a leak by construction: a customer's mean order value computed across all time includes orders they placed after the session you are scoring, so the feature knows the future. This is exactly the case that point-in-time joins exist to handle (leader session a4), and it is the same rule b4 applied to tenure and recency.
+    </div>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Why this one survives code review<span class="mini">3 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>b5 named the four leakage families and gave you the three rules. Aggregation leakage is the family that slips past all of your existing habits, and it is worth understanding why.</p>
+        <ul>
+          <li><strong>It passes the train/test split test.</strong> You can split correctly, fit only on train, wrap everything in a Pipeline, and still leak - because the leak happened upstream, in the table you built before sklearn ever saw the data.</li>
+          <li><strong>It looks like good engineering.</strong> A clean groupby joined onto a session table is the shape of code that gets praised in review.</li>
+          <li><strong>It shows up as a better score,</strong> which is sklearn's whole warning: leakage "results in overly optimistic performance estimates... and thus poorer performance when the model is used on actually novel data."</li>
+          <li><strong>The fix is structural, not clever.</strong> Every aggregate carries a cutoff timestamp, or it does not ship. Feast's own value list names the same thing: "Avoid data leakage by generating point-in-time correct feature sets."</li>
+        </ul>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ DEMO ============ -->
+  <section class="section" id="demo">
+    <div class="section-kicker">
+      <span class="klabel">Build-along</span>
+      <h2>Turn on the interactions lever <span class="tag demo">★ 10 min · everyone runs it</span></h2>
+    </div>
+    <p class="lede">Numerics, encoding and datetime are on, and the ladder is at <strong>0.806</strong>. Add the interaction and watch a smaller, more honest kind of win.</p>
+
+    <div class="steps">
+      <div class="step"><p>Confirm the rung you are standing on. Press <strong>Score on held-out</strong> with the first three levers on: <strong>0.806</strong>. Everything up to here has been about improving individual columns.</p></div>
+      <div class="step"><p>Switch on <strong>Interactions</strong> and score again: <strong>0.812</strong>. The lever adds spend-times-returning, the relationship from the 2x2 grid at the top of this page.</p></div>
+      <div class="step"><p>Read the honest size of it: <strong>+0.006</strong>. Encoding bought 0.089 and datetime bought 0.021. One interaction is a fraction of either, and that is the normal shape of this technique.</p></div>
+      <div class="step"><p>Understand why it is still worth your evening. Encoding wins are one-time - once a column is readable, it is readable. Interaction wins compound across pairs, and the search space is enormous, which is why judgement about which pairs to build matters more here than anywhere else in the track.</p></div>
+    </div>
+
+    <div class="febox" data-mode="ladder" data-levers="numeric,categorical,datetime"></div>
+
+    <div class="callout tip">
+      <strong>How to read the workbench</strong>
+      Training AUC is always visible; held-out stays masked until you ask for it. A real logistic regression, trained by gradient descent in your browser on 1,800 Lumen sessions and scored on 1,200 it never saw. Only the data is synthetic - the split, the fit, and every AUC are computed live.
+    </div>
+  </section>
+
+  <!-- ============ HOMEWORK ============ -->
+  <section class="section" id="exercise">
+    <div class="section-kicker">
+      <span class="klabel">Homework</span>
+      <h2>Try it yourself - this week <span class="tag exercise">◐ 20-30 min total</span></h2>
+    </div>
+    <ul>
+      <li>Write down three interactions from your own domain as sentences first: "X matters more when Y is high." Only then turn them into columns. If the sentence is hard to write, the feature is probably not real.</li>
+      <li>List your categorical columns with their cardinalities next to them, then compute the width of every pairwise cross. Circle the ones under about fifty columns - those are your candidates. Everything else needs bucketing or target encoding.</li>
+      <li>Build one entity-history feature with an explicit cutoff timestamp, then build the same feature without the cutoff and compare held-out scores. The gap is your personal version of the leakage demo.</li>
+      <li>Audit an existing aggregate feature in a model you already run. Ask one question: could any row that contributed to this number have happened after the moment being predicted? Bring the answer to b10.</li>
+    </ul>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Source material</span>
+      <h2>Official sources covered</h2>
+    </div>
+    <p class="lede">This session teaches the working core of Google's feature-cross material and the interaction-building content from Kaggle Learn, plus the aggregation pattern that sits underneath every feature store. Certificates and graded exercises stay with the official providers.</p>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Google MLCC "Working with categorical data" - feature crosses and the dimensionality warning</span><span class="note">Part 2 · the leaf example and the 20,000-element case</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Google "Rules of Machine Learning" - rule 20</span><span class="note">Combine and modify in human-understandable ways · rule 21 as the width check</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">Kaggle Learn "Feature Engineering" - Creating Features</span><span class="note">Products, ratios, differences · mutual information lands in b8</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">sklearn "Preprocessing data" - PolynomialFeatures with interaction_only</span><span class="note">The exhaustive option · splines and binning were b2 and b4</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">fe-live canon - the interactions rung of the Lumen ladder</span><span class="note">0.806 to 0.812 · spend x returning, +0.006</span></div>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions before you go 🎯 <span class="tag exercise">◐ 90 seconds</span></h2>
+    </div>
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">1 · Google documents a cross of a 100-element feature with a 200-element feature. How wide is the result?</p>
+      <button class="qopt" type="button">A · 300 elements, since the one-hot blocks are concatenated</button>
+      <button class="qopt" type="button">B · 20,000 elements - and sparser than either of the two originals</button>
+      <button class="qopt" type="button">C · 100 elements, since the cross reuses the larger block</button>
+      <p class="qwhy">A cross is the Cartesian product, so widths multiply. Google states the consequence directly: "Crossing two sparse features produces an even sparser new feature than the two original features." On Lumen, channel x device is 9 x 3 = 27 columns and fine; channel x postal_code is 9 x 1,200 = roughly 10,800 and is not.</p>
+    </div>
+    <div class="quiz-q" data-answer="2">
+      <p class="qtext">2 · What makes something an interaction rather than two ordinary features?</p>
+      <button class="qopt" type="button">A · The two columns are strongly correlated with each other</button>
+      <button class="qopt" type="button">B · The two columns are both numeric, so they can be multiplied</button>
+      <button class="qopt" type="button">C · The effect of one feature depends on the value of the other, so the combination carries signal neither column holds alone</button>
+      <p class="qwhy">Dependence is the definition. On Lumen, spend matters more for returning customers than for new ones, so the returning-and-high-spend cell sits further from baseline than the two main effects add up to. A linear model given only main effects cannot express that. Rule #20 licenses building it: "Combine and modify existing features to create new features in human-understandable ways."</p>
+    </div>
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">3 · What is the rail on group aggregates and entity-history features?</p>
+      <button class="qopt" type="button">A · They must be computed only from data that existed before each row's timestamp, or they leak the future</button>
+      <button class="qopt" type="button">B · They must be standardized, because group means are on a different scale from row values</button>
+      <button class="qopt" type="button">C · They are safe as long as the groupby runs after the train/test split</button>
+      <p class="qwhy">A naive groupby over the whole table is a leak by construction - a customer's mean order value across all time includes orders placed after the session being scored. Splitting correctly does not save you, because the leak happened upstream while building the table. Point-in-time joins exist for exactly this (leader session a4); the full leakage family is b5.</p>
+    </div>
+    <p class="quiz-score"></p>
+  </section>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <section class="cheat" id="cheatsheet">
+    <h3>Practitioner session 6 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>Interaction, defined</b><span>The effect of one feature depends on another. Lumen's: spend matters more for returning customers than new ones. Worth +0.006 on the ladder.</span></div>
+      <div class="cheat-item"><b>Four shapes</b><span>Products (spend x returning) · ratios (spend per page) · differences (value minus category median) · PolynomialFeatures(interaction_only=True).</span></div>
+      <div class="cheat-item"><b>Rule #20</b><span>"Combine and modify existing features to create new features in human-understandable ways." If you cannot say what it means, do not ship it.</span></div>
+      <div class="cheat-item"><b>Feature cross</b><span>"Created by crossing (taking the Cartesian product of) two or more categorical or bucketed features." Leaf: 3 edges x 2 arrangements = 6 combos.</span></div>
+      <div class="cheat-item"><b>The width warning</b><span>100 x 200 = a 20,000-element sparse feature. Lumen: channel x device = 27 (fine), channel x postal_code = ~10,800 (not fine).</span></div>
+      <div class="cheat-item"><b>Cross discipline</b><span>Bucket first, cross low-cardinality only, multiply the cardinalities before you write the code. High cardinality goes to target encoding (b3).</span></div>
+      <div class="cheat-item"><b>Entity history</b><span>Orders in prior 30/90 days, days since last order, lifetime value to date. The pattern most teams never build and the one that pays.</span></div>
+      <div class="cheat-item"><b>The aggregation rail</b><span>Compute aggregates only from data before each row's timestamp. A naive groupby over the whole table leaks by construction. Point-in-time joins (a4), b5.</span></div>
+    </div>
+  </section>
+
+  <footer class="pagefoot">
+    <span>Practitioner session 6 of 10 · learn-feature-engineering-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="b5-leakage.html">← b5 · Leakage: the session</a> &nbsp;·&nbsp; <a href="../index.html">All sessions</a> &nbsp;·&nbsp; <a href="b7-missing-data.html">Next: Missing data as signal →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/fe-live.js?v=1"></script>
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>

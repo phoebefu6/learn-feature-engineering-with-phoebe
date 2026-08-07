@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leader session 4 · Feature governance + feature stores - learn feature engineering with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-feature-engineering-with-phoebe</a> / Leader session 4 of 6</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn Feature Engineering with Phoebe · Leader track · Session 4 of 6</div>
+    <h1>Feature governance <span class="accent">+ feature stores</span></h1>
+    <p class="sub">A model that scored beautifully in testing and disappoints in production has usually not been badly built. It has been fed differently. The feature was computed one way for training and another way for serving, and the gap between those two computations has a name, a documented cause list, and a doctrinal fix that predates every feature store on the market. This session gives you the name, the fix, and an honest answer to the question your team will eventually ask: do we need to buy one of these?</p>
+    <div class="chip-row">
+      <span class="chip level">🟡 Leader track</span>
+      <span class="chip audience">Data leads · PMs · DS managers</span>
+      <span class="chip audience">No code, decisions only</span>
+      <span class="chip time">45 min</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Welcome</span>
+      <span class="a2" style="flex:4">3-18 · Training-serving skew</span>
+      <span class="a3" style="flex:5">18-42 · When a feature store pays</span>
+      <span class="a4" style="flex:1">42-45 · Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ INTRO ============ -->
+  <section class="section" id="intro">
+    <div class="section-kicker">
+      <span class="klabel">Part 0</span>
+      <h2>Governance, before anyone says the word platform</h2>
+    </div>
+    <p class="lede">Session a2 covered the leak that fakes a good test score. Session a3 covered the dirty inputs that quietly cap it. This session covers the third way a good result fails to survive contact with production: the feature that arrives at serving time is <strong>not the feature the model was trained on</strong>. Nobody cheated and nothing is dirty. Two teams simply implemented the same definition twice, and the model can tell.</p>
+    <div class="legend">
+      <span class="pill solid">Live - presented in session</span>
+      <span class="pill light">Self-study - read after class</span>
+      <span class="pill inkpill">Official sources covered</span>
+    </div>
+    <div class="callout win">
+      <strong>★ What you walk out with today</strong>
+      Google's definition of training-serving skew and its three documented causes, Rule 29 as the fix you can ask for without buying anything, a plain-English account of what a feature store is and what it explicitly is not, a four-signal test for whether one pays yet, and the governance you can put in place this quarter with a document and an owner list.
+    </div>
+  </section>
+
+  <!-- ============ PART 1: TRAINING-SERVING SKEW ============ -->
+  <section class="section" id="skew">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · covers Google "Rules of Machine Learning" - skew and Rule 29</span>
+      <h2>Training-serving skew <span class="tag concept">15 min live</span></h2>
+    </div>
+    <p class="lede">Google's Rules of Machine Learning defines it in one line: training-serving skew is <em>"a difference between performance during training and performance during serving."</em> Worth noting who says this - the term is Google's, and the feature-store vendors do not use it. That matters, because it means the problem is older than the product category sold to solve it.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 396" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A training path and a serving path computing the same feature two different ways, the skew gap between them, and the Rule 29 serving-time feature log bridging serving back into training.">
+        <style>
+          .g4T { font: 700 13px Inter, sans-serif; fill: #FFFFFF; }
+          .g4S { font: 400 11.5px Inter, sans-serif; fill: #FFFFFF; opacity: .92; }
+          .g4L { font: 700 12px Inter, sans-serif; fill: #3F6212; letter-spacing: .5px; }
+          .g4B { font: 700 12px Inter, sans-serif; fill: #1E293B; }
+          .g4X { font: 400 11px Inter, sans-serif; fill: #64748B; }
+          .g4R { font: 700 12px Inter, sans-serif; fill: #991B1B; }
+          .g4RX { font: 400 11.5px Inter, sans-serif; fill: #991B1B; }
+          .g4N { font: 600 13px Inter, sans-serif; fill: #7C2D12; }
+          .g4W { stroke: #4D7C0F; stroke-width: 2.5; fill: none; marker-end: url(#g4Hd); }
+        </style>
+        <defs>
+          <marker id="g4Hd" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+            <path d="M0,0 L9,4.5 L0,9 z" fill="#4D7C0F"/>
+          </marker>
+        </defs>
+
+        <text class="g4L" x="40" y="42">TRAINING PATH</text>
+        <rect x="40" y="56" width="200" height="58" rx="9" fill="#F7FEE7" stroke="#84CC16" stroke-width="2"/>
+        <text class="g4B" x="56" y="80">Warehouse table</text>
+        <text class="g4X" x="56" y="99">nightly batch, full history</text>
+        <rect x="268" y="56" width="254" height="58" rx="9" fill="#F7FEE7" stroke="#84CC16" stroke-width="2"/>
+        <text class="g4B" x="284" y="80">Batch SQL: avg_spend_30d</text>
+        <text class="g4X" x="284" y="99">computed over closed days</text>
+        <rect x="550" y="56" width="180" height="58" rx="9" fill="#3F6212"/>
+        <text class="g4T" x="566" y="80">Model trains</text>
+        <text class="g4S" x="566" y="99">score looks great</text>
+
+        <rect x="268" y="140" width="254" height="110" rx="10" fill="#FEF2F2" stroke="#FCA5A5" stroke-width="2"/>
+        <text class="g4R" x="284" y="168">SKEW GAP</text>
+        <text class="g4RX" x="284" y="192">the same feature, computed</text>
+        <text class="g4RX" x="284" y="212">two different ways - so the</text>
+        <text class="g4RX" x="284" y="232">training score is not real</text>
+
+        <rect x="560" y="150" width="280" height="90" rx="10" fill="#4D7C0F"/>
+        <text class="g4T" x="576" y="178">RULE 29 · LOG THE SERVING SIDE</text>
+        <text class="g4S" x="576" y="202">save the features used at serving,</text>
+        <text class="g4S" x="576" y="222">then train on that log</text>
+
+        <text class="g4L" x="40" y="272">SERVING PATH</text>
+        <rect x="40" y="280" width="200" height="58" rx="9" fill="#F7FEE7" stroke="#84CC16" stroke-width="2"/>
+        <text class="g4B" x="56" y="304">Live request</text>
+        <text class="g4X" x="56" y="323">one user, right now</text>
+        <rect x="268" y="280" width="254" height="58" rx="9" fill="#F7FEE7" stroke="#84CC16" stroke-width="2"/>
+        <text class="g4B" x="284" y="304">App code: avg spend (30d)</text>
+        <text class="g4X" x="284" y="323">computed over open days</text>
+        <rect x="550" y="280" width="180" height="58" rx="9" fill="#3F6212"/>
+        <text class="g4T" x="566" y="304">Model scores</text>
+        <text class="g4S" x="566" y="323">a different number</text>
+
+        <path class="g4W" d="M242,85 L264,85"/>
+        <path class="g4W" d="M524,85 L546,85"/>
+        <path class="g4W" d="M242,309 L264,309"/>
+        <path class="g4W" d="M524,309 L546,309"/>
+        <path class="g4W" d="M640,278 L640,246"/>
+        <path class="g4W" d="M640,148 L640,120"/>
+
+        <rect x="40" y="364" width="14" height="14" rx="3" fill="#B45309"/>
+        <text class="g4N" x="64" y="376">One definition implemented twice is two definitions. The log makes serving the source of truth.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the same feature, two pipelines, and the log that closes the gap</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>The three documented causes<span class="mini">6 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Google lists exactly three causes, and they fail differently enough that it is worth asking your team which one they are looking at:</p>
+        <ul>
+          <li><strong>A discrepancy between how you handle data in the training and serving pipelines.</strong> This is the diagram above. A batch job and an application service each implement the same definition, and the two implementations disagree in some small way nobody noticed - a rounding rule, a timezone, whether today counts.</li>
+          <li><strong>A change in the data between when you train and when you serve.</strong> Nothing is wrong with either pipeline. The world moved. The model is still answering the question it was trained on, which is no longer the question being asked.</li>
+          <li><strong>A feedback loop between your model and your algorithm.</strong> The model's own outputs shape the behaviour that becomes tomorrow's training data. This is the subtlest of the three and the hardest to see from a dashboard, because every number looks healthy while the loop tightens.</li>
+        </ul>
+        <div class="callout tip">
+          <strong>The question to ask in the review</strong>
+          "Is this feature computed by the same code at training and at serving time, or by two implementations of the same idea?" If it is two implementations, you do not have a skew risk in the future. You have skew now, and the only open question is how big.
+        </div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Rule 29: the fix you can ask for without buying anything<span class="mini">6 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>The doctrinal answer, stated verbatim in Rules of Machine Learning as Rule 29:</p>
+        <div class="callout tip">
+          <strong>Rule 29</strong>
+          "The best way to make sure that you train like you serve is to save the set of features used at serving time, and then pipe those features to a log to use them at training time."
+        </div>
+        <p>Read what it actually inverts. The intuitive design has the warehouse as the source of truth and serving as a copy of it. Rule 29 says the opposite: <strong>serving is the source of truth</strong>, because serving is where the model will spend its whole working life. If you train on the exact values serving produced, the two paths cannot disagree - there is only one path, recorded once and reused.</p>
+        <p>This is worth knowing before any procurement conversation. Rule 29 is an engineering practice, not a product. A logging step and the discipline to train from the log will close most of the gap, and it is a reasonable thing to ask for in a quarter without a platform decision attached.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Why skew is harder to spot than a leak<span class="mini">3 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>A leak announces itself with a suspiciously good test score, which at least a sceptical reviewer can catch on the day - that was session a2. Skew announces itself with a good test score that is <em>entirely correct for the data it was measured on</em>. There is nothing to catch in the notebook, because the notebook is not wrong.</p>
+        <p>The gap only appears once traffic is live, usually as a slow disappointment rather than an incident: the uplift is smaller than the pilot promised, the team blames the model, and a retrain is scheduled that changes nothing because the mismatch is in the plumbing. This is why the question above belongs in the design review rather than the postmortem.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 2: WHEN A STORE PAYS ============ -->
+  <section class="section" id="store">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · covers Feast concepts and point-in-time joins</span>
+      <h2>When a feature store pays <span class="tag concept">24 min live</span></h2>
+    </div>
+    <p class="lede">A feature store is two stores wearing one name. Using Feast, the open-source reference implementation, as the vocabulary: an <strong>offline store</strong> handles historical extraction for training, and an <strong>online store</strong> handles low-latency serving. Everything else it does follows from having both halves under one definition.</p>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>What it solves, in the project's own words<span class="mini">6 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Three claims, quoted rather than paraphrased so you can hold a vendor to them:</p>
+        <ul>
+          <li><strong>"Make features consistently available for training and low-latency serving."</strong> This is Rule 29's goal, delivered as infrastructure instead of as a practice.</li>
+          <li><strong>"Avoid data leakage by generating point-in-time correct feature sets."</strong> The leakage session a2 warned about the value that was not knowable yet. This is that guard, applied automatically at the moment features are assembled.</li>
+          <li><strong>A single data-access layer.</strong> One place models ask for features, rather than each team writing its own path to the warehouse and its own slightly different definition.</li>
+        </ul>
+        <p>Notice that all three are consistency claims. A feature store does not make features better. It makes them the <em>same everywhere</em>, which is a different and often more valuable thing.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Point-in-time joins, in plain English<span class="mini">6 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>This is the one technical idea in the session worth a leader's attention, because it is the mechanism behind the leakage claim.</p>
+        <p>When you build a training set, every row is an event that happened at a specific moment. A point-in-time join reconstructs <strong>what was known at that exact moment</strong>, not what is known now. It scans backward from each event's timestamp, up to a time-to-live window, and takes the most recent feature value that already existed. A value written after the event is invisible to it, which is precisely the discipline session a2 asked for, enforced by the join rather than by somebody remembering.</p>
+        <p>The Feast documentation flags the part that trips people up: <em>"TTL is not relative to the current point in time."</em> The window is anchored to each event, not to today. A team reasoning about the window as "the last 90 days" is reasoning about the wrong clock, and that misunderstanding produces training sets that quietly disagree with themselves.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>What a feature store is not<span class="mini">5 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Feast is unusually honest about its own boundaries, and repeating that honesty is the fastest way to keep a platform conversation grounded. It is <strong>not an ETL system, not an orchestrator, not a warehouse, and not a database</strong>. It sits on top of the things you already have; it does not replace any of them, and a budget that assumed otherwise will be short.</p>
+        <p>It also does not fully solve three problems people expect it to:</p>
+        <ul>
+          <li><strong>Lineage tracking.</strong> Knowing where a feature came from and what depends on it remains a governance job.</li>
+          <li><strong>Drift detection.</strong> Noticing that a feature's distribution has moved is monitoring, and monitoring is still yours to build.</li>
+          <li><strong>Batch feature engineering.</strong> The transformations themselves still have to be written and owned by somebody. A store serves features; it does not invent them.</li>
+        </ul>
+        <p>So the honest framing for a steering committee: a feature store solves <em>consistency and point-in-time correctness</em>. If the pitch in the room is that it solves data quality, lineage, or drift, the pitch has drifted past what the technology does.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode live">Live</span>Why there are two halves, and what each one costs<span class="mini">5 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>The two stores exist because training and serving ask genuinely different questions of the same data:</p>
+        <ul>
+          <li><strong>The offline store answers a bulk historical question.</strong> "Give me the value of this feature for four hundred thousand events, each as of its own moment." Throughput matters; a query taking minutes is fine.</li>
+          <li><strong>The online store answers one question at a time, fast.</strong> "What is this customer's value right now, in a few milliseconds, while a request is waiting." Latency matters; completeness of history does not.</li>
+        </ul>
+        <p>No single system is naturally good at both, which is why the architecture has two, and why the interesting engineering is in keeping them agreed. That is also where the operating cost sits: two systems to run, a sync path between them, and one shared definition that both must honour. Worth knowing before anyone describes the store as a way to simplify the stack - it adds a layer, and earns its place by removing duplicate definitions rather than duplicate systems.</p>
+      </div>
+    </details>
+
+    <table class="clean">
+      <thead>
+        <tr><th>Signal in your organisation</th><th>Does a store pay yet?</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>One model, one team</strong></td><td><strong>No.</strong> There is no shared definition to protect. Rule 29 logging plus a written definition gets you the same safety for a fraction of the effort.</td></tr>
+        <tr><td><strong>Many models sharing features</strong></td><td><strong>Yes.</strong> The moment two teams compute "average spend" separately, you are paying for a store already - in duplicated work and divergent numbers, just not on an invoice.</td></tr>
+        <tr><td><strong>Real-time serving plus historical training</strong></td><td><strong>Yes.</strong> This is exactly the offline plus online split the architecture exists for, and hand-building both halves is where skew is born.</td></tr>
+        <tr><td><strong>Compliance needing point-in-time proof</strong></td><td><strong>Yes.</strong> When you must show what was known at decision time, a point-in-time correct join is evidence. A reconstructed query is an argument.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>The order of operations matters more than the choice of tool.</strong> A team with one model and no shared definitions who buys a feature store gets a new system to run and the same two implementations of the same feature underneath it. A team who writes the definition down, names an owner, and logs the serving-time features first has already removed most of the skew risk - and if they later outgrow that, the store is a straightforward upgrade because the definitions already exist. Governance first, platform second. The reverse order buys infrastructure to manage a problem it cannot see.</p>
+    </div>
+  </section>
+
+  <!-- ============ PART 3: GOVERNANCE WITHOUT A STORE ============ -->
+  <section class="section" id="governance">
+    <div class="section-kicker">
+      <span class="klabel">Part 3 · self-study</span>
+      <h2>Governance without a store <span class="tag exercise">◐ 10 min read</span></h2>
+    </div>
+    <p class="lede">Everything below is available this quarter, needs no procurement, and is what a feature store would have forced you to do anyway. If a store arrives later, this work is the input to it rather than a detour.</p>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Four things to put in place<span class="mini">6 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <div class="steps">
+          <div class="step"><p><strong>A shared feature definition document.</strong> One page per feature: what it means in a sentence a business reader understands, the source it is computed from, the window it covers, and the edge cases. If two teams read it and implement the same thing, it is good enough. If they do not, you have found a skew source before it shipped.</p></div>
+          <div class="step"><p><strong>An owner per feature.</strong> A named person, not a team mailbox. Ownership is what makes a definition change get announced instead of discovered, and session a3 showed what silent definition changes cost.</p></div>
+          <div class="step"><p><strong>A deprecation process.</strong> Rule 22 again: "Clean up features you are no longer using." That needs a route from in use to marked unused to actually removed, agreed before the first feature needs it. Without one, nothing is ever retired and every model inherits the accumulated pile.</p></div>
+          <div class="step"><p><strong>The write-time field.</strong> For every feature, record <em>when its value becomes known</em> - not when the row was loaded, but the moment the fact was true. This single field is what makes point-in-time correctness checkable by a person, and it turns leakage from a matter of individual carefulness into a property of the definition. It is the organisational version of the guard a feature store automates.</p></div>
+        </div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>What to ask before approving a feature-store project<span class="mini">3 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <ul>
+          <li><strong>How many features would go in on day one, and who owns each?</strong> If the answer is vague, the definitions do not exist yet and the store has nothing to store.</li>
+          <li><strong>Which models will read from it, and are any of them real-time?</strong> Without a real-time consumer, half the architecture is unused.</li>
+          <li><strong>What are we keeping?</strong> The store is not the warehouse, the orchestrator, or the ETL. Everything already running keeps running, plus this.</li>
+          <li><strong>What are we still building ourselves?</strong> Lineage, drift detection, and the feature transformations themselves. Budget for them separately or they will not happen.</li>
+        </ul>
+        <p>Session a5 turns to the other axis of the same argument: hand-crafted features versus learned ones, and what each costs to own.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Source material</span>
+      <h2>Official sources covered</h2>
+    </div>
+    <p class="lede">This leader track teaches the decision-relevant core of the canonical sources with no code and no notebooks. Certificates and graded exercises stay with the official providers. This page covers:</p>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Google "Rules of Machine Learning" - training-serving skew and Rule 29</span><span class="note">Part 1 · the definition, the three causes, and the logging fix · Rule 22 revisited in Part 3</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Feast concepts - offline plus online store, what it solves, what it is not</span><span class="note">Part 2 · the boundaries quoted rather than paraphrased</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">Feast point-in-time joins - TTL and point-in-time correctness</span><span class="note">Part 2 · the mechanism behind the leakage guard</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">sklearn "Common pitfalls" - leakage as the thing point-in-time joins prevent</span><span class="note">Referenced from a2 · the practitioner mechanics live in b5</span></div>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions before you go 🎯 <span class="tag exercise">◐ 90 seconds</span></h2>
+    </div>
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">1 · How does Google's Rules of Machine Learning define training-serving skew?</p>
+      <button class="qopt" type="button">A · A model trained on more data than it is served, so the serving set is statistically underpowered</button>
+      <button class="qopt" type="button">B · A difference between performance during training and performance during serving</button>
+      <button class="qopt" type="button">C · Any drop in accuracy that appears more than ninety days after a model is deployed</button>
+      <p class="qwhy">The definition is deliberately about performance, not about data, because that is the symptom a leader sees. Its three documented causes are a discrepancy between the training and serving pipelines, a change in the data between training and serving, and a feedback loop between the model and the algorithm.</p>
+    </div>
+    <div class="quiz-q" data-answer="2">
+      <p class="qtext">2 · What does Rule 29 prescribe as the best way to make sure you train like you serve?</p>
+      <button class="qopt" type="button">A · Retrain the model on a fixed weekly schedule so training data never falls behind serving data</button>
+      <button class="qopt" type="button">B · Buy a feature store, since the problem cannot be solved without shared infrastructure</button>
+      <button class="qopt" type="button">C · Save the set of features used at serving time, then pipe those features to a log to use them at training time</button>
+      <p class="qwhy">Rule 29 inverts the intuitive design: serving becomes the source of truth rather than a copy of the warehouse. It is an engineering practice, not a product, which is why it is a reasonable thing to ask for without any procurement attached.</p>
+    </div>
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">3 · One team, one model, definitions living in a notebook. Does a feature store pay yet?</p>
+      <button class="qopt" type="button">A · No - there is no shared definition to protect, so Rule 29 logging plus a written definition and an owner buys the same safety first</button>
+      <button class="qopt" type="button">B · Yes - a store is what creates the definitions, so it should come before any governance work</button>
+      <button class="qopt" type="button">C · Yes - point-in-time correctness is impossible to achieve without one</button>
+      <p class="qwhy">A store pays when many models share features, when real-time serving sits alongside historical training, or when compliance needs point-in-time proof. Buying one first leaves you running new infrastructure over the same two implementations of the same feature - and remember what it is not: not an ETL system, not an orchestrator, not a warehouse, not a database.</p>
+    </div>
+    <p class="quiz-score"></p>
+  </section>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <section class="cheat" id="cheatsheet">
+    <h3>Leader session 4 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>Skew, defined</b><span>"A difference between performance during training and performance during serving" (Google Rules of ML). The term is Google's, not the vendors'.</span></div>
+      <div class="cheat-item"><b>Three causes</b><span>A discrepancy between training and serving pipelines · a change in the data between train and serve · a feedback loop between model and algorithm.</span></div>
+      <div class="cheat-item"><b>Rule 29</b><span>"Save the set of features used at serving time, and then pipe those features to a log to use them at training time." Serving becomes the source of truth.</span></div>
+      <div class="cheat-item"><b>What a store is</b><span>An offline store for historical extraction (training) plus an online store for low-latency serving. Two stores, one definition.</span></div>
+      <div class="cheat-item"><b>What it solves</b><span>Consistent availability for training and serving · "Avoid data leakage by generating point-in-time correct feature sets" · a single data-access layer.</span></div>
+      <div class="cheat-item"><b>Point-in-time joins</b><span>Reproduce what was known AT each event, scanning backward within a TTL. "TTL is not relative to the current point in time."</span></div>
+      <div class="cheat-item"><b>What it is not</b><span>Not an ETL system, orchestrator, warehouse, or database. Does not fully solve lineage, drift detection, or batch feature engineering.</span></div>
+      <div class="cheat-item"><b>Does it pay yet?</b><span>One model one team = no. Many models sharing features = yes. Real-time plus historical = yes. Compliance needing point-in-time proof = yes.</span></div>
+    </div>
+  </section>
+
+  <footer class="pagefoot">
+    <span>Leader session 4 of 6 · learn-feature-engineering-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="a3-data-quality-budget.html">← a3 · Data quality is a feature budget</a> &nbsp;·&nbsp; <a href="../index.html">All sessions</a> &nbsp;·&nbsp; <a href="a5-handcrafted-vs-learned.html">Next: Hand-crafted vs learned features →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>

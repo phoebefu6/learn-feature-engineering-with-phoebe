@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Practitioner session 5 · Leakage: the session - learn feature engineering with phoebe</title>
+<link rel="stylesheet" href="../assets/style.css?v=1">
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="crumb"><a href="../index.html">learn-feature-engineering-with-phoebe</a> / Practitioner session 5 of 10</span>
+    <button class="btn" id="toggle-all" type="button">Expand all</button>
+    <button class="btn primary" id="zoom-toggle" type="button">Projector zoom: off</button>
+  </div>
+</div>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Learn Feature Engineering with Phoebe · Practitioner track · Session 5 of 10</div>
+    <h1>Leakage: <span class="accent">the session</span></h1>
+    <p class="sub">Four sessions of craft, and every one of them can be undone by a single mistake that looks like success. Leakage is the only failure mode in applied machine learning that announces itself with a <em>better</em> score - which is why it survives code review, demo day, and the launch meeting, and only fails once real requests arrive. Tonight: the four families, the three rules that prevent all of them, and two live demonstrations where you watch honest work and leaked work produce numbers you cannot tell apart until it is too late.</p>
+    <div class="chip-row">
+      <span class="chip level">🟠 Practitioner track</span>
+      <span class="chip audience">DS · analysts · ML engineers</span>
+      <span class="chip audience">Python · live workbench on key pages</span>
+      <span class="chip time">45 min</span>
+    </div>
+    <div class="agenda">
+      <span class="a1" style="flex:1">0-3 · Welcome</span>
+      <span class="a2" style="flex:4">3-18 · The four families + the three rules</span>
+      <span class="a3" style="flex:5">18-42 · Build-along: two ways to fool yourself</span>
+      <span class="a4" style="flex:1">42-45 · Q&amp;A</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ============ PART 1: THE FOUR FAMILIES ============ -->
+  <section class="section" id="four-families">
+    <div class="section-kicker">
+      <span class="klabel">Part 1 · covers sklearn "Common pitfalls" ch.12, data leakage</span>
+      <h2>Four ways the future gets into your training data <span class="tag concept">8 min live</span></h2>
+    </div>
+    <p class="lede">sklearn's definition is the one to memorize: <em>"Data leakage occurs when information that would not be available at prediction time is used when building the model. This results in overly optimistic performance estimates, for example from cross-validation, and thus poorer performance when the model is used on actually novel data, for example during production."</em> Everything below is a different route by which that happens - and only the first one is obvious.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The four leakage families arranged around a training set, each with the route by which future information enters and its tell-tale symptom.">
+        <style>
+          .lkT { font: 700 13.5px Inter, sans-serif; fill: #FFFFFF; }
+          .lkS { font: 400 11.5px Inter, sans-serif; fill: #FFFFFF; opacity: .93; }
+          .lkI { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+          .lkX { font: 400 12px Inter, sans-serif; fill: #64748B; }
+          .lkN { font: 600 13px Inter, sans-serif; fill: #7C2D12; }
+          .lkWire { stroke: #991B1B; stroke-width: 2.5; fill: none; marker-end: url(#lkHd); }
+        </style>
+        <defs>
+          <marker id="lkHd" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+            <path d="M0,0 L9,4.5 L0,9 z" fill="#991B1B"/>
+          </marker>
+        </defs>
+        <rect x="340" y="146" width="200" height="66" rx="10" fill="#3F6212"/>
+        <text class="lkT" x="360" y="174">YOUR TRAINING SET</text>
+        <text class="lkS" x="360" y="194">now contaminated</text>
+        <rect x="40" y="40" width="250" height="66" rx="10" fill="#991B1B"/>
+        <text class="lkT" x="58" y="66">1 · TARGET LEAKAGE</text>
+        <text class="lkS" x="58" y="88">a column written after the outcome</text>
+        <rect x="590" y="40" width="250" height="66" rx="10" fill="#991B1B"/>
+        <text class="lkT" x="608" y="66">2 · PREPROCESSING LEAK</text>
+        <text class="lkS" x="608" y="88">fit a scaler or selector on all data</text>
+        <rect x="40" y="252" width="250" height="66" rx="10" fill="#991B1B"/>
+        <text class="lkT" x="58" y="278">3 · TEMPORAL LEAK</text>
+        <text class="lkS" x="58" y="300">a split that ignores time order</text>
+        <rect x="590" y="252" width="250" height="66" rx="10" fill="#991B1B"/>
+        <text class="lkT" x="608" y="278">4 · GROUP LEAK</text>
+        <text class="lkS" x="608" y="300">same customer on both sides</text>
+        <path class="lkWire" d="M290,80 C330,92 340,128 372,142"/>
+        <path class="lkWire" d="M590,80 C550,92 540,128 508,142"/>
+        <path class="lkWire" d="M290,278 C330,266 340,230 372,216"/>
+        <path class="lkWire" d="M590,278 C550,266 540,230 508,216"/>
+        <rect x="40" y="338" width="14" height="14" rx="3" fill="#B45309"/>
+        <text class="lkN" x="64" y="350">All four share one symptom: the score goes UP. None of them raises an error.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - four routes, one symptom</figcaption>
+    </figure>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>The four families, with their tells<span class="mini">5 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <ul>
+          <li><strong>1 · Target leakage.</strong> A column that only exists because the outcome already happened - <code>post_purchase_flag</code>, <code>refund_amount</code>, <code>cancellation_reason</code>, an account status updated on conversion. <em>Tell:</em> one feature dominates importance and the model feels magically good. <em>Test:</em> "was this value knowable before the thing I am predicting?"</li>
+          <li><strong>2 · Preprocessing leakage.</strong> Fitting a scaler, imputer, encoder, or selector on the full dataset before splitting. The test rows quietly voted on their own transformation. <em>Tell:</em> nothing at all - this one is invisible without reading the code. <em>Test:</em> does any <code>fit</code> or <code>fit_transform</code> touch data the model should not have seen?</li>
+          <li><strong>3 · Temporal leakage.</strong> A random split on data with time order, so the model trains on next month to predict last month. <em>Tell:</em> offline results that never reproduce online. <em>Test:</em> is every training row older than every test row?</li>
+          <li><strong>4 · Group leakage.</strong> The same customer, patient, or device appearing on both sides of the split. The model memorizes the entity rather than learning the pattern. <em>Tell:</em> the score drops hard on genuinely new entities. <em>Test:</em> split by group, not by row.</li>
+        </ul>
+        <div class="callout example">
+          <span class="ex-pill">Real world</span>
+          <p><strong>The one that is hardest to argue with.</strong> A churn model shipped with 0.94 AUC and collapsed in its first month. The culprit was a <code>last_contact_type</code> field, which the retention team filled in <em>after</em> deciding a customer was leaving. Nobody lied, nobody was careless with the split, and the code was clean. The column simply knew the future - and no amount of cross-validation can detect a feature that is contaminated in every fold.</p>
+        </div>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>The leakage audit, as a checklist<span class="mini">3 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Run this before every model ships. It takes ten minutes and has saved entire quarters:</p>
+        <ul>
+          <li>For each feature: <strong>when is this value written?</strong> If the answer is "at or after the outcome," it is out.</li>
+          <li>For each transformer: <strong>what data did it see during <code>fit</code>?</strong> If the answer includes test rows, the score is fiction.</li>
+          <li>For the split: <strong>does time matter here?</strong> If yes, split by time. <strong>Do entities repeat?</strong> If yes, split by entity.</li>
+          <li>For the result: <strong>is this suspiciously good?</strong> A model that beats the domain expert's intuition by a wide margin is a leakage suspect until proven otherwise.</li>
+        </ul>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ PART 2: THE THREE RULES ============ -->
+  <section class="section" id="three-rules">
+    <div class="section-kicker">
+      <span class="klabel">Part 2 · covers sklearn ch.12 avoidance rules + "Pipelines and composite estimators" (8.1)</span>
+      <h2>Three rules, and the one structure that enforces them <span class="tag concept">7 min live</span></h2>
+    </div>
+    <p class="lede">sklearn's guidance is unusually direct, and it fits on a sticky note. These three rules kill families 1 and 2 outright, and make 3 and 4 into deliberate choices rather than accidents.</p>
+
+    <div class="steps">
+      <div class="step"><p><strong>Rule 1 (verbatim):</strong> "Always split the data into train and test subsets first, particularly before any preprocessing steps." Splitting is the first line of the notebook, not the line before <code>model.fit</code>.</p></div>
+      <div class="step"><p><strong>Rule 2 (verbatim):</strong> "Never include test data when using the <code>fit</code> and <code>fit_transform</code> methods." Use <code>fit_transform</code> on train, <code>transform</code> on test - the same preprocessing, learned from one side only.</p></div>
+      <div class="step"><p><strong>Rule 3 (verbatim):</strong> "The scikit-learn pipeline is a great way to prevent data leakage as it ensures that the appropriate method is performed on the correct data subset." Structure beats discipline: the Pipeline makes the wrong thing hard to type.</p></div>
+    </div>
+
+    <details class="card" open>
+      <summary><span class="mode live">Live</span>The Pipeline as a leakage-proof container<span class="mini">5 min</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>sklearn lists three purposes for <code>Pipeline</code>, and the third is the one this session cares about, verbatim: <em>"Pipelines help avoid leaking statistics from your test data into the trained model in cross-validation, by ensuring that the same samples are used to train the transformers and predictors."</em></p>
+        <p>The Lumen version, with every transform inside the container where cross-validation can protect it:</p>
+<pre><code>from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer, make_column_selector
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.feature_selection import SelectKBest, f_classif
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split, cross_val_score
+import numpy as np
+
+X_train, X_test, y_train, y_test = train_test_split(     # rule 1: FIRST
+    X, y, test_size=0.4, stratify=y, random_state=42)
+
+prep = ColumnTransformer([
+    ("num", StandardScaler(), make_column_selector(dtype_include=np.number)),
+    ("cat", OneHotEncoder(handle_unknown="ignore"),
+            make_column_selector(dtype_include=object)),
+])
+
+pipe = Pipeline([                                        # rule 3: structure
+    ("prep", prep),
+    ("select", SelectKBest(f_classif, k=25)),            # inside, not before
+    ("model", LogisticRegression(max_iter=1000)),
+])
+
+pipe.fit(X_train, y_train)                               # rule 2: train only
+print(cross_val_score(pipe, X_train, y_train, cv=5).mean())</code></pre>
+        <p>Note where <code>SelectKBest</code> sits. Outside the pipeline it sees every row before the split; inside it re-fits within each cross-validation fold, which is the entire difference between the two numbers in the next section.</p>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary><span class="mode self">Self-study</span>Splitting when time or entities matter<span class="mini">4 min read</span><span class="caret">▶</span></summary>
+      <div class="body">
+        <p>Families 3 and 4 need a different splitter, not a different transformer:</p>
+        <ul>
+          <li><strong>Temporal:</strong> <code>TimeSeriesSplit</code>, or a hard date cutoff. Every training row must predate every test row. If you would not have had the data on that date, you do not get it.</li>
+          <li><strong>Group:</strong> <code>GroupKFold</code> / <code>GroupShuffleSplit</code> with the customer or device id as the group. This is the default for anything with repeat customers - which is most commercial data, Lumen included.</li>
+          <li><strong>Both:</strong> group-aware, time-ordered splits. Fiddly, and still cheaper than discovering the problem in production.</li>
+        </ul>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ DEMO 1 ============ -->
+  <section class="section" id="demo-1">
+    <div class="section-kicker">
+      <span class="klabel">Demo 1 of 2</span>
+      <h2>Target leakage, priced <span class="tag demo">★ 10 min · everyone runs it</span></h2>
+    </div>
+    <p class="lede">The workbench opens with all five honest feature groups on - the 0.813 you earned across b1 to b4. Switch on <strong>target leakage</strong>, read the training score, then press Score on held-out and watch what the column is actually worth.</p>
+
+    <div class="steps">
+      <div class="step"><p>Training AUC climbs to <strong>0.967</strong>. Held-out: <strong>0.789</strong>. The gap is <strong>0.179</strong> - but the number that matters is the comparison to 0.813: the leaked model is <em>worse than the honest one</em>.</p></div>
+      <div class="step"><p>Why worse, not merely equal? Because the model spent its capacity on the leaked column and de-weighted the real features. When the leak evaporates at prediction time, what is left is a model that stopped paying attention to the signal it actually has.</p></div>
+      <div class="step"><p>That is the true cost of leakage: not a wasted feature, but a corrupted model plus a launch decision made on a number that was never real.</p></div>
+    </div>
+
+    <div class="febox" data-mode="ladder"></div>
+
+    <div class="callout tip">
+      <strong>sklearn's own number, for the staffroom argument</strong>
+      In their documented example on <em>pure noise with no signal at all</em>, fitting feature selection before the split produced <strong>0.76 accuracy</strong>; done honestly it scored <strong>0.50</strong>, and <strong>0.43 +/- 0.05</strong> under cross-validation. Leakage manufactured 26 points of accuracy out of randomness. When a result looks too good, this is the first thing to check.
+    </div>
+  </section>
+
+  <!-- ============ DEMO 2 ============ -->
+  <section class="section" id="demo-2">
+    <div class="section-kicker">
+      <span class="klabel">Demo 2 of 2</span>
+      <h2>The leak that survives a correct split <span class="tag demo">★ 10 min · everyone runs it</span></h2>
+    </div>
+    <p class="lede">Demo 1 was the loud kind. This is the quiet kind, and it is the one that catches experienced people: you split correctly, you never touch the test set, and you still leak - because the encoder learned each row's outcome and then handed it back to that same row. Below, <code>postal_code</code> with 1,200 levels, drawn <strong>independently of the target</strong>. It knows nothing. Watch it score anyway.</p>
+
+    <div class="steps">
+      <div class="step"><p>Naive encoding: <strong>train AUC 0.931</strong>. From a column that is statistically pure noise. Every row's own conversion helped compute its own encoded value, so the feature is partly a copy of the answer.</p></div>
+      <div class="step"><p>Held-out: <strong>0.493</strong>. Chance. The signal was never there; the training score was an echo.</p></div>
+      <div class="step"><p>Cross-fitted encoding - each fold encoded using the other folds, which is exactly what <code>TargetEncoder.fit_transform</code> does internally: <strong>train 0.509</strong>, held-out <strong>0.493</strong>. Honest and boring, which is the goal.</p></div>
+      <div class="step"><p>Remember the asymmetry: the naive version did not just inflate the score, it would also have won a feature-importance ranking and survived a review that only looked at the split.</p></div>
+    </div>
+
+    <div class="febox" data-mode="encode"></div>
+
+    <div class="callout example">
+      <span class="ex-pill">Real world</span>
+      <p><strong>sklearn documents the same failure at scale.</strong> Their target-encoder example uses 50,000 rows and a near-unique column with ~45,000 distinct values, independent of the target. With cross-fitting: train R² 0.800, test <strong>0.793</strong>. Without it: train 0.858, test <strong>0.634</strong> - which their docs call "catastrophic overfitting." This is why <code>fit(X, y).transform(X)</code> is explicitly discouraged for TargetEncoder: only <code>fit_transform</code> applies the internal cross-fitting. Full treatment of the encoder itself is b3.</p>
+    </div>
+  </section>
+
+  <!-- ============ HOMEWORK ============ -->
+  <section class="section" id="exercise">
+    <div class="section-kicker">
+      <span class="klabel">Homework</span>
+      <h2>Try it yourself - this week <span class="tag exercise">◐ 30-40 min total</span></h2>
+    </div>
+    <ul>
+      <li>Run the leakage audit checklist against a model you or your team currently run. Write down every column whose write-time you cannot confidently state - that list is the deliverable, not a clean bill of health.</li>
+      <li>Take one notebook and move every transform inside a Pipeline. Compare the cross-validated score before and after. If it drops, you just found leakage; if it holds, you just made it structurally impossible.</li>
+      <li>Check your split: do entities repeat? Re-run with <code>GroupKFold</code> and compare. On repeat-customer data this often costs several points - points you never really had.</li>
+      <li>Optional read: sklearn's "Common pitfalls and recommended practices," the data-leakage section end to end. It is short, and it is the source for everything in Part 2.</li>
+    </ul>
+  </section>
+
+  <!-- ============ SOURCES ============ -->
+  <section class="section" id="official">
+    <div class="section-kicker">
+      <span class="klabel">Source material</span>
+      <h2>Official sources covered</h2>
+    </div>
+    <p class="lede">Certificates and graded exercises stay with the official providers (linked each session). This page covers:</p>
+    <div class="covered">
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">sklearn "Common pitfalls and recommended practices" - the data-leakage chapter</span><span class="note">Parts 1-2 + Demo 1 · definition, the three rules, and the 0.76-vs-0.50 noise experiment</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">sklearn "Pipelines and composite estimators" - safety purpose + ColumnTransformer</span><span class="note">Part 2 · the container that enforces the rules; reused in b10's capstone</span></div>
+      <div class="covered-row"><span class="status pill solid">✓</span><span class="name">sklearn TargetEncoder - internal cross-fitting and its failure numbers</span><span class="note">Demo 2 · the encoder's own mechanics are taught in b3</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">sklearn model-selection splitters - TimeSeriesSplit, GroupKFold</span><span class="note">Self-study card · temporal and group families</span></div>
+      <div class="covered-row"><span class="status pill light">◐</span><span class="name">sklearn "Feature selection" - selection belongs inside the pipeline</span><span class="note">Referenced here; the selection craft itself is b8</span></div>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="section" id="quiz">
+    <div class="section-kicker">
+      <span class="klabel">Check yourself</span>
+      <h2>Three questions before you go 🎯 <span class="tag exercise">◐ 90 seconds</span></h2>
+    </div>
+    <div class="quiz-q" data-answer="2">
+      <p class="qtext">1 · A colleague fits <code>StandardScaler</code> on the full dataset, then splits into train and test. What has happened?</p>
+      <button class="qopt" type="button">A · Nothing - scaling is a deterministic transform, so it cannot leak</button>
+      <button class="qopt" type="button">B · Only a problem if the test set is small</button>
+      <button class="qopt" type="button">C · Preprocessing leakage - the test rows contributed their mean and variance to the transform, so the score is optimistic</button>
+      <p class="qwhy">sklearn's rule 2 covers exactly this: never include test data in <code>fit</code> or <code>fit_transform</code>. It is invisible in the output and only findable by reading the code - which is why rule 3 (put it in a Pipeline) exists.</p>
+    </div>
+    <div class="quiz-q" data-answer="0">
+      <p class="qtext">2 · The leaked model scored 0.789 on held-out, below the 0.813 it had without the leak. Why worse rather than merely equal?</p>
+      <button class="qopt" type="button">A · The model spent its capacity on the leaked column and de-weighted the real features, so when the leak is empty at prediction time what remains is a worse model</button>
+      <button class="qopt" type="button">B · Adding any feature always reduces held-out performance</button>
+      <button class="qopt" type="button">C · The held-out set happened to contain harder rows</button>
+      <p class="qwhy">This is the hidden cost. A leak does not sit harmlessly beside good features - it competes with them during fitting, and it wins, because in the training data it genuinely is the best predictor.</p>
+    </div>
+    <div class="quiz-q" data-answer="1">
+      <p class="qtext">3 · A random postal code scored train AUC 0.931 with naive target encoding. What made an uninformative column look predictive?</p>
+      <button class="qopt" type="button">A · 1,200 categories is enough for a real pattern to emerge by chance</button>
+      <button class="qopt" type="button">B · Each row's own outcome was used to compute its own encoded value, so the feature partly copies the answer</button>
+      <button class="qopt" type="button">C · AUC is unreliable on high-cardinality features</button>
+      <p class="qwhy">Cross-fitting fixes it by encoding each fold from the other folds - which is why <code>TargetEncoder.fit_transform</code> does it internally and why <code>fit().transform()</code> on training data is explicitly discouraged in the docs.</p>
+    </div>
+    <p class="quiz-score"></p>
+  </section>
+
+  <!-- ============ CHEAT SHEET ============ -->
+  <section class="cheat" id="cheatsheet">
+    <h3>Practitioner session 5 cheat sheet <span>· pin this</span></h3>
+    <div class="grid-2">
+      <div class="cheat-item"><b>Leakage, defined</b><span>"Information that would not be available at prediction time is used when building the model" (sklearn). Symptom: a BETTER score.</span></div>
+      <div class="cheat-item"><b>The four families</b><span>Target (column written after the outcome) · Preprocessing (fit on all data) · Temporal (split ignores time) · Group (same entity both sides).</span></div>
+      <div class="cheat-item"><b>The three rules</b><span>Split first, before any preprocessing · never fit on test · put everything in a Pipeline so the wrong thing is hard to type.</span></div>
+      <div class="cheat-item"><b>The price, measured</b><span>Leaked: train 0.967 / held-out 0.789. Honest: 0.813. The leak cost accuracy AND the launch decision.</span></div>
+      <div class="cheat-item"><b>sklearn's noise experiment</b><span>Selection before the split: 0.76 accuracy on data with NO signal. Honest: 0.50. CV: 0.43. Twenty-six points from nothing.</span></div>
+      <div class="cheat-item"><b>The quiet leak</b><span>Naive target encoding of a random column: train 0.931, held-out 0.493. Cross-fitted: 0.509 / 0.493.</span></div>
+      <div class="cheat-item"><b>Split by what matters</b><span>Time order -> TimeSeriesSplit or a date cutoff. Repeat entities -> GroupKFold. Row-random is the default that hides both.</span></div>
+      <div class="cheat-item"><b>The audit question</b><span>For every column: "was this value knowable before the outcome?" Ten minutes, run before every ship.</span></div>
+    </div>
+  </section>
+
+  <footer class="pagefoot">
+    <span>Practitioner session 5 of 10 · learn-feature-engineering-with-phoebe · by Phoebe Fu &nbsp;·&nbsp; 📚 <a href="https://phoebefu6.github.io/learn-with-phoebe/">Learn with Phoebe ↗</a></span>
+    <span><a href="b4-datetime-features.html">← b4 · Datetime + cyclical</a> &nbsp;·&nbsp; <a href="../index.html">All sessions</a> &nbsp;·&nbsp; <a href="b6-interactions.html">Next: Interactions + aggregations →</a></span>
+  </footer>
+
+</main>
+
+<script src="../assets/fe-live.js?v=1"></script>
+<script src="../assets/app.js?v=1"></script>
+</body>
+</html>
