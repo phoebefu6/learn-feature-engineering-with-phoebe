@@ -180,6 +180,66 @@
       "Start with directly observed and reported features as opposed to learned features." The cheap, nameable, explainable features come first. Learned features are what you reach for when the observed ones have been tried and the remaining signal is sitting in text. Reversing that order is how teams spend a quarter on an embeddings project that a weekend of column work would have beaten.
     </div>
 
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 398" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A decision tree for hand-craft versus embed. If the remaining signal is not in free text, hand-craft: a handful of clean categories or high-cardinality IDs with business meaning. If it is in free text, ask whether anybody has to justify a single decision the model makes. If yes, hand-craft, because dimension 217 is not an answer near credit, hiring, insurance or health. If no, embed, because no hand-crafted column captures a sentence.">
+        <style>
+          .a5eT { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+          .a5eQ { font: 600 12px Inter, sans-serif; fill: #1E293B; }
+          .a5eO { font: 700 13px Inter, sans-serif; fill: #FFFFFF; }
+          .a5eS { font: 400 11px Inter, sans-serif; fill: rgba(255,255,255,.88); }
+          .a5eE { font: 700 11px Inter, sans-serif; fill: #B45309; }
+          .a5eN { font: 400 12px Inter, sans-serif; fill: #64748B; }
+          .a5eW { stroke: #84CC16; stroke-width: 2.5; fill: none; marker-end: url(#a5eHd); }
+        </style>
+        <defs>
+          <marker id="a5eHd" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+            <path d="M0,0 L9,4.5 L0,9 z" fill="#84CC16"/>
+          </marker>
+        </defs>
+        <rect x="0" y="0" width="880" height="398" fill="#F7FEE7"/>
+        <text class="a5eT" x="40" y="26">One question settles most of the hand-craft versus embed calls</text>
+
+        <rect x="40" y="140" width="250" height="70" rx="10" fill="#FFFFFF" stroke="#84CC16" stroke-width="2"/>
+        <text class="a5eQ" x="56" y="170">Is the remaining signal</text>
+        <text class="a5eQ" x="56" y="188">sitting in free text?</text>
+
+        <rect x="330" y="178" width="250" height="88" rx="10" fill="#FFFFFF" stroke="#84CC16" stroke-width="2"/>
+        <text class="a5eQ" x="346" y="204">Does anybody have to justify</text>
+        <text class="a5eQ" x="346" y="222">a single decision this model</text>
+        <text class="a5eQ" x="346" y="240">makes?</text>
+
+        <path class="a5eW" d="M290,158 L616,102"/>
+        <path class="a5eW" d="M290,192 L326,222"/>
+        <path class="a5eW" d="M580,200 H600 V210 H616"/>
+        <path class="a5eW" d="M580,244 H600 V307 H616"/>
+        <text class="a5eE" x="300" y="150">no</text>
+        <text class="a5eE" x="294" y="214">yes</text>
+        <text class="a5eE" x="584" y="196">yes</text>
+        <text class="a5eE" x="584" y="240">no</text>
+
+        <rect x="620" y="56" width="220" height="92" rx="10" fill="#3F6212"/>
+        <text class="a5eO" x="636" y="82">HAND-CRAFT</text>
+        <text class="a5eS" x="636" y="104">a handful of clean</text>
+        <text class="a5eS" x="636" y="122">categories, or IDs with</text>
+        <text class="a5eS" x="636" y="140">business meaning</text>
+
+        <rect x="620" y="164" width="220" height="92" rx="10" fill="#3F6212"/>
+        <text class="a5eO" x="636" y="190">HAND-CRAFT</text>
+        <text class="a5eS" x="636" y="212">"dimension 217" is not an</text>
+        <text class="a5eS" x="636" y="230">answer near credit, hiring,</text>
+        <text class="a5eS" x="636" y="248">insurance or health</text>
+
+        <rect x="620" y="272" width="220" height="70" rx="10" fill="#B45309"/>
+        <text class="a5eO" x="636" y="298">EMBED</text>
+        <text class="a5eS" x="636" y="320">no hand-crafted column</text>
+        <text class="a5eS" x="636" y="338">captures a sentence</text>
+
+        <text class="a5eN" x="40" y="370">Rule 17: start with directly observed and reported features, not learned ones.</text>
+        <text class="a5eN" x="40" y="390">Speed is a legitimate reason to embed, as long as you say out loud what you traded for it.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - explainability, not sophistication, is what decides this</figcaption>
+    </figure>
+
     <table class="clean">
       <thead>
         <tr><th>Situation</th><th>Hand-craft or embed</th><th>Why</th></tr>
@@ -221,6 +281,47 @@
       <h2>The cost side leaders must own <span class="tag concept">12 min live</span></h2>
     </div>
     <p class="lede">Your team will scope the engineering. Nobody will scope the storage, the latency, or the explainability, because those land on you. Here are the real numbers so you can do it in the meeting rather than after it.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 308" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A bar chart of embedding width per row. text-embedding-3-large is 3072 dimensions at 9,615 pages per dollar, 3-small is 1536 at 62,500 pages per dollar, all-MiniLM-L6-v2 is 384 and runs locally for free with over ten thousand pretrained models, and a 3-large embedding shortened to 256 still outperforms an unshortened ada-002 at 1536.">
+        <style>
+          .a5dT { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+          .a5dL { font: 600 12px Inter, sans-serif; fill: #1E293B; }
+          .a5dV { font: 700 12px Inter, sans-serif; fill: #FFFFFF; }
+          .a5dS { font: 400 11px Inter, sans-serif; fill: rgba(255,255,255,.88); }
+          .a5dO { font: 700 12px Inter, sans-serif; fill: #3F6212; }
+          .a5dA { font: 400 11px Inter, sans-serif; fill: #64748B; }
+          .a5dN { font: 400 12px Inter, sans-serif; fill: #64748B; }
+        </style>
+        <rect x="0" y="0" width="880" height="308" fill="#F7FEE7"/>
+        <text class="a5dT" x="40" y="26">The cost dial: numbers stored per row, and what a dollar buys</text>
+        <text class="a5dA" x="300" y="50">bar length = dimensions per row</text>
+
+        <text class="a5dL" x="290" y="86" text-anchor="end">text-embedding-3-large</text>
+        <rect x="300" y="66" width="480" height="30" rx="5" fill="#3F6212"/>
+        <text class="a5dV" x="312" y="86">3072</text>
+        <text class="a5dS" x="360" y="86">9,615 pages per dollar</text>
+
+        <text class="a5dL" x="290" y="138" text-anchor="end">text-embedding-3-small</text>
+        <rect x="300" y="118" width="240" height="30" rx="5" fill="#4D7C0F"/>
+        <text class="a5dV" x="312" y="138">1536</text>
+        <text class="a5dS" x="360" y="138">62,500 pages</text>
+
+        <text class="a5dL" x="290" y="190" text-anchor="end">all-MiniLM-L6-v2, local</text>
+        <rect x="300" y="170" width="60" height="30" rx="5" fill="#84CC16"/>
+        <text class="a5dO" x="370" y="190">384</text>
+        <text class="a5dA" x="410" y="190">local and free, 10,000+ pretrained models</text>
+
+        <text class="a5dL" x="290" y="242" text-anchor="end">3-large shortened to 256</text>
+        <rect x="300" y="222" width="40" height="30" rx="5" fill="#84CC16"/>
+        <text class="a5dO" x="350" y="242">256</text>
+        <text class="a5dA" x="390" y="242">still outperforms an unshortened ada-002 at 1536</text>
+
+        <text class="a5dN" x="40" y="280">Dimensions are a dial, not a fixed cost - the dimensions parameter trades performance against cost.</text>
+        <text class="a5dN" x="40" y="300">Then multiply by your row count, and ask for that arithmetic before you approve, not after.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - twelve times narrower and still ahead of the previous generation</figcaption>
+    </figure>
 
     <table class="clean">
       <thead>

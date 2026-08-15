@@ -184,6 +184,51 @@ clf = LogisticRegression(max_iter=1000).fit(Z_train, y_train)</code></pre>
     </div>
     <p class="lede">Two bills arrive with an embedding feature. The first is money and latency, and it is easy to compare. The second is interpretability, and it is the one that shows up months later in a review meeting.</p>
 
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 336" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Columns added to the feature matrix by each encoder choice: text-embedding-3-large adds 3072 at 9,615 pages per dollar, 3-small adds 1536 at 62,500 pages per dollar, all-MiniLM-L6-v2 adds 384 for free if you host it, and a 3-large output shortened to 256 still beats an unshortened ada-002 at 1536. Rule 21 sets the ceiling: 384 columns against Lumen's 40,000 rows is comfortable, 3,072 against 4,000 rows is not.">
+        <style>
+          .b9cT { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+          .b9cS { font: 400 11px Inter, sans-serif; fill: #64748B; }
+          .b9cL { font: 600 12px Inter, sans-serif; fill: #1E293B; }
+          .b9cV { font: 700 12px Inter, sans-serif; fill: #FFFFFF; }
+          .b9cO { font: 700 12px Inter, sans-serif; fill: #3F6212; }
+          .b9cA { font: 400 11px Inter, sans-serif; fill: rgba(255,255,255,.88); }
+          .b9cX { font: 400 11px Inter, sans-serif; fill: #64748B; }
+          .b9cW { font: 600 11px Inter, sans-serif; fill: #FFFFFF; }
+          .b9cN { font: 400 12px Inter, sans-serif; fill: #64748B; }
+        </style>
+        <rect x="0" y="0" width="880" height="336" fill="#F7FEE7"/>
+        <text class="b9cT" x="40" y="26">What each encoder adds to your matrix, one text column in</text>
+        <text class="b9cS" x="300" y="48">bar length = columns added per row</text>
+
+        <text class="b9cL" x="290" y="86" text-anchor="end">text-embedding-3-large</text>
+        <rect x="300" y="66" width="460" height="30" rx="5" fill="#3F6212"/>
+        <text class="b9cV" x="312" y="86">3072</text>
+        <text class="b9cA" x="360" y="86">9,615 pages per dollar, roughly 6.5x the cost</text>
+
+        <text class="b9cL" x="290" y="138" text-anchor="end">text-embedding-3-small</text>
+        <rect x="300" y="118" width="230" height="30" rx="5" fill="#4D7C0F"/>
+        <text class="b9cV" x="312" y="138">1536</text>
+        <text class="b9cA" x="360" y="138">62,500 pages</text>
+
+        <text class="b9cL" x="290" y="190" text-anchor="end">all-MiniLM-L6-v2, local</text>
+        <rect x="300" y="170" width="58" height="30" rx="5" fill="#84CC16"/>
+        <text class="b9cO" x="368" y="190">384</text>
+        <text class="b9cX" x="400" y="190">free, but you host it - 10,000+ pretrained models</text>
+
+        <text class="b9cL" x="290" y="242" text-anchor="end">3-large shortened to 256</text>
+        <rect x="300" y="222" width="38" height="30" rx="5" fill="#84CC16"/>
+        <text class="b9cO" x="348" y="242">256</text>
+        <text class="b9cX" x="380" y="242">still beats an unshortened ada-002 at 1536</text>
+
+        <rect x="40" y="272" width="800" height="34" rx="8" fill="#4D7C0F"/>
+        <text class="b9cW" x="56" y="294">Rule 21: 384 columns against Lumen's 40,000 rows is comfortable; 3,072 against 4,000 rows is not</text>
+
+        <text class="b9cN" x="40" y="328">Cache the embeddings: encode once, keyed by a hash of the text, and pay the cost exactly one time.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the columns you add are a claim on the rows you have</figcaption>
+    </figure>
+
     <table class="clean">
       <thead>
         <tr><th>Option</th><th>Dims</th><th>Cost</th><th>When it is the right call</th></tr>
@@ -200,6 +245,49 @@ clf = LogisticRegression(max_iter=1000).fit(Z_train, y_train)</code></pre>
       <summary><span class="mode live">Live</span>The interpretability bill, stated plainly<span class="mini">5 min</span><span class="caret">▶</span></summary>
       <div class="body">
         <p>Here is what actually happened to your feature set. You traded <strong>one explainable column</strong> for <strong>hundreds of anonymous ones</strong>. Before: "support_note mentions a gift." After: "dimension 217 is 0.043." No stakeholder will ever ask about dimension 217, and no one can answer if they do.</p>
+        <figure class="zoomable">
+          <svg viewBox="0 0 880 350" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The interpretability trade. Before, one explainable column says support_note mentions a gift and a named column tells you where to look when performance drifts. After, 384 anonymous columns say dimension 217 is 0.043, which nobody will ask about and nobody can answer. The compromise keeps three hand-crafted flags alongside the block: note length, whether it contains a question mark, and whether a keyword list fires.">
+            <style>
+              .b9iT { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+              .b9iG { font: 700 13px Inter, sans-serif; fill: #3F6212; }
+              .b9iR { font: 700 13px Inter, sans-serif; fill: #991B1B; }
+              .b9iW { font: 600 12px Inter, sans-serif; fill: #FFFFFF; }
+              .b9iX { font: 400 11px Inter, sans-serif; fill: #64748B; }
+              .b9iA { font: 700 11px Inter, sans-serif; fill: #3F6212; letter-spacing: .04em; }
+              .b9iC { font: 600 11px Inter, sans-serif; fill: #1E293B; }
+              .b9iN { font: 400 12px Inter, sans-serif; fill: #64748B; }
+            </style>
+            <rect x="0" y="0" width="880" height="350" fill="#F7FEE7"/>
+            <text class="b9iT" x="40" y="26">What you traded: one named column for hundreds of anonymous ones</text>
+
+            <rect x="40" y="50" width="390" height="180" rx="12" fill="#F7FEE7" stroke="#84CC16" stroke-width="2"/>
+            <text class="b9iG" x="58" y="84">BEFORE · 1 explainable column</text>
+            <rect x="58" y="100" width="354" height="44" rx="8" fill="#4D7C0F"/>
+            <text class="b9iW" x="76" y="128">support_note mentions a gift</text>
+            <text class="b9iX" x="58" y="172">a stakeholder can ask about it, and you can answer</text>
+            <text class="b9iX" x="58" y="198">a named column tells you where to look</text>
+
+            <rect x="450" y="50" width="390" height="180" rx="12" fill="#FEF2F2" stroke="#FCA5A5" stroke-width="2"/>
+            <text class="b9iR" x="468" y="84">AFTER · 384 anonymous columns</text>
+            <rect x="468" y="100" width="354" height="44" rx="8" fill="#991B1B"/>
+            <text class="b9iW" x="486" y="128">dimension 217 is 0.043</text>
+            <text class="b9iX" x="468" y="172">nobody will ask about dimension 217</text>
+            <text class="b9iX" x="468" y="198">and nobody can answer if they do</text>
+
+            <text class="b9iA" x="40" y="256">THE COMPROMISE · KEEP BOTH, THE FLAGS COST NOTHING</text>
+            <rect x="40" y="266" width="253" height="34" rx="8" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.6"/>
+            <text class="b9iC" x="166" y="288" text-anchor="middle">note length</text>
+            <rect x="313" y="266" width="253" height="34" rx="8" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.6"/>
+            <text class="b9iC" x="439" y="288" text-anchor="middle">contains a question mark</text>
+            <rect x="586" y="266" width="253" height="34" rx="8" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.6"/>
+            <text class="b9iC" x="712" y="288" text-anchor="middle">a keyword list fires</text>
+
+            <text class="b9iN" x="40" y="322">Permutation importance still works on the block as a whole: keep the text feature, or drop it.</text>
+            <text class="b9iN" x="40" y="342">When the embedding adds no measured lift over the flags, you just saved an encoder in production.</text>
+          </svg>
+          <figcaption>🔍 Click to zoom - the second bill arrives months later, in a review meeting</figcaption>
+        </figure>
+
         <p>Three places this bill comes due:</p>
         <ul>
           <li><strong>The feature review.</strong> The leader track (a5, a6) teaches executives to ask "what does this feature mean and who owns it?" For 384 dimensions the honest answer is "the encoder means it," which is a defensible answer only if you say it out loud in advance.</li>

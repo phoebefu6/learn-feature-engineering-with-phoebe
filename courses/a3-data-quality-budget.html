@@ -209,6 +209,60 @@
           <li><strong>Does the patch require a guess?</strong> Deduplication is deterministic. Imputation is not. Anywhere the patch invents information, you are shipping an assumption into decisions.</li>
           <li><strong>Will the fix hold?</strong> An upstream fix only pays off if the process that produces the data actually changes. If the field goes back to optional next quarter, you bought nothing.</li>
         </ul>
+
+      <figure class="zoomable">
+        <svg viewBox="0 0 880 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A timing chart of the same quality problem paid for in two places. Above the rail, patching downstream costs four analysts half a day each at every retrain, four times a year, and repeats forever. Below the rail, fixing upstream is a single two-week engineering change with nothing further to pay.">
+        <style>
+          .a3cT { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+          .a3cD { font: 700 11px Inter, sans-serif; fill: #B45309; letter-spacing: .04em; }
+          .a3cU { font: 700 11px Inter, sans-serif; fill: #3F6212; letter-spacing: .04em; }
+          .a3cW { font: 600 11px Inter, sans-serif; fill: #FFFFFF; }
+          .a3cR { font: 400 11px Inter, sans-serif; fill: #64748B; }
+          .a3cM { font: 600 11px Inter, sans-serif; fill: #B45309; }
+          .a3cG { font: 600 11px Inter, sans-serif; fill: #3F6212; }
+          .a3cN { font: 400 12px Inter, sans-serif; fill: #64748B; }
+        </style>
+        <rect x="0" y="0" width="880" height="320" fill="#F7FEE7"/>
+        <text class="a3cT" x="40" y="26">Same problem, two places to pay - and only one of them ever stops</text>
+        <text class="a3cD" x="40" y="54">PATCH DOWNSTREAM · paid by data science, every retrain, forever</text>
+
+        <rect x="140" y="66" width="120" height="40" rx="8" fill="#B45309"/>
+        <text class="a3cW" x="200" y="84" text-anchor="middle">4 analysts</text>
+        <text class="a3cW" x="200" y="100" text-anchor="middle">half a day</text>
+        <rect x="280" y="66" width="120" height="40" rx="8" fill="#B45309"/>
+        <text class="a3cW" x="340" y="84" text-anchor="middle">4 analysts</text>
+        <text class="a3cW" x="340" y="100" text-anchor="middle">half a day</text>
+        <rect x="420" y="66" width="120" height="40" rx="8" fill="#B45309"/>
+        <text class="a3cW" x="480" y="84" text-anchor="middle">4 analysts</text>
+        <text class="a3cW" x="480" y="100" text-anchor="middle">half a day</text>
+        <rect x="560" y="66" width="120" height="40" rx="8" fill="#B45309"/>
+        <text class="a3cW" x="620" y="84" text-anchor="middle">4 analysts</text>
+        <text class="a3cW" x="620" y="100" text-anchor="middle">half a day</text>
+        <text class="a3cM" x="700" y="90">→ and again, forever</text>
+
+        <text class="a3cR" x="200" y="134" text-anchor="middle">retrain 1</text>
+        <text class="a3cR" x="340" y="134" text-anchor="middle">retrain 2</text>
+        <text class="a3cR" x="480" y="134" text-anchor="middle">retrain 3</text>
+        <text class="a3cR" x="620" y="134" text-anchor="middle">retrain 4</text>
+
+        <line x1="120" y1="150" x2="840" y2="150" stroke="#CBD5E1" stroke-width="2"/>
+        <circle cx="200" cy="150" r="6" fill="#64748B"/>
+        <circle cx="340" cy="150" r="6" fill="#64748B"/>
+        <circle cx="480" cy="150" r="6" fill="#64748B"/>
+        <circle cx="620" cy="150" r="6" fill="#64748B"/>
+        <text class="a3cR" x="840" y="170" text-anchor="end">one year, four retrains</text>
+
+        <text class="a3cU" x="40" y="214">FIX UPSTREAM · paid once by engineering</text>
+        <rect x="120" y="224" width="200" height="40" rx="8" fill="#4D7C0F"/>
+        <text class="a3cW" x="136" y="248">two-week engineering change</text>
+        <text class="a3cG" x="340" y="232">nothing further to pay</text>
+        <line x1="340" y1="244" x2="840" y2="244" stroke="#4D7C0F" stroke-width="2" stroke-dasharray="7 5"/>
+
+        <text class="a3cN" x="40" y="292">An upstream fix improves data from the day it ships forward - the history stays as dirty as it was.</text>
+        <text class="a3cN" x="40" y="312">An unpriced tax always loses to a priced fix, so price the recurring side before the meeting.</text>
+        </svg>
+        <figcaption>🔍 Click to zoom - the cheaper-looking option is the one whose cost is hidden</figcaption>
+      </figure>
       </div>
     </details>
 
@@ -251,6 +305,64 @@
       <h2>The quality questions for a data review <span class="tag exercise">◐ 10 min read</span></h2>
     </div>
     <p class="lede">Four questions, one per row of the table above. They are deliberately answerable - if your team cannot answer them, that itself is the finding.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 270" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Four data-review questions, each shown with the healthy answer and the answer that is itself a finding: missing at random versus only unhappy customers skipping the field, twelve governed values versus twelve hundred ungoverned free-text values, versioned announced definitions versus a column that worked in March and broke in September, and a named label auditor with a cadence versus nobody.">
+        <style>
+          .a3qT { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+          .a3qK { font: 600 11px Inter, sans-serif; fill: #1E293B; }
+          .a3qQ { font: 700 11px Inter, sans-serif; fill: #1E293B; }
+          .a3qW { font: 600 11px Inter, sans-serif; fill: #FFFFFF; }
+          .a3qN { font: 400 12px Inter, sans-serif; fill: #64748B; }
+        </style>
+        <rect x="0" y="0" width="880" height="270" fill="#F7FEE7"/>
+        <text class="a3qT" x="40" y="26">Four questions, and the two answers each one can come back with</text>
+        <rect x="530" y="16" width="12" height="12" rx="3" fill="#4D7C0F"/>
+        <text class="a3qK" x="548" y="26">healthy answer</text>
+        <rect x="655" y="16" width="12" height="12" rx="3" fill="#B45309"/>
+        <text class="a3qK" x="673" y="26">the finding</text>
+
+        <text class="a3qQ" x="40" y="60">How much is missing,</text>
+        <text class="a3qQ" x="40" y="76">and is it random?</text>
+        <rect x="40" y="88" width="185" height="44" rx="8" fill="#4D7C0F"/>
+        <text class="a3qW" x="54" y="106">missing at random</text>
+        <text class="a3qW" x="54" y="122">an inconvenience</text>
+        <rect x="40" y="142" width="185" height="44" rx="8" fill="#B45309"/>
+        <text class="a3qW" x="54" y="160">only unhappy people</text>
+        <text class="a3qW" x="54" y="176">skip the field</text>
+
+        <text class="a3qQ" x="245" y="60">How many values, and</text>
+        <text class="a3qQ" x="245" y="76">who governs the list?</text>
+        <rect x="245" y="88" width="185" height="44" rx="8" fill="#4D7C0F"/>
+        <text class="a3qW" x="259" y="106">12 values, with an</text>
+        <text class="a3qW" x="259" y="122">owner: a dimension</text>
+        <rect x="245" y="142" width="185" height="44" rx="8" fill="#B45309"/>
+        <text class="a3qW" x="259" y="160">1,200 free-text values,</text>
+        <text class="a3qW" x="259" y="176">nobody owns the list</text>
+
+        <text class="a3qQ" x="450" y="60">Which columns changed</text>
+        <text class="a3qQ" x="450" y="76">definition last year?</text>
+        <rect x="450" y="88" width="185" height="44" rx="8" fill="#4D7C0F"/>
+        <text class="a3qW" x="464" y="106">versioned, and the</text>
+        <text class="a3qW" x="464" y="122">change was announced</text>
+        <rect x="450" y="142" width="185" height="44" rx="8" fill="#B45309"/>
+        <text class="a3qW" x="464" y="160">worked in March,</text>
+        <text class="a3qW" x="464" y="176">broke in September</text>
+
+        <text class="a3qQ" x="655" y="60">Who audits the labels,</text>
+        <text class="a3qQ" x="655" y="76">how often, what sample?</text>
+        <rect x="655" y="88" width="185" height="44" rx="8" fill="#4D7C0F"/>
+        <text class="a3qW" x="669" y="106">a name, a cadence,</text>
+        <text class="a3qW" x="669" y="122">a sample size</text>
+        <rect x="655" y="142" width="185" height="44" rx="8" fill="#B45309"/>
+        <text class="a3qW" x="669" y="160">"nobody" - you have</text>
+        <text class="a3qW" x="669" y="176">found the ceiling</text>
+
+        <text class="a3qN" x="40" y="216">A single overall missingness number hides everything; the follow-up matters more than the number.</text>
+        <text class="a3qN" x="40" y="236">If your team cannot answer one of these, that inability is itself the finding.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the second answer is not a failure to answer, it is the finding</figcaption>
+    </figure>
 
     <details class="card">
       <summary><span class="mode self">Self-study</span>The four questions, and what a good answer sounds like<span class="mini">6 min read</span><span class="caret">▶</span></summary>

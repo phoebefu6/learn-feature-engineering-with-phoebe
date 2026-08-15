@@ -166,6 +166,55 @@
     </div>
     <p class="lede">Below is the whole argument of this course as a table. Six rungs on Lumen's checkout data, 3,000 sessions split 1,800 for training and 1,200 held out. Each rung switches on one more group of feature decisions. The algorithm - a plain logistic regression - is <strong>identical at every rung</strong>. Nobody tunes it, nobody replaces it, nobody buys a bigger one.</p>
 
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 356" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A bar chart of the marginal held-out AUC gain bought by each rung of the Lumen feature ladder: raw numerics add 0.196, encoding adds 0.089, datetime 0.021, interactions 0.006 and selection 0.001, carrying held-out AUC from 0.500 to 0.813 while the logistic regression stays identical at every rung.">
+        <style>
+          .a1gT { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+          .a1gH { font: 700 11px Inter, sans-serif; fill: #64748B; letter-spacing: .06em; }
+          .a1gL { font: 600 12px Inter, sans-serif; fill: #1E293B; }
+          .a1gV { font: 700 12px Inter, sans-serif; fill: #FFFFFF; }
+          .a1gO { font: 700 12px Inter, sans-serif; fill: #3F6212; }
+          .a1gS { font: 400 11px Inter, sans-serif; fill: rgba(255,255,255,.88); }
+          .a1gA { font: 700 12px Inter, sans-serif; fill: #1E293B; }
+          .a1gN { font: 400 12px Inter, sans-serif; fill: #64748B; }
+        </style>
+        <rect x="0" y="0" width="880" height="356" fill="#F7FEE7"/>
+        <text class="a1gT" x="40" y="28">What each rung actually bought - marginal held-out AUC gain, same algorithm throughout</text>
+        <text class="a1gH" x="840" y="50" text-anchor="end">AUC AFTER</text>
+
+        <text class="a1gL" x="248" y="80" text-anchor="end">1 · raw numerics</text>
+        <rect x="260" y="60" width="480" height="30" rx="5" fill="#3F6212"/>
+        <text class="a1gV" x="272" y="80">+0.196</text>
+        <text class="a1gS" x="330" y="80">already in the table</text>
+        <text class="a1gA" x="840" y="80" text-anchor="end">0.696</text>
+
+        <text class="a1gL" x="248" y="132" text-anchor="end">2 · encoding</text>
+        <rect x="260" y="112" width="218" height="30" rx="5" fill="#4D7C0F"/>
+        <text class="a1gV" x="272" y="132">+0.089</text>
+        <text class="a1gS" x="330" y="132">biggest single jump</text>
+        <text class="a1gA" x="840" y="132" text-anchor="end">0.785</text>
+
+        <text class="a1gL" x="248" y="184" text-anchor="end">3 · datetime</text>
+        <rect x="260" y="164" width="51" height="30" rx="5" fill="#84CC16"/>
+        <text class="a1gO" x="321" y="184">+0.021</text>
+        <text class="a1gA" x="840" y="184" text-anchor="end">0.806</text>
+
+        <text class="a1gL" x="248" y="236" text-anchor="end">4 · interactions</text>
+        <rect x="260" y="216" width="15" height="30" rx="5" fill="#84CC16"/>
+        <text class="a1gO" x="285" y="236">+0.006</text>
+        <text class="a1gA" x="840" y="236" text-anchor="end">0.812</text>
+
+        <text class="a1gL" x="248" y="288" text-anchor="end">5 · selection</text>
+        <rect x="260" y="268" width="4" height="30" rx="2" fill="#84CC16"/>
+        <text class="a1gO" x="274" y="288">+0.001</text>
+        <text class="a1gA" x="840" y="288" text-anchor="end">0.813</text>
+
+        <text class="a1gN" x="40" y="322">Diminishing returns are not failure - they signal the input layer is close to exhausted.</text>
+        <text class="a1gN" x="40" y="342">Selection buys 0.001 and is still worth doing: fewer columns to maintain, less to explain.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the first two rungs carry almost the whole climb</figcaption>
+    </figure>
+
     <table class="clean">
       <thead>
         <tr><th>Rung</th><th>What was switched on</th><th>Held-out AUC</th><th>Gain</th></tr>
@@ -208,6 +257,42 @@
           <li><strong>1.0 is perfect,</strong> and on real business data it means somebody made a mistake. Which is exactly the subject of a2.</li>
           <li><strong>0.8 on a rare event is genuinely useful.</strong> Lumen converts at 3.2%. Ranking that well enough to score 0.813 is a real, spendable business capability.</li>
         </ul>
+
+      <figure class="zoomable">
+        <svg viewBox="0 0 880 268" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A scale bar of held-out AUC running from 0.500 to 1.000, filled to Lumen's 0.813. The 0.500 end is marked as a coin flip where the model has learned nothing, and the 1.000 end is flagged in clay because a perfect score on real business data means somebody made a mistake.">
+        <style>
+          .a1sT { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+          .a1sE { font: 700 12px Inter, sans-serif; fill: #64748B; }
+          .a1sB { font: 700 20px Inter, sans-serif; fill: #3F6212; }
+          .a1sM { font: 600 11px Inter, sans-serif; fill: #64748B; }
+          .a1sK { font: 400 12px Inter, sans-serif; fill: #1E293B; }
+          .a1sN { font: 400 12px Inter, sans-serif; fill: #64748B; }
+        </style>
+        <rect x="0" y="0" width="880" height="268" fill="#F7FEE7"/>
+        <text class="a1sT" x="40" y="28">The AUC scale a leader needs: three points on it, and no maths</text>
+
+        <line x1="120" y1="90" x2="120" y2="108" stroke="#CBD5E1" stroke-width="2"/>
+        <line x1="760" y1="88" x2="760" y2="150" stroke="#B45309" stroke-width="2.5"/>
+        <text class="a1sE" x="120" y="80" text-anchor="middle">0.500</text>
+        <text class="a1sE" x="760" y="80" text-anchor="middle">1.000</text>
+
+        <rect x="120" y="110" width="640" height="26" rx="13" fill="#E2E8F0"/>
+        <rect x="120" y="110" width="401" height="26" rx="13" fill="#4D7C0F"/>
+        <text class="a1sB" x="533" y="131">0.813</text>
+        <text class="a1sM" x="533" y="158">Lumen, held out</text>
+
+        <rect x="60" y="168" width="14" height="14" rx="3" fill="#4D7C0F"/>
+        <text class="a1sK" x="84" y="180">0.813 held out on Lumen - a 3.2% conversion rate ranked well enough to be spendable</text>
+        <rect x="60" y="192" width="14" height="14" rx="3" fill="#E2E8F0"/>
+        <text class="a1sK" x="84" y="204">0.500 - a coin flip. The model has learned nothing at all.</text>
+        <rect x="60" y="216" width="14" height="14" rx="3" fill="#B45309"/>
+        <text class="a1sK" x="84" y="228">1.000 - perfect. On real business data that means somebody made a mistake: session a2.</text>
+
+        <text class="a1sN" x="40" y="254">Ask which number you are shown: training scores always flatter, only the held-out score ties to P&amp;L.</text>
+        </svg>
+        <figcaption>🔍 Click to zoom - a perfect score is a bug report, not a win</figcaption>
+      </figure>
+
         <p>One more habit worth building now: every score in this course comes as a <strong>pair</strong>. A training score answers "did the model fit what it already saw," and it is always available and always flattering. A held-out score answers "will this work on rows it has never met," and it is the only one connected to your P&amp;L. If a team reports one number without saying which it is, that is your cue to ask.</p>
       </div>
     </details>

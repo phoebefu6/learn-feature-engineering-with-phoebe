@@ -157,6 +157,45 @@
           <li><strong>Median, not mean, for money columns.</strong> Lumen's <code>prior_30d_spend</code> is right-skewed like every spend column you will ever meet - a long tail of big spenders drags the mean well above the typical customer. Impute with the mean and every blank row is quietly labelled a slightly-above-average spender. The median puts them where most customers actually are.</li>
           <li><strong>A constant plus an explicit sentinel for categoricals.</strong> <code>SimpleImputer(strategy="constant", fill_value="unknown")</code> makes "we did not have this" a named level rather than a silent merge into whatever happened to be most frequent. The most_frequent strategy has its uses, but it hides the gap inside a real category, and you can never separate them again downstream.</li>
         </ul>
+        <figure class="zoomable">
+          <svg viewBox="0 0 880 316" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A right-skewed spend column imputed two ways. Mean-fill drops every blank row above the typical customer and piles a third of the mass onto one point. Median-fill lands the blanks where most customers actually are, and add_indicator keeps a separate was_missing column so the model can still see the blank.">
+            <style>
+              .b7fT { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+              .b7fR { font: 700 13px Inter, sans-serif; fill: #991B1B; }
+              .b7fG { font: 700 13px Inter, sans-serif; fill: #3F6212; }
+              .b7fD { font: 600 10px Inter, sans-serif; fill: #64748B; }
+              .b7fX { font: 400 11px Inter, sans-serif; fill: #64748B; }
+              .b7fW { font: 600 11px Inter, sans-serif; fill: #FFFFFF; }
+              .b7fN { font: 400 12px Inter, sans-serif; fill: #64748B; }
+            </style>
+            <rect x="0" y="0" width="880" height="316" fill="#F7FEE7"/>
+            <text class="b7fT" x="40" y="26">Mean-fill on a skewed money column, and the one-argument fix</text>
+
+            <rect x="40" y="50" width="390" height="210" rx="12" fill="#FEF2F2" stroke="#FCA5A5" stroke-width="2"/>
+            <text class="b7fR" x="58" y="84">✗ strategy="mean"</text>
+            <path d="M62,200 Q76,116 106,146 Q160,192 410,198 L410,200 Z" fill="#BEF264"/>
+            <rect x="170" y="110" width="12" height="90" fill="#991B1B"/>
+            <line x1="120" y1="196" x2="120" y2="206" stroke="#64748B" stroke-width="1.5"/>
+            <text class="b7fD" x="120" y="220" text-anchor="middle">median</text>
+            <text class="b7fD" x="176" y="220" text-anchor="middle">mean</text>
+            <text class="b7fX" x="58" y="244">30% of rows now sit above the typical customer</text>
+
+            <rect x="450" y="50" width="390" height="210" rx="12" fill="#F7FEE7" stroke="#84CC16" stroke-width="2"/>
+            <text class="b7fG" x="468" y="84">✓ strategy="median", add_indicator=True</text>
+            <path d="M472,200 Q486,116 516,146 Q570,192 820,198 L820,200 Z" fill="#BEF264"/>
+            <rect x="524" y="110" width="12" height="90" fill="#4D7C0F"/>
+            <text class="b7fD" x="530" y="220" text-anchor="middle">median</text>
+            <rect x="680" y="146" width="130" height="46" rx="8" fill="#4D7C0F"/>
+            <text class="b7fW" x="745" y="166" text-anchor="middle">was_missing</text>
+            <text class="b7fW" x="745" y="184" text-anchor="middle">0 / 1</text>
+            <text class="b7fX" x="468" y="244">blanks land where most customers are</text>
+
+            <text class="b7fN" x="40" y="288">Filling 30% of a column with its own mean piles a third of the mass onto a single point.</text>
+            <text class="b7fN" x="40" y="308">One argument, add_indicator=True, is the whole missingness-as-signal lesson in code.</text>
+          </svg>
+          <figcaption>🔍 Click to zoom - the imputed value keeps the row, the indicator keeps the fact</figcaption>
+        </figure>
+
         <div class="callout tip">
           <strong>Carry-over from the encoding session</strong>
           For <code>OneHotEncoder</code>, <code>np.nan</code> and <code>None</code> are treated as separate categories. That means NaN can simply <em>be</em> a category when blankness is meaningful - no imputation step at all, just a column in the one-hot output that says "this was missing". For a not-at-random categorical, that is often the cleanest thing you can do.
@@ -227,6 +266,62 @@ pipe.fit(X_train, y_train)   # every median learned from train rows only</code><
       <span class="ex-pill">Real world</span>
       <p><strong>The month the column went 90% blank.</strong> A team imputed a key numeric feature with the global median, cross-validated cleanly, and shipped. In their historical data the column was about 8% missing every month, so the fill value touched almost nothing and nobody thought about it again. Then an upstream form change made the field optional, the column arrived <strong>90% missing</strong>, and nearly every prediction collapsed toward the same value - because for nine rows in ten the model's strongest feature had become a constant. The model had never once been evaluated under the missingness rate it actually faced. Nothing errored, no alert fired, and the first signal was a business metric drifting a week later.</p>
     </div>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The missingness rate of one column plotted by month. It sits at about 8 percent for five months, then an upstream form change makes the field optional and the rate jumps to 90 percent, so for nine rows in ten the model's strongest feature becomes a constant. Below, the test that would have caught it: re-score the held-out set with the column blanked at 50 percent and at 90 percent.">
+        <style>
+          .b7mT { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+          .b7mA { font: 700 11px Inter, sans-serif; fill: #64748B; letter-spacing: .06em; }
+          .b7mY { font: 600 10px Inter, sans-serif; fill: #64748B; }
+          .b7mV { font: 700 11px Inter, sans-serif; fill: #3F6212; }
+          .b7mR { font: 700 11px Inter, sans-serif; fill: #B45309; }
+          .b7mX { font: 600 11px Inter, sans-serif; fill: #64748B; }
+          .b7mW { font: 600 11px Inter, sans-serif; fill: #FFFFFF; }
+          .b7mK { font: 600 11px Inter, sans-serif; fill: #1E293B; }
+          .b7mN { font: 400 12px Inter, sans-serif; fill: #64748B; }
+        </style>
+        <rect x="0" y="0" width="880" height="340" fill="#F7FEE7"/>
+        <text class="b7mT" x="40" y="26">The month the column went 90% blank</text>
+
+        <line x1="110" y1="140" x2="840" y2="140" stroke="#E2E8F0" stroke-width="1"/>
+        <text class="b7mY" x="100" y="64" text-anchor="end">100%</text>
+        <text class="b7mY" x="100" y="144" text-anchor="end">50%</text>
+        <text class="b7mY" x="100" y="224" text-anchor="end">0%</text>
+        <text class="b7mA" x="46" y="220" text-anchor="start" transform="rotate(-90 46 220)">MISSING RATE →</text>
+        <line x1="110" y1="220" x2="840" y2="220" stroke="#CBD5E1" stroke-width="2"/>
+
+        <rect x="120" y="207" width="70" height="13" rx="3" fill="#4D7C0F"/>
+        <rect x="220" y="207" width="70" height="13" rx="3" fill="#4D7C0F"/>
+        <rect x="320" y="207" width="70" height="13" rx="3" fill="#4D7C0F"/>
+        <rect x="420" y="207" width="70" height="13" rx="3" fill="#4D7C0F"/>
+        <rect x="520" y="207" width="70" height="13" rx="3" fill="#4D7C0F"/>
+        <text class="b7mV" x="155" y="199" text-anchor="middle">8%</text>
+        <text class="b7mV" x="255" y="199" text-anchor="middle">8%</text>
+        <text class="b7mV" x="355" y="199" text-anchor="middle">8%</text>
+        <text class="b7mV" x="455" y="199" text-anchor="middle">8%</text>
+        <text class="b7mV" x="555" y="199" text-anchor="middle">8%</text>
+
+        <text class="b7mR" x="620" y="48">form field made optional</text>
+        <line x1="610" y1="56" x2="610" y2="228" stroke="#B45309" stroke-width="2" stroke-dasharray="6 4"/>
+        <rect x="660" y="76" width="100" height="144" rx="4" fill="#B45309"/>
+        <text class="b7mR" x="710" y="68" text-anchor="middle">90%</text>
+
+        <text class="b7mX" x="155" y="240" text-anchor="middle">month 1</text>
+        <text class="b7mX" x="255" y="240" text-anchor="middle">month 2</text>
+        <text class="b7mX" x="355" y="240" text-anchor="middle">month 3</text>
+        <text class="b7mX" x="455" y="240" text-anchor="middle">month 4</text>
+        <text class="b7mX" x="555" y="240" text-anchor="middle">month 5</text>
+        <text class="b7mX" x="710" y="240" text-anchor="middle">after the change</text>
+
+        <rect x="110" y="264" width="380" height="34" rx="8" fill="#4D7C0F"/>
+        <text class="b7mW" x="124" y="286">the test: re-score held out at 50% and at 90% blank</text>
+        <rect x="505" y="264" width="335" height="34" rx="8" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.6"/>
+        <text class="b7mK" x="519" y="286">a cliff means a dependency, not a feature</text>
+
+        <text class="b7mN" x="40" y="326">For nine rows in ten the model's strongest feature had become a constant, and nothing errored.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the missingness rate moves before your metrics do</figcaption>
+    </figure>
 
     <div class="callout tip">
       <strong>The test that would have caught it</strong>

@@ -124,6 +124,68 @@
           <li><strong>Z-score.</strong> With <strong>μ = 100</strong> and <strong>σ = 20</strong>, the raw value <strong>130</strong> becomes <strong>+1.5</strong>: one and a half standard deviations above the mean. The unit is now "how unusual is this", which is exactly what a bell-shaped feature is telling you.</li>
           <li><strong>Log.</strong> Google's line is the one to quote when someone asks why a log helps at all: <em>"the log of 1,000,000 is only about three times larger than the log of 100."</em> A ratio of ten thousand to one becomes a ratio of three to one. The order survives, the tyranny of the tail does not.</li>
         </ul>
+
+        <figure class="zoomable">
+          <svg viewBox="0 0 880 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three worked numeric transforms. Min-max on a feature spanning 100 to 900 maps the raw value 300 to 0.25, a quarter of the way along. Z-score with a mean of 100 and a standard deviation of 20 maps 130 to plus 1.5. Log turns a ten-thousand-to-one ratio between 100 and 1,000,000 into roughly three to one.">
+            <style>
+              .b2wT { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+              .b2wH { font: 700 12px Inter, sans-serif; fill: #1E293B; }
+              .b2wS { font: 400 11px Inter, sans-serif; fill: #64748B; }
+              .b2wV { font: 700 11px Inter, sans-serif; fill: #3F6212; }
+              .b2wD { font: 600 10px Inter, sans-serif; fill: #64748B; }
+              .b2wC { font: 400 11px Inter, sans-serif; fill: #64748B; }
+              .b2wN { font: 400 12px Inter, sans-serif; fill: #64748B; }
+            </style>
+            <rect x="0" y="0" width="880" height="300" fill="#F7FEE7"/>
+            <text class="b2wT" x="40" y="26">Three worked numbers you can check on a whiteboard</text>
+
+            <rect x="40" y="56" width="253" height="188" rx="10" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.6"/>
+            <text class="b2wH" x="58" y="80">Min-max: 100 to 900</text>
+            <text class="b2wS" x="58" y="100">x' = (x - min) / (max - min)</text>
+            <text class="b2wV" x="112" y="130" text-anchor="middle">300</text>
+            <line x1="58" y1="138" x2="275" y2="138" stroke="#CBD5E1" stroke-width="2"/>
+            <circle cx="112" cy="138" r="5" fill="#4D7C0F"/>
+            <text class="b2wD" x="58" y="154" text-anchor="middle">100</text>
+            <text class="b2wD" x="275" y="154" text-anchor="middle">900</text>
+            <text class="b2wV" x="112" y="182" text-anchor="middle">0.25</text>
+            <line x1="58" y1="190" x2="275" y2="190" stroke="#CBD5E1" stroke-width="2"/>
+            <circle cx="112" cy="190" r="5" fill="#4D7C0F"/>
+            <text class="b2wD" x="58" y="206" text-anchor="middle">0</text>
+            <text class="b2wD" x="275" y="206" text-anchor="middle">1</text>
+            <text class="b2wC" x="58" y="230">a quarter of the way along</text>
+
+            <rect x="313" y="56" width="253" height="188" rx="10" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.6"/>
+            <text class="b2wH" x="331" y="80">Z-score: mu 100, sigma 20</text>
+            <text class="b2wS" x="331" y="100">x' = (x - mu) / sigma</text>
+            <text class="b2wV" x="494" y="130" text-anchor="middle">130</text>
+            <line x1="331" y1="138" x2="548" y2="138" stroke="#CBD5E1" stroke-width="2"/>
+            <circle cx="494" cy="138" r="5" fill="#4D7C0F"/>
+            <text class="b2wD" x="331" y="154" text-anchor="middle">40</text>
+            <text class="b2wD" x="548" y="154" text-anchor="middle">160</text>
+            <text class="b2wV" x="494" y="182" text-anchor="middle">+1.5</text>
+            <line x1="331" y1="190" x2="548" y2="190" stroke="#CBD5E1" stroke-width="2"/>
+            <circle cx="494" cy="190" r="5" fill="#4D7C0F"/>
+            <text class="b2wD" x="331" y="206" text-anchor="middle">-3</text>
+            <text class="b2wD" x="548" y="206" text-anchor="middle">+3</text>
+            <text class="b2wC" x="331" y="230">one and a half sigma above</text>
+
+            <rect x="586" y="56" width="253" height="188" rx="10" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.6"/>
+            <text class="b2wH" x="604" y="80">Log: the tail compressed</text>
+            <text class="b2wS" x="604" y="100">x' = log(x)</text>
+            <text class="b2wV" x="604" y="130">1,000,000 against 100</text>
+            <rect x="604" y="136" width="3" height="10" fill="#CBD5E1"/>
+            <rect x="604" y="150" width="217" height="10" fill="#B45309"/>
+            <text class="b2wC" x="604" y="178">a ratio of 10,000 to 1</text>
+            <rect x="604" y="186" width="72" height="10" fill="#CBD5E1"/>
+            <rect x="604" y="200" width="217" height="10" fill="#4D7C0F"/>
+            <text class="b2wV" x="604" y="230">becomes about 3 to 1</text>
+
+            <text class="b2wN" x="40" y="272">Google: "the log of 1,000,000 is only about three times larger than the log of 100."</text>
+            <text class="b2wN" x="40" y="292">Min-max keeps the shape and moves only the axis; log keeps the order and drops the tail's tyranny.</text>
+          </svg>
+          <figcaption>🔍 Click to zoom - each transform changes the unit, not the ranking</figcaption>
+        </figure>
+
         <div class="callout example">
           <span class="ex-pill">Real world</span>
           <p><strong>Lumen's spend column is the textbook case.</strong> <code>prior_30d_spend</code> is gamma-shaped and right-skewed - most sessions cluster near zero, a thin tail runs into the thousands. Min-max scaling would squash 95% of your customers into the bottom few percent of the range. Log or a power transform is what the shape is asking for, and the tail customers stay distinguishable from each other instead of all mapping to "high".</p>
@@ -235,6 +297,53 @@ model.score(X_test, y_test)    # test rows are transformed, never fitted on</div
     </div>
 
     <p>The choice of <em>bin edges</em> then matters more than the choice to bin. Equal-width buckets on a skewed column put almost every row in bucket one. Quantile bucketing fixes this, and Google's description of why is the clearest sentence on the topic: it "gives extra information space to the large torso while compacting the long tail into a single bucket". The dense middle of your distribution, where most customers live, gets resolution. The tail, where a handful of rows live, gets one bucket and stops distorting everything.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 306" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The same right-skewed spend column cut two ways. With equal-width edges almost every row falls into the first bucket and the tail gets three nearly empty buckets. With quantile edges the buckets are narrow through the dense torso and one wide bucket absorbs the long tail, so each bucket holds about a quarter of the rows.">
+        <style>
+          .b2bT { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+          .b2bR { font: 700 13px Inter, sans-serif; fill: #991B1B; }
+          .b2bG { font: 700 13px Inter, sans-serif; fill: #3F6212; }
+          .b2bD { font: 600 10px Inter, sans-serif; fill: #64748B; }
+          .b2bX { font: 400 11px Inter, sans-serif; fill: #64748B; }
+          .b2bN { font: 400 12px Inter, sans-serif; fill: #64748B; }
+        </style>
+        <rect x="0" y="0" width="880" height="306" fill="#F7FEE7"/>
+        <text class="b2bT" x="40" y="26">Bin edges matter more than the decision to bin</text>
+
+        <rect x="40" y="50" width="390" height="200" rx="12" fill="#FEF2F2" stroke="#FCA5A5" stroke-width="2"/>
+        <text class="b2bR" x="58" y="84">✗ Equal-width edges</text>
+        <path d="M62,190 Q72,104 96,138 Q140,182 410,188 L410,190 Z" fill="#BEF264"/>
+        <line x1="60" y1="100" x2="60" y2="190" stroke="#991B1B" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <line x1="147" y1="100" x2="147" y2="190" stroke="#991B1B" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <line x1="235" y1="100" x2="235" y2="190" stroke="#991B1B" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <line x1="322" y1="100" x2="322" y2="190" stroke="#991B1B" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <line x1="410" y1="100" x2="410" y2="190" stroke="#991B1B" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <text class="b2bD" x="103" y="206" text-anchor="middle">almost all rows</text>
+        <text class="b2bD" x="191" y="206" text-anchor="middle">few</text>
+        <text class="b2bD" x="278" y="206" text-anchor="middle">few</text>
+        <text class="b2bD" x="366" y="206" text-anchor="middle">few</text>
+        <text class="b2bX" x="58" y="230">the tail gets three nearly empty buckets</text>
+
+        <rect x="450" y="50" width="390" height="200" rx="12" fill="#F7FEE7" stroke="#84CC16" stroke-width="2"/>
+        <text class="b2bG" x="468" y="84">✓ Quantile edges</text>
+        <path d="M472,190 Q482,104 506,138 Q550,182 820,188 L820,190 Z" fill="#BEF264"/>
+        <line x1="470" y1="100" x2="470" y2="190" stroke="#3F6212" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <line x1="497" y1="100" x2="497" y2="190" stroke="#3F6212" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <line x1="531" y1="100" x2="531" y2="190" stroke="#3F6212" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <line x1="600" y1="100" x2="600" y2="190" stroke="#3F6212" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <line x1="820" y1="100" x2="820" y2="190" stroke="#3F6212" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <text class="b2bD" x="483" y="206" text-anchor="middle">25%</text>
+        <text class="b2bD" x="514" y="206" text-anchor="middle">25%</text>
+        <text class="b2bD" x="565" y="206" text-anchor="middle">25%</text>
+        <text class="b2bD" x="710" y="206" text-anchor="middle">25%</text>
+        <text class="b2bX" x="468" y="230">the torso gets resolution, the tail gets one bucket</text>
+
+        <text class="b2bN" x="40" y="278">Google: quantile bucketing "gives extra information space to the large torso".</text>
+        <text class="b2bN" x="40" y="298">Lumen's prior_30d_spend is gamma-shaped: most sessions near zero, a thin tail into the thousands.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - equal-width edges on a skewed column build three empty buckets</figcaption>
+    </figure>
 
     <div class="prompt-box"><span class="label">Python</span>from sklearn.preprocessing import KBinsDiscretizer, SplineTransformer
 

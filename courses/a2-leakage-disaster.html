@@ -149,6 +149,56 @@
     </div>
     <p class="lede">Arguments about leakage go badly when they are arguments about judgement. They go well when they are arguments about two documented results. Memorise these; they do more work than any amount of general caution.</p>
 
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 444" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two documented leakage results as bars. In scikit-learn's experiment on pure noise, fitting selection on all the data scores 0.76 accuracy while splitting first scores 0.50 and cross-validation scores 0.43. On the Lumen case the leaked model shows 0.967 training AUC but only 0.789 held out, below the 0.813 the honest model already had.">
+        <style>
+          .a2nT { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+          .a2nK { font: 600 11px Inter, sans-serif; fill: #1E293B; }
+          .a2nG { font: 700 11px Inter, sans-serif; fill: #64748B; letter-spacing: .06em; }
+          .a2nL { font: 600 12px Inter, sans-serif; fill: #1E293B; }
+          .a2nV { font: 700 12px Inter, sans-serif; fill: #FFFFFF; }
+          .a2nA { font: 400 11px Inter, sans-serif; fill: #64748B; }
+          .a2nN { font: 400 12px Inter, sans-serif; fill: #64748B; }
+        </style>
+        <rect x="0" y="0" width="880" height="444" fill="#F7FEE7"/>
+        <text class="a2nT" x="40" y="26">The two numbers that end the "but the score is great" conversation</text>
+        <rect x="580" y="15" width="12" height="12" rx="3" fill="#B45309"/>
+        <text class="a2nK" x="598" y="26">leaked</text>
+        <rect x="660" y="15" width="12" height="12" rx="3" fill="#4D7C0F"/>
+        <text class="a2nK" x="678" y="26">honest</text>
+
+        <text class="a2nG" x="60" y="54">SKLEARN ON PURE NOISE · ACCURACY</text>
+        <text class="a2nL" x="290" y="86" text-anchor="end">fitted on all the data</text>
+        <rect x="300" y="66" width="350" height="30" rx="5" fill="#B45309"/>
+        <text class="a2nV" x="312" y="86">0.76</text>
+        <text class="a2nA" x="662" y="86">from pure noise</text>
+        <text class="a2nL" x="290" y="138" text-anchor="end">split first, then fitted</text>
+        <rect x="300" y="118" width="230" height="30" rx="5" fill="#4D7C0F"/>
+        <text class="a2nV" x="312" y="138">0.50</text>
+        <text class="a2nA" x="542" y="138">the only honest score</text>
+        <text class="a2nL" x="290" y="190" text-anchor="end">same, cross-validated</text>
+        <rect x="300" y="170" width="198" height="30" rx="5" fill="#4D7C0F"/>
+        <text class="a2nV" x="312" y="190">0.43</text>
+
+        <text class="a2nG" x="60" y="228">THE LUMEN TRAP · HELD-OUT AUC</text>
+        <text class="a2nL" x="290" y="260" text-anchor="end">leaked, training score</text>
+        <rect x="300" y="240" width="445" height="30" rx="5" fill="#B45309"/>
+        <text class="a2nV" x="312" y="260">0.967</text>
+        <text class="a2nL" x="290" y="312" text-anchor="end">leaked, held out</text>
+        <rect x="300" y="292" width="363" height="30" rx="5" fill="#7C2D12"/>
+        <text class="a2nV" x="312" y="312">0.789</text>
+        <text class="a2nA" x="675" y="312">worse than doing nothing</text>
+        <text class="a2nL" x="290" y="364" text-anchor="end">honest, held out</text>
+        <rect x="300" y="344" width="374" height="30" rx="5" fill="#4D7C0F"/>
+        <text class="a2nV" x="312" y="364">0.813</text>
+        <text class="a2nA" x="686" y="364">the model they already had</text>
+
+        <text class="a2nN" x="40" y="406">Twenty-six points of accuracy conjured from randomness, by one step done in the wrong order.</text>
+        <text class="a2nN" x="40" y="426">On Lumen the leak did not only flatter the model - it produced a worse one than adding nothing.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - a good number cannot tell you whether it earned itself</figcaption>
+    </figure>
+
     <table class="clean">
       <thead>
         <tr><th>Evidence</th><th>Leaked result</th><th>Honest result</th><th>What it proves</th></tr>
@@ -192,6 +242,47 @@
       <span class="ex-pill">Real world</span>
       <p><strong>The churn model that predicted the retention team.</strong> A field called <code>last_contact_type</code> sits in the customer table and is a superb predictor of churn. It should be. The retention team fills it in <em>after</em> deciding a customer is leaving. The code was clean, the split was correct, the reviewer was competent, and the model was fiction: it had learned to predict what the retention team had already concluded. In production, on a customer nobody has flagged yet, the field is empty and the model has nothing to say. Nothing in a code review catches this. Only someone who knows when that column gets written does.</p>
     </div>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 264" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A two-lane timing chart split by a prediction-time line. On the available side sit a Lumen checkout in progress scoring 0.813 held out with its five honest feature groups, and a churn model scoring a customer nobody has flagged yet. On the unavailable side sit a Lumen flag recorded after the sale and last_contact_type, written only once the retention team has decided the customer is leaving. Both are populated in history and empty in production.">
+        <style>
+          .a2wT { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+          .a2wH { font: 700 11px Inter, sans-serif; fill: #4D7C0F; letter-spacing: .04em; }
+          .a2wR { font: 700 11px Inter, sans-serif; fill: #B45309; letter-spacing: .04em; }
+          .a2wP { font: 700 11px Inter, sans-serif; fill: #B45309; letter-spacing: .06em; }
+          .a2wA { font: 700 12px Inter, sans-serif; fill: #FFFFFF; }
+          .a2wB { font: 400 11px Inter, sans-serif; fill: rgba(255,255,255,.86); }
+          .a2wC { font: 700 12px Inter, sans-serif; fill: #7C2D12; }
+          .a2wD { font: 400 11px Inter, sans-serif; fill: #7C2D12; }
+          .a2wN { font: 400 12px Inter, sans-serif; fill: #64748B; }
+        </style>
+        <rect x="0" y="0" width="880" height="264" fill="#F7FEE7"/>
+        <text class="a2wT" x="40" y="26">The only test that matters: when is the column written, relative to the outcome?</text>
+
+        <text class="a2wH" x="60" y="50">AVAILABLE · the model may use this</text>
+        <text class="a2wR" x="840" y="50" text-anchor="end">NOT AVAILABLE · anything after this line</text>
+        <text class="a2wP" x="380" y="50" text-anchor="middle">PREDICTION TIME</text>
+        <line x1="380" y1="58" x2="380" y2="208" stroke="#B45309" stroke-width="2.5" stroke-dasharray="7 5"/>
+
+        <rect x="60" y="72" width="310" height="46" rx="8" fill="#4D7C0F"/>
+        <text class="a2wA" x="76" y="94">Lumen checkout, mid-session</text>
+        <text class="a2wB" x="76" y="110">five honest groups, 0.813 held out</text>
+        <rect x="390" y="72" width="450" height="46" rx="8" fill="#FEF3E2" stroke="#B45309" stroke-width="1.6"/>
+        <text class="a2wC" x="406" y="94">a flag recorded after the sale</text>
+        <text class="a2wD" x="406" y="110">populated in history, empty in production</text>
+
+        <rect x="60" y="142" width="310" height="46" rx="8" fill="#4D7C0F"/>
+        <text class="a2wA" x="76" y="164">Churn model scores a customer</text>
+        <text class="a2wB" x="76" y="180">nobody has flagged them yet</text>
+        <rect x="390" y="142" width="450" height="46" rx="8" fill="#FEF3E2" stroke="#B45309" stroke-width="1.6"/>
+        <text class="a2wC" x="406" y="164">retention team decides they are leaving</text>
+        <text class="a2wD" x="406" y="180">then last_contact_type is written</text>
+
+        <text class="a2wN" x="40" y="222">sklearn: leakage is information that would not be available at prediction time.</text>
+        <text class="a2wN" x="40" y="242">Both right-hand columns are perfect in the historical table and blank at the moment of the decision.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - a column is only a feature if it exists before the outcome</figcaption>
+    </figure>
   </section>
 
   <!-- ============ DEMO ============ -->

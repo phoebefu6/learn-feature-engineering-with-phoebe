@@ -236,6 +236,52 @@ smooth="auto" uses an empirical Bayes estimate:  m = sigma_i^2 / tau^2</div>
       <p><strong>sklearn's own demonstration of the dial.</strong> On the same three categories, <code>smooth=5000</code> produces encodings of <strong>[44.1, 44.4, 44.3]</strong> - the categories have been smoothed into near-identity with the global mean, and the feature carries almost nothing. <code>smooth=1.0</code> on the identical data produces <strong>[21, 80.8, 43.2]</strong> - the raw category rates, barely regularized, and now trusting three separate small samples completely. Neither extreme is the answer; the parameter is the whole game.</p>
     </div>
 
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 306" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The smoothing dial plotted on one scale. With smooth set to 5000 sklearn's three categories encode to 44.1, 44.4 and 44.3, sitting on top of each other at the global mean. With smooth set to 1.0 the same three categories encode to 21, 43.2 and 80.8, spread right across the scale as their barely regularized raw rates.">
+        <style>
+          .b3sT { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+          .b3sL { font: 600 12px Inter, sans-serif; fill: #1E293B; }
+          .b3sV { font: 700 11px Inter, sans-serif; fill: #3F6212; }
+          .b3sM { font: 700 11px Inter, sans-serif; fill: #B45309; }
+          .b3sX { font: 400 11px Inter, sans-serif; fill: #64748B; }
+          .b3sD { font: 600 10px Inter, sans-serif; fill: #64748B; }
+          .b3sN { font: 400 12px Inter, sans-serif; fill: #64748B; }
+        </style>
+        <rect x="0" y="0" width="880" height="306" fill="#F7FEE7"/>
+        <text class="b3sT" x="40" y="26">The smoothing dial, on sklearn's own three categories</text>
+
+        <text class="b3sM" x="430" y="72" text-anchor="middle">global mean</text>
+        <line x1="430" y1="80" x2="430" y2="232" stroke="#B45309" stroke-width="2" stroke-dasharray="6 4"/>
+
+        <text class="b3sL" x="110" y="114" text-anchor="end">smooth = 5000</text>
+        <text class="b3sV" x="429" y="94" text-anchor="middle">44.1 · 44.4 · 44.3</text>
+        <circle cx="429" cy="110" r="6" fill="#4D7C0F"/>
+        <circle cx="431" cy="110" r="6" fill="#4D7C0F"/>
+        <circle cx="430" cy="110" r="6" fill="#4D7C0F"/>
+        <text class="b3sX" x="520" y="114">near-identity with the global mean</text>
+
+        <text class="b3sL" x="110" y="184" text-anchor="end">smooth = 1.0</text>
+        <text class="b3sV" x="267" y="164" text-anchor="middle">21</text>
+        <text class="b3sV" x="422" y="164" text-anchor="middle">43.2</text>
+        <text class="b3sV" x="686" y="164" text-anchor="middle">80.8</text>
+        <circle cx="267" cy="180" r="6" fill="#B45309"/>
+        <circle cx="422" cy="180" r="6" fill="#B45309"/>
+        <circle cx="686" cy="180" r="6" fill="#B45309"/>
+        <text class="b3sX" x="120" y="206">the raw category rates, barely regularized, trusting three small samples completely</text>
+
+        <line x1="120" y1="232" x2="820" y2="232" stroke="#CBD5E1" stroke-width="2"/>
+        <text class="b3sD" x="120" y="250" text-anchor="middle">0</text>
+        <text class="b3sD" x="295" y="250" text-anchor="middle">25</text>
+        <text class="b3sD" x="470" y="250" text-anchor="middle">50</text>
+        <text class="b3sD" x="645" y="250" text-anchor="middle">75</text>
+        <text class="b3sD" x="820" y="250" text-anchor="middle">100</text>
+
+        <text class="b3sN" x="40" y="278">sklearn: "Large smoothing factors put more weight on the global mean."</text>
+        <text class="b3sN" x="40" y="298">Neither extreme is the answer - lambda is a confidence dial, and the parameter is the whole game.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - smoothing decides how much a small category is allowed to say</figcaption>
+    </figure>
+
     <p class="lede">Now the part that matters more than the formula. If you compute each category's rate from the same rows you then train on, every row has contributed to its own encoding. The feature contains a whisper of the answer, and the model hears it.</p>
 
     <div class="callout tip">
@@ -295,6 +341,44 @@ X_bad = enc.transform(X_train)
       <div class="step"><p><strong>Sit with the gap.</strong> Naive: 0.931 train against 0.493 held-out. Cross-fitted: 0.509 against 0.493. Cross-fitting did not improve the model - it improved your ability to see that there was never a model here at all.</p></div>
       <div class="step"><p><strong>sklearn's own numbers, at scale.</strong> On 50,000 rows with a near-unique category column, their documented example reports test R² of <strong>0.634</strong> without cross-fitting versus <strong>0.793</strong> with it. Their docs call the first case "catastrophic overfitting" - not sloppy, not suboptimal. Catastrophic.</p></div>
     </div>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 346" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Four AUC bars for postal_code, a column drawn independently of the target. Encoded naively on all training rows it scores 0.931 in training and 0.493 held out. Cross-fitted it scores 0.509 in training and the same 0.493 held out, so the held-out number never moved and only the training number stopped lying.">
+        <style>
+          .b3xT { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+          .b3xS { font: 400 11px Inter, sans-serif; fill: #64748B; }
+          .b3xG { font: 700 11px Inter, sans-serif; fill: #64748B; letter-spacing: .06em; }
+          .b3xL { font: 600 12px Inter, sans-serif; fill: #1E293B; }
+          .b3xV { font: 700 12px Inter, sans-serif; fill: #FFFFFF; }
+          .b3xA { font: 400 11px Inter, sans-serif; fill: rgba(255,255,255,.88); }
+          .b3xN { font: 400 12px Inter, sans-serif; fill: #64748B; }
+        </style>
+        <rect x="0" y="0" width="880" height="346" fill="#F7FEE7"/>
+        <text class="b3xT" x="40" y="26">The same useless column, encoded two ways</text>
+        <text class="b3xS" x="40" y="46">postal_code has 1,200 levels and is drawn independently of the target - it knows nothing</text>
+
+        <text class="b3xG" x="60" y="76">NAIVE · FITTED ON ALL TRAINING ROWS, THEN REUSED</text>
+        <text class="b3xL" x="290" y="108" text-anchor="end">training AUC</text>
+        <rect x="300" y="88" width="447" height="30" rx="5" fill="#B45309"/>
+        <text class="b3xV" x="312" y="108">0.931</text>
+        <text class="b3xA" x="360" y="108">a training score you would celebrate</text>
+        <text class="b3xL" x="290" y="160" text-anchor="end">held out</text>
+        <rect x="300" y="140" width="237" height="30" rx="5" fill="#64748B"/>
+        <text class="b3xV" x="312" y="160">0.493</text>
+
+        <text class="b3xG" x="60" y="196">CROSS-FITTED · EACH FOLD ENCODED FROM THE OTHERS</text>
+        <text class="b3xL" x="290" y="228" text-anchor="end">training AUC</text>
+        <rect x="300" y="208" width="244" height="30" rx="5" fill="#4D7C0F"/>
+        <text class="b3xV" x="312" y="228">0.509</text>
+        <text class="b3xL" x="290" y="280" text-anchor="end">held out</text>
+        <rect x="300" y="260" width="237" height="30" rx="5" fill="#64748B"/>
+        <text class="b3xV" x="312" y="280">0.493</text>
+
+        <text class="b3xN" x="40" y="318">The held-out number never moved. Only the training number stopped lying.</text>
+        <text class="b3xN" x="40" y="338">sklearn's own example: test R2 0.634 without cross-fitting against 0.793 with it.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - cross-fitting did not improve the model, it improved your view of it</figcaption>
+    </figure>
 
     <div class="febox" data-mode="encode"></div>
 

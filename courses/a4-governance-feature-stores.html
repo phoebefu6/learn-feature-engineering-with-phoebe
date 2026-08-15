@@ -193,6 +193,55 @@
       <div class="body">
         <p>This is the one technical idea in the session worth a leader's attention, because it is the mechanism behind the leakage claim.</p>
         <p>When you build a training set, every row is an event that happened at a specific moment. A point-in-time join reconstructs <strong>what was known at that exact moment</strong>, not what is known now. It scans backward from each event's timestamp, up to a time-to-live window, and takes the most recent feature value that already existed. A value written after the event is invisible to it, which is precisely the discipline session a2 asked for, enforced by the join rather than by somebody remembering.</p>
+      <figure class="zoomable">
+        <svg viewBox="0 0 880 332" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A time axis with three training events, each carrying its own backward time-to-live window ending at that event, so any value written after the event is invisible to the join. Below it, the common mistake: one window measured back from today, which anchors every row to the wrong clock.">
+        <style>
+          .a4jT { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+          .a4jH { font: 700 11px Inter, sans-serif; fill: #3F6212; letter-spacing: .04em; }
+          .a4jR { font: 700 11px Inter, sans-serif; fill: #B45309; letter-spacing: .04em; }
+          .a4jW { font: 600 11px Inter, sans-serif; fill: #FFFFFF; }
+          .a4jE { font: 600 11px Inter, sans-serif; fill: #7C2D12; }
+          .a4jL { font: 600 11px Inter, sans-serif; fill: #64748B; }
+          .a4jN { font: 400 12px Inter, sans-serif; fill: #64748B; }
+        </style>
+        <rect x="0" y="0" width="880" height="332" fill="#F7FEE7"/>
+        <text class="a4jT" x="40" y="26">A point-in-time join anchors the window to each event, not to today</text>
+        <text class="a4jR" x="790" y="34" text-anchor="middle">TODAY</text>
+        <line x1="790" y1="40" x2="790" y2="258" stroke="#B45309" stroke-width="2" stroke-dasharray="6 4"/>
+
+        <text class="a4jH" x="60" y="52">CORRECT · the window ends at each event</text>
+
+        <rect x="300" y="60" width="540" height="34" fill="#FEF3E2"/>
+        <rect x="160" y="60" width="140" height="34" rx="6" fill="#4D7C0F"/>
+        <text class="a4jW" x="174" y="82">TTL window</text>
+        <text class="a4jE" x="312" y="82">event 1</text>
+        <text class="a4jE" x="420" y="82">values written here are invisible to the join</text>
+
+        <rect x="470" y="102" width="370" height="34" fill="#FEF3E2"/>
+        <rect x="330" y="102" width="140" height="34" rx="6" fill="#4D7C0F"/>
+        <text class="a4jW" x="344" y="124">TTL window</text>
+        <text class="a4jE" x="482" y="124">event 2</text>
+
+        <rect x="640" y="144" width="200" height="34" fill="#FEF3E2"/>
+        <rect x="500" y="144" width="140" height="34" rx="6" fill="#4D7C0F"/>
+        <text class="a4jW" x="514" y="166">TTL window</text>
+        <text class="a4jE" x="652" y="166">event 3</text>
+
+        <text class="a4jR" x="60" y="196">WRONG · one window measured back from today</text>
+        <rect x="650" y="206" width="140" height="34" rx="6" fill="#FFFFFF" stroke="#B45309" stroke-width="2" stroke-dasharray="6 4"/>
+        <text class="a4jE" x="664" y="228">the last 90 days</text>
+        <text class="a4jL" x="60" y="228">the same window for every row, anchored to the wrong clock</text>
+
+        <line x1="60" y1="258" x2="840" y2="258" stroke="#CBD5E1" stroke-width="2"/>
+        <text class="a4jR" x="780" y="276" text-anchor="end">TODAY</text>
+        <text class="a4jL" x="840" y="276" text-anchor="end">time →</text>
+
+        <text class="a4jN" x="40" y="304">Feast: "TTL is not relative to the current point in time."</text>
+        <text class="a4jN" x="40" y="324">A value written after the event is invisible to the join - enforced by the join, not remembered.</text>
+        </svg>
+        <figcaption>🔍 Click to zoom - each row gets its own clock, and it stops at the event</figcaption>
+      </figure>
+
         <p>The Feast documentation flags the part that trips people up: <em>"TTL is not relative to the current point in time."</em> The window is anchored to each event, not to today. A team reasoning about the window as "the last 90 days" is reasoning about the wrong clock, and that misunderstanding produces training sets that quietly disagree with themselves.</p>
       </div>
     </details>
@@ -222,6 +271,63 @@
         <p>No single system is naturally good at both, which is why the architecture has two, and why the interesting engineering is in keeping them agreed. That is also where the operating cost sits: two systems to run, a sync path between them, and one shared definition that both must honour. Worth knowing before anyone describes the store as a way to simplify the stack - it adds a layer, and earns its place by removing duplicate definitions rather than duplicate systems.</p>
       </div>
     </details>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 376" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Four organisational signals mapped to a verdict on whether a feature store pays yet. One model and one team maps to no, because Rule 29 logging and a written definition give the same safety. Many models sharing features, real-time serving alongside historical training, and compliance needing point-in-time proof all map to yes, where the store buys consistency and point-in-time correctness rather than quality, lineage or drift.">
+        <style>
+          .a4pT { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+          .a4pH { font: 700 11px Inter, sans-serif; fill: #64748B; letter-spacing: .06em; }
+          .a4pB { font: 700 12px Inter, sans-serif; fill: #1E293B; }
+          .a4pX { font: 400 11px Inter, sans-serif; fill: #64748B; }
+          .a4pV { font: 700 13px Inter, sans-serif; fill: #FFFFFF; }
+          .a4pS { font: 400 11px Inter, sans-serif; fill: rgba(255,255,255,.88); }
+          .a4pN { font: 400 12px Inter, sans-serif; fill: #64748B; }
+          .a4pW { stroke: #CBD5E1; stroke-width: 2; fill: none; }
+        </style>
+        <rect x="0" y="0" width="880" height="376" fill="#F7FEE7"/>
+        <text class="a4pT" x="40" y="26">Four signals, and what each one buys you</text>
+        <text class="a4pH" x="60" y="52">SIGNAL IN YOUR ORGANISATION</text>
+        <text class="a4pH" x="560" y="52">DOES A STORE PAY YET?</text>
+
+        <rect x="60" y="66" width="460" height="56" rx="9" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.6"/>
+        <text class="a4pB" x="76" y="90">One model, one team</text>
+        <text class="a4pX" x="76" y="108">there is no shared definition to protect yet</text>
+
+        <rect x="60" y="132" width="460" height="56" rx="9" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.6"/>
+        <text class="a4pB" x="76" y="156">Many models sharing features</text>
+        <text class="a4pX" x="76" y="174">two teams already compute average spend separately</text>
+
+        <rect x="60" y="198" width="460" height="56" rx="9" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.6"/>
+        <text class="a4pB" x="76" y="222">Real-time serving plus historical training</text>
+        <text class="a4pX" x="76" y="240">hand-building both halves is where skew is born</text>
+
+        <rect x="60" y="264" width="460" height="56" rx="9" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.6"/>
+        <text class="a4pB" x="76" y="288">Compliance needing point-in-time proof</text>
+        <text class="a4pX" x="76" y="306">you must show what was known at decision time</text>
+
+        <path class="a4pW" d="M520,94 L560,94"/>
+        <path class="a4pW" d="M520,160 L560,186"/>
+        <path class="a4pW" d="M520,226 L560,222"/>
+        <path class="a4pW" d="M520,292 L560,258"/>
+
+        <rect x="560" y="66" width="280" height="56" rx="9" fill="#64748B"/>
+        <text class="a4pV" x="576" y="90">NO, NOT YET</text>
+        <text class="a4pS" x="576" y="110">Rule 29 logging and a definition</text>
+
+        <rect x="560" y="132" width="280" height="188" rx="9" fill="#4D7C0F"/>
+        <text class="a4pV" x="576" y="160">YES, IT PAYS</text>
+        <text class="a4pS" x="576" y="186">you are already paying for it -</text>
+        <text class="a4pS" x="576" y="204">in duplicated work and divergent</text>
+        <text class="a4pS" x="576" y="222">numbers, just not on an invoice</text>
+        <text class="a4pS" x="576" y="252">it buys consistency and</text>
+        <text class="a4pS" x="576" y="270">point-in-time correctness -</text>
+        <text class="a4pS" x="576" y="288">not quality, lineage, or drift</text>
+
+        <text class="a4pN" x="40" y="348">Governance first, platform second - the reverse order buys infrastructure to manage a problem it cannot see.</text>
+        <text class="a4pN" x="40" y="368">Feast is not an ETL system, not an orchestrator, not a warehouse and not a database.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - a store removes duplicate definitions, not duplicate systems</figcaption>
+    </figure>
 
     <table class="clean">
       <thead>

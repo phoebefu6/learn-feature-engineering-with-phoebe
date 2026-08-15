@@ -115,6 +115,73 @@
           <li><strong>Buried signal.</strong> A <code>signup_date</code> holds tenure, weekday, seasonality, recency. As a timestamp it holds none of them, as far as a linear model is concerned (b4).</li>
           <li><strong>Invisible relationships.</strong> Spend matters more for returning customers than new ones. No single column carries that; the interaction has to be built (b6).</li>
         </ul>
+
+        <figure class="zoomable">
+          <svg viewBox="0 0 880 288" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three mechanisms behind the failure of throwing raw columns at a model. Indexed categories are read as magnitudes, so purple at index six reads as six times orange at index one. A signup_date stays one opaque timestamp while tenure, weekday, seasonality and recency sit unreachable inside it. Spend and returning each exist as columns but their product, which is where the effect lives, does not.">
+            <style>
+              .b1fT { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+              .b1fH { font: 700 12px Inter, sans-serif; fill: #1E293B; }
+              .b1fX { font: 400 11px Inter, sans-serif; fill: #64748B; }
+              .b1fI { font: 700 11px Inter, sans-serif; fill: #7C2D12; }
+              .b1fD { font: 600 10px Inter, sans-serif; fill: #64748B; }
+              .b1fW { font: 600 11px Inter, sans-serif; fill: #FFFFFF; }
+              .b1fN { font: 400 12px Inter, sans-serif; fill: #64748B; }
+            </style>
+            <rect x="0" y="0" width="880" height="288" fill="#F7FEE7"/>
+            <text class="b1fT" x="40" y="26">Three ways "just throw the columns in" actually fails</text>
+
+            <rect x="40" y="56" width="253" height="176" rx="10" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.6"/>
+            <text class="b1fH" x="58" y="80">1 · Strings as integers</text>
+            <text class="b1fX" x="58" y="104">hand indexed categories over raw</text>
+            <line x1="68" y1="136" x2="265" y2="136" stroke="#CBD5E1" stroke-width="2"/>
+            <circle cx="68" cy="136" r="4" fill="#B45309"/>
+            <circle cx="107" cy="136" r="4" fill="#CBD5E1"/>
+            <circle cx="147" cy="136" r="4" fill="#CBD5E1"/>
+            <circle cx="186" cy="136" r="4" fill="#CBD5E1"/>
+            <circle cx="226" cy="136" r="4" fill="#CBD5E1"/>
+            <circle cx="265" cy="136" r="4" fill="#B45309"/>
+            <text class="b1fD" x="68" y="154" text-anchor="middle">1</text>
+            <text class="b1fD" x="265" y="154" text-anchor="middle">6</text>
+            <text class="b1fD" x="68" y="170" text-anchor="middle">orange</text>
+            <text class="b1fD" x="265" y="170" text-anchor="middle">purple</text>
+            <text class="b1fI" x="58" y="196">"purple" reads as 6 x "orange"</text>
+            <text class="b1fX" x="58" y="214">arithmetic on nonsense (b3)</text>
+
+            <rect x="313" y="56" width="253" height="176" rx="10" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.6"/>
+            <text class="b1fH" x="331" y="80">2 · Buried signal</text>
+            <text class="b1fX" x="331" y="104">signup_date: 2025-11-03</text>
+            <rect x="331" y="118" width="217" height="38" rx="6" fill="#E2E8F0"/>
+            <text class="b1fX" x="439" y="142" text-anchor="middle">one opaque timestamp</text>
+            <rect x="331" y="168" width="100" height="22" rx="6" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.4" stroke-dasharray="4 3"/>
+            <text class="b1fD" x="381" y="183" text-anchor="middle">tenure</text>
+            <rect x="448" y="168" width="100" height="22" rx="6" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.4" stroke-dasharray="4 3"/>
+            <text class="b1fD" x="498" y="183" text-anchor="middle">weekday</text>
+            <rect x="331" y="196" width="100" height="22" rx="6" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.4" stroke-dasharray="4 3"/>
+            <text class="b1fD" x="381" y="211" text-anchor="middle">seasonality</text>
+            <rect x="448" y="196" width="100" height="22" rx="6" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.4" stroke-dasharray="4 3"/>
+            <text class="b1fD" x="498" y="211" text-anchor="middle">recency</text>
+
+            <rect x="586" y="56" width="253" height="176" rx="10" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.6"/>
+            <text class="b1fH" x="604" y="80">3 · Invisible relationships</text>
+            <text class="b1fX" x="604" y="104">spend matters more for</text>
+            <text class="b1fX" x="604" y="122">returning customers</text>
+            <rect x="604" y="136" width="92" height="28" rx="6" fill="#F7FEE7" stroke="#84CC16" stroke-width="1.4"/>
+            <text class="b1fX" x="650" y="155" text-anchor="middle">spend</text>
+            <rect x="604" y="172" width="92" height="28" rx="6" fill="#F7FEE7" stroke="#84CC16" stroke-width="1.4"/>
+            <text class="b1fX" x="650" y="191" text-anchor="middle">returning</text>
+            <line x1="696" y1="150" x2="722" y2="166" stroke="#84CC16" stroke-width="2"/>
+            <line x1="696" y1="186" x2="722" y2="170" stroke="#84CC16" stroke-width="2"/>
+            <rect x="722" y="140" width="100" height="56" rx="8" fill="#4D7C0F"/>
+            <text class="b1fW" x="772" y="164" text-anchor="middle">spend x</text>
+            <text class="b1fW" x="772" y="182" text-anchor="middle">returning</text>
+            <text class="b1fX" x="604" y="220">no single column holds it (b6)</text>
+
+            <text class="b1fN" x="40" y="260">Google: a model handed indexed categories would "consider 'purple' six times more likely than 'orange'."</text>
+            <text class="b1fN" x="40" y="280">Each failure is a translation nobody made - and each one has its own session: b3, b4, b6.</text>
+          </svg>
+          <figcaption>🔍 Click to zoom - the model cannot use what you never translated</figcaption>
+        </figure>
+
         <div class="callout example">
           <span class="ex-pill">Real world</span>
           <p><strong>Where practitioners actually spend the time.</strong> Google's crash course states it flatly: "ML practitioners spend far more time evaluating, cleaning, and transforming data than building models." The model-selection debate that eats a planning meeting is usually worth less than one afternoon of feature work - and this course exists because the afternoon is the part nobody teaches.</p>
@@ -144,6 +211,59 @@
       <h2>Five groups, one ladder <span class="tag concept">6 min live</span></h2>
     </div>
     <p class="lede">Everything you will build in the next nine sessions falls into five groups, and tonight's workbench turns them on one at a time so you can watch each one earn its lift. The point is not the numbers - it is that the numbers move at all while the algorithm sits perfectly still.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 366" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A staircase of held-out AUC on the Lumen ladder: 0.500 with nothing switched on, 0.696 after raw numerics in b2, 0.785 after encoding in b3, 0.806 after datetime in b4, 0.812 after interactions in b6 and 0.813 after selection in b8. The rises shrink sharply after encoding while the algorithm stays identical throughout.">
+        <style>
+          .b1lT { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+          .b1lA { font: 700 11px Inter, sans-serif; fill: #64748B; letter-spacing: .06em; }
+          .b1lY { font: 400 11px Inter, sans-serif; fill: #64748B; }
+          .b1lV { font: 700 12px Inter, sans-serif; fill: #1E293B; }
+          .b1lX { font: 600 11px Inter, sans-serif; fill: #1E293B; }
+          .b1lS { font: 700 11px Inter, sans-serif; fill: #3F6212; }
+          .b1lN { font: 400 12px Inter, sans-serif; fill: #64748B; }
+          .b1lStep { stroke: #4D7C0F; stroke-width: 3; fill: none; }
+        </style>
+        <rect x="0" y="0" width="880" height="366" fill="#F7FEE7"/>
+        <text class="b1lT" x="40" y="26">One ladder, five groups, and an algorithm that never changes</text>
+
+        <line x1="110" y1="87" x2="840" y2="87" stroke="#E2E8F0" stroke-width="1"/>
+        <line x1="110" y1="141" x2="840" y2="141" stroke="#E2E8F0" stroke-width="1"/>
+        <line x1="110" y1="196" x2="840" y2="196" stroke="#E2E8F0" stroke-width="1"/>
+        <text class="b1lY" x="100" y="91" text-anchor="end">0.80</text>
+        <text class="b1lY" x="100" y="145" text-anchor="end">0.70</text>
+        <text class="b1lY" x="100" y="200" text-anchor="end">0.60</text>
+        <text class="b1lY" x="100" y="254" text-anchor="end">0.50</text>
+        <text class="b1lA" x="40" y="250" text-anchor="start" transform="rotate(-90 40 250)">HELD-OUT AUC →</text>
+
+        <line x1="110" y1="260" x2="840" y2="260" stroke="#CBD5E1" stroke-width="2"/>
+        <path class="b1lStep" d="M110,250 H230 V144 H350 V95 H470 V84 H590 V81 H710 V80 H830"/>
+
+        <text class="b1lV" x="170" y="242" text-anchor="middle">0.500</text>
+        <text class="b1lV" x="290" y="136" text-anchor="middle">0.696</text>
+        <text class="b1lV" x="410" y="87" text-anchor="middle">0.785</text>
+        <text class="b1lV" x="530" y="76" text-anchor="middle">0.806</text>
+        <text class="b1lV" x="650" y="73" text-anchor="middle">0.812</text>
+        <text class="b1lV" x="770" y="70" text-anchor="middle">0.813</text>
+
+        <text class="b1lX" x="170" y="280" text-anchor="middle">0 · nothing</text>
+        <text class="b1lX" x="290" y="280" text-anchor="middle">1 · raw numerics</text>
+        <text class="b1lX" x="410" y="280" text-anchor="middle">2 · encoding</text>
+        <text class="b1lX" x="530" y="280" text-anchor="middle">3 · datetime</text>
+        <text class="b1lX" x="650" y="280" text-anchor="middle">4 · interactions</text>
+        <text class="b1lX" x="770" y="280" text-anchor="middle">5 · selection</text>
+
+        <text class="b1lS" x="290" y="300" text-anchor="middle">b2</text>
+        <text class="b1lS" x="410" y="300" text-anchor="middle">b3</text>
+        <text class="b1lS" x="530" y="300" text-anchor="middle">b4</text>
+        <text class="b1lS" x="650" y="300" text-anchor="middle">b6</text>
+        <text class="b1lS" x="770" y="300" text-anchor="middle">b8</text>
+
+        <text class="b1lN" x="40" y="338">Encoding is the biggest single jump, at +0.089, from columns the model could not read at all.</text>
+        <text class="b1lN" x="40" y="358">The rises shrink after that, and the shrinking is information rather than disappointment.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - the numbers move while the algorithm sits perfectly still</figcaption>
+    </figure>
 
     <table class="clean">
       <thead>

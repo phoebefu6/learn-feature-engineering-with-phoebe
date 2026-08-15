@@ -129,6 +129,47 @@
           <strong>Its three caveats, verbatim - read them before you trust a ranking</strong>
           "MI can't detect interactions between features. It is a univariate metric." · "The actual usefulness of a feature depends on the model you use it with." · "Just because a feature has a high MI score doesn't mean your model will be able to do anything with that information."
         </div>
+        <figure class="zoomable">
+          <svg viewBox="0 0 880 290" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The mutual information scale, running from 0.0 where the two quantities are independent, with no fixed maximum but scores above 2.0 marked uncommon and worth a leakage check. Below it, the three caveats: mutual information cannot detect interactions because it is univariate, usefulness depends on the model you use it with, and a high score does not mean your model can do anything with the information.">
+            <style>
+              .b8mT { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+              .b8mD { font: 700 12px Inter, sans-serif; fill: #64748B; }
+              .b8mG { font: 600 11px Inter, sans-serif; fill: #3F6212; }
+              .b8mR { font: 600 11px Inter, sans-serif; fill: #B45309; }
+              .b8mA { font: 700 11px Inter, sans-serif; fill: #64748B; letter-spacing: .06em; }
+              .b8mX { font: 400 11px Inter, sans-serif; fill: #64748B; }
+              .b8mN { font: 400 12px Inter, sans-serif; fill: #64748B; }
+            </style>
+            <rect x="0" y="0" width="880" height="290" fill="#F7FEE7"/>
+            <text class="b8mT" x="40" y="26">Reading a mutual information score, and where to stop trusting it</text>
+
+            <text class="b8mD" x="120" y="88" text-anchor="middle">0.0</text>
+            <text class="b8mD" x="333" y="88" text-anchor="middle">1.0</text>
+            <text class="b8mD" x="547" y="88" text-anchor="middle">2.0</text>
+            <text class="b8mD" x="760" y="88" text-anchor="middle">3.0</text>
+            <rect x="120" y="100" width="427" height="26" rx="13" fill="#4D7C0F"/>
+            <rect x="547" y="100" width="213" height="26" rx="13" fill="#B45309"/>
+            <line x1="547" y1="94" x2="547" y2="136" stroke="#B45309" stroke-width="2.5"/>
+            <text class="b8mG" x="120" y="150">0.0 means independent - knowing one tells you nothing</text>
+            <text class="b8mR" x="547" y="150">above 2.0 is uncommon - check for leakage</text>
+
+            <text class="b8mA" x="40" y="176">THE THREE CAVEATS, VERBATIM</text>
+            <rect x="40" y="186" width="253" height="52" rx="9" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.6"/>
+            <text class="b8mX" x="58" y="208">MI cannot detect interactions</text>
+            <text class="b8mX" x="58" y="226">between features. It is univariate</text>
+            <rect x="313" y="186" width="253" height="52" rx="9" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.6"/>
+            <text class="b8mX" x="331" y="208">usefulness depends on the</text>
+            <text class="b8mX" x="331" y="226">model you use it with</text>
+            <rect x="586" y="186" width="253" height="52" rx="9" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.6"/>
+            <text class="b8mX" x="604" y="208">a high score does not mean</text>
+            <text class="b8mX" x="604" y="226">your model can use it</text>
+
+            <text class="b8mN" x="40" y="262">Mutual information measures how much knowing one quantity reduces uncertainty about the other.</text>
+            <text class="b8mN" x="40" y="282">Correlation only detects linear relationships. Mutual information has no such limit.</text>
+          </svg>
+          <figcaption>🔍 Click to zoom - a ranking worth an afternoon, not a pruning decision</figcaption>
+        </figure>
+
         <p>The first caveat is the one that bites in this course specifically. In b6 you built interactions - relationships that no single column carries. A univariate metric is structurally blind to exactly those. If you had used mutual information to prune before building interactions, you would have deleted the ingredients.</p>
       </div>
     </details>
@@ -250,6 +291,65 @@ for i in r.importances_mean.argsort()[::-1]:
       <div class="body">
         <p>Permutation importance has one failure mode you will meet on real tabular data, and it is easy to walk into. If two features are strongly correlated, permuting one leaves the model its correlate to fall back on. The score barely moves. Do the same to the other, and the score barely moves again. <strong>Both report low importance, and both are actually load-bearing.</strong></p>
         <p>Drop them both on that evidence and the score collapses, which is a confusing afternoon.</p>
+
+        <figure class="zoomable">
+          <svg viewBox="0 0 880 348" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Why permutation importance under-reports two strongly correlated features. Permuting A leaves B for the model to fall back on so the score barely moves and A looks unimportant; permuting B leaves A and B looks unimportant too; dropping both on that evidence collapses the score because both were load-bearing. The fix is to cluster correlated features first and keep one representative per cluster.">
+            <style>
+              .b8cT { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+              .b8cH { font: 700 12px Inter, sans-serif; fill: #1E293B; }
+              .b8cC { font: 600 11px Inter, sans-serif; fill: #1E293B; }
+              .b8cM { font: 600 11px Inter, sans-serif; fill: #7C2D12; }
+              .b8cW { font: 600 11px Inter, sans-serif; fill: #FFFFFF; }
+              .b8cX { font: 400 11px Inter, sans-serif; fill: #64748B; }
+              .b8cN { font: 400 12px Inter, sans-serif; fill: #64748B; }
+            </style>
+            <rect x="0" y="0" width="880" height="348" fill="#F7FEE7"/>
+            <text class="b8cT" x="40" y="26">The correlated-feature trap in permutation importance</text>
+
+            <rect x="40" y="56" width="250" height="188" rx="10" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.6"/>
+            <text class="b8cH" x="58" y="80">1 · shuffle A</text>
+            <rect x="58" y="96" width="100" height="26" rx="7" fill="#FEF3E2" stroke="#B45309" stroke-width="1.5" stroke-dasharray="4 3"/>
+            <text class="b8cM" x="108" y="114" text-anchor="middle">A shuffled</text>
+            <rect x="170" y="96" width="100" height="26" rx="7" fill="#F7FEE7" stroke="#84CC16" stroke-width="1.5"/>
+            <text class="b8cC" x="220" y="114" text-anchor="middle">B intact</text>
+            <text class="b8cX" x="58" y="150">the model falls back on B</text>
+            <rect x="58" y="166" width="212" height="40" rx="8" fill="#B45309"/>
+            <text class="b8cW" x="72" y="184">score barely moves</text>
+            <text class="b8cW" x="72" y="200">A looks unimportant</text>
+            <text class="b8cX" x="58" y="228">B is still there to carry it</text>
+
+            <rect x="315" y="56" width="250" height="188" rx="10" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.6"/>
+            <text class="b8cH" x="333" y="80">2 · shuffle B</text>
+            <rect x="333" y="96" width="100" height="26" rx="7" fill="#F7FEE7" stroke="#84CC16" stroke-width="1.5"/>
+            <text class="b8cC" x="383" y="114" text-anchor="middle">A intact</text>
+            <rect x="445" y="96" width="100" height="26" rx="7" fill="#FEF3E2" stroke="#B45309" stroke-width="1.5" stroke-dasharray="4 3"/>
+            <text class="b8cM" x="495" y="114" text-anchor="middle">B shuffled</text>
+            <text class="b8cX" x="333" y="150">the model falls back on A</text>
+            <rect x="333" y="166" width="212" height="40" rx="8" fill="#B45309"/>
+            <text class="b8cW" x="347" y="184">score barely moves</text>
+            <text class="b8cW" x="347" y="200">B looks unimportant</text>
+            <text class="b8cX" x="333" y="228">A is still there to carry it</text>
+
+            <rect x="590" y="56" width="250" height="188" rx="10" fill="#FEF2F2" stroke="#FCA5A5" stroke-width="1.6"/>
+            <text class="b8cH" x="608" y="80">3 · drop both</text>
+            <rect x="608" y="96" width="100" height="26" rx="7" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5" stroke-dasharray="4 3"/>
+            <text class="b8cX" x="658" y="114" text-anchor="middle">A gone</text>
+            <rect x="720" y="96" width="100" height="26" rx="7" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5" stroke-dasharray="4 3"/>
+            <text class="b8cX" x="770" y="114" text-anchor="middle">B gone</text>
+            <text class="b8cX" x="608" y="150">nothing is left to fall back on</text>
+            <rect x="608" y="166" width="212" height="40" rx="8" fill="#991B1B"/>
+            <text class="b8cW" x="622" y="184">the score collapses</text>
+            <text class="b8cW" x="622" y="200">both were load-bearing</text>
+            <text class="b8cX" x="608" y="228">a confusing afternoon</text>
+
+            <rect x="40" y="262" width="800" height="34" rx="8" fill="#4D7C0F"/>
+            <text class="b8cW" x="56" y="284">the fix: cluster the correlated features first, keep one representative per cluster, then read importance</text>
+
+            <text class="b8cN" x="40" y="326">Permuting one leaves the model its correlate to fall back on, so the score barely moves.</text>
+          </svg>
+          <figcaption>🔍 Click to zoom - two low scores can both be wrong at the same time</figcaption>
+        </figure>
+
         <p>The fix is mechanical: cluster the correlated features first - a hierarchical clustering on the correlation matrix does it - and keep one representative per cluster before you interpret any importance number. You are then measuring the cluster's contribution, which is the thing you actually wanted to know.</p>
       </div>
     </details>

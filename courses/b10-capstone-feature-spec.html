@@ -172,6 +172,59 @@ print(cross_val_score(pipe, X_train, y_train, cv=5).mean())</code></pre>
           <li><strong>b7 · imputation.</strong> <code>add_indicator=True</code> keeps the missingness as its own feature, because "this was blank" is frequently the signal.</li>
           <li><strong>b8 · selection.</strong> <code>SelectKBest</code> sits <em>inside</em>, so it re-fits within every cross-validation fold. Outside, it sees every row before the split - which is precisely the sklearn experiment that scored 0.76 accuracy on pure noise where the honest answer was 0.50.</li>
         </ul>
+
+        <figure class="zoomable">
+          <svg viewBox="0 0 880 386" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The capstone Lumen pipeline drawn as stages. train_test_split sits outside and first. Inside the Pipeline container, a ColumnTransformer runs median imputation with an indicator then StandardScaler for numerics, OneHotEncoder with min_frequency for categoricals, and a cross-fitted TargetEncoder for postal_code; then SelectKBest with k of 25 re-fits inside every fold, then the same logistic regression from b1. post_purchase_flag appears nowhere, which is field 3 doing its job in code.">
+            <style>
+              .b10pT { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+              .b10pW { font: 600 12px Inter, sans-serif; fill: #FFFFFF; }
+              .b10pS { font: 400 11px Inter, sans-serif; fill: rgba(255,255,255,.88); }
+              .b10pG { font: 700 12px Inter, sans-serif; fill: #3F6212; }
+              .b10pH { font: 700 12px Inter, sans-serif; fill: #1E293B; }
+              .b10pX { font: 400 11px Inter, sans-serif; fill: #64748B; }
+              .b10pR { font: 600 11px Inter, sans-serif; fill: #991B1B; }
+              .b10pN { font: 400 12px Inter, sans-serif; fill: #64748B; }
+            </style>
+            <rect x="0" y="0" width="880" height="386" fill="#F7FEE7"/>
+            <text class="b10pT" x="40" y="26">Every stage traces to a session, and the ordering is not stylistic</text>
+
+            <rect x="40" y="46" width="800" height="40" rx="8" fill="#B45309"/>
+            <text class="b10pW" x="56" y="71">train_test_split - first, before anything touches the data</text>
+            <text class="b10pS" x="824" y="71" text-anchor="end">b5 rule 1</text>
+
+            <rect x="40" y="104" width="800" height="180" rx="12" fill="#FFFFFF" stroke="#4D7C0F" stroke-width="2.5"/>
+            <text class="b10pG" x="58" y="126">Pipeline · the container</text>
+
+            <rect x="58" y="136" width="250" height="60" rx="8" fill="#F7FEE7" stroke="#84CC16" stroke-width="1.5"/>
+            <text class="b10pH" x="72" y="156">num</text>
+            <text class="b10pX" x="72" y="174">median impute + indicator · b7</text>
+            <text class="b10pX" x="72" y="192">StandardScaler · b2</text>
+
+            <rect x="320" y="136" width="250" height="60" rx="8" fill="#F7FEE7" stroke="#84CC16" stroke-width="1.5"/>
+            <text class="b10pH" x="334" y="156">cat</text>
+            <text class="b10pX" x="334" y="174">OneHotEncoder, min_frequency</text>
+            <text class="b10pX" x="334" y="192">handle_unknown = ignore · b3</text>
+
+            <rect x="582" y="136" width="240" height="60" rx="8" fill="#F7FEE7" stroke="#84CC16" stroke-width="1.5"/>
+            <text class="b10pH" x="596" y="156">hc · postal_code</text>
+            <text class="b10pX" x="596" y="174">TargetEncoder, cross-fitted</text>
+            <text class="b10pX" x="596" y="192">1,200 levels · b3</text>
+
+            <rect x="58" y="206" width="764" height="32" rx="7" fill="#4D7C0F"/>
+            <text class="b10pS" x="72" y="226">SelectKBest(f_classif, k=25) - inside, so it re-fits within every fold · b8</text>
+
+            <rect x="58" y="244" width="764" height="32" rx="7" fill="#3F6212"/>
+            <text class="b10pS" x="72" y="264">LogisticRegression(max_iter=1000) - the same estimator you built in b1</text>
+
+            <rect x="40" y="298" width="800" height="34" rx="8" fill="#FEF2F2" stroke="#FCA5A5" stroke-width="1.6"/>
+            <text class="b10pR" x="56" y="320">not in the pipeline: post_purchase_flag is in no list at all - field 3 doing its job in code</text>
+
+            <text class="b10pN" x="40" y="358">Split first, everything else inside the container: the structure makes the wrong thing hard to type.</text>
+            <text class="b10pN" x="40" y="378">Decomposition happens before the pipeline. The pipeline only transforms.</text>
+          </svg>
+          <figcaption>🔍 Click to zoom - ten sessions collapsed into one object you can hand over</figcaption>
+        </figure>
+
       </div>
     </details>
 
@@ -226,6 +279,65 @@ print(cross_val_score(pipe, X_train, y_train, cv=5).mean())</code></pre>
       <h2>Defend the spec <span class="tag concept">8 min live</span></h2>
     </div>
     <p class="lede">Pair up. One of you reads a feature spec aloud; the other asks the hostile question for each field and does not accept "I would have to check." Every question below has cost somebody a quarter.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Six red-team questions against a feature spec and what a weak answer means. Write-time is the blocking gate: if it cannot be answered, stop, because nothing downstream matters yet. Then transformation fit-scope, owner, source, deprecation status and the split.">
+        <style>
+          .b10rT { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+          .b10rA { font: 700 11px Inter, sans-serif; fill: #64748B; letter-spacing: .06em; }
+          .b10rF { font: 700 11px Inter, sans-serif; fill: #FFFFFF; }
+          .b10rQ { font: 600 11px Inter, sans-serif; fill: #1E293B; }
+          .b10rC { font: 400 11px Inter, sans-serif; fill: #64748B; }
+          .b10rR { font: 600 11px Inter, sans-serif; fill: #991B1B; }
+          .b10rN { font: 400 12px Inter, sans-serif; fill: #64748B; }
+        </style>
+        <rect x="0" y="0" width="880" height="380" fill="#F7FEE7"/>
+        <text class="b10rT" x="40" y="26">The red-team round: six questions, and what a weak answer means</text>
+        <text class="b10rA" x="40" y="50">FIELD</text>
+        <text class="b10rA" x="180" y="50">THE HOSTILE QUESTION</text>
+        <text class="b10rA" x="520" y="50">WHAT A WEAK ANSWER MEANS</text>
+
+        <rect x="40" y="60" width="130" height="40" rx="7" fill="#991B1B"/>
+        <text class="b10rF" x="54" y="85">3 · Write-time</text>
+        <rect x="180" y="60" width="660" height="40" rx="7" fill="#FEF2F2" stroke="#FCA5A5" stroke-width="1.5"/>
+        <text class="b10rQ" x="194" y="85">When exactly is this written, and by which system?</text>
+        <text class="b10rR" x="534" y="85">stop here - nothing downstream matters yet</text>
+
+        <rect x="40" y="106" width="130" height="40" rx="7" fill="#4D7C0F"/>
+        <text class="b10rF" x="54" y="131">4 · Transform</text>
+        <rect x="180" y="106" width="660" height="40" rx="7" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.5"/>
+        <text class="b10rQ" x="194" y="131">What did this transform fit on?</text>
+        <text class="b10rC" x="534" y="131">preprocessing leakage, live and invisible</text>
+
+        <rect x="40" y="152" width="130" height="40" rx="7" fill="#4D7C0F"/>
+        <text class="b10rF" x="54" y="177">5 · Owner</text>
+        <rect x="180" y="152" width="660" height="40" rx="7" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.5"/>
+        <text class="b10rQ" x="194" y="177">Who do I call when this feature breaks?</text>
+        <text class="b10rC" x="534" y="177">unowned means unmaintained, so it drifts</text>
+
+        <rect x="40" y="198" width="130" height="40" rx="7" fill="#4D7C0F"/>
+        <text class="b10rF" x="54" y="223">2 · Source</text>
+        <rect x="180" y="198" width="660" height="40" rx="7" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.5"/>
+        <text class="b10rQ" x="194" y="223">What happens when the source table changes?</text>
+        <text class="b10rC" x="534" y="223">no blast radius and no alerting</text>
+
+        <rect x="40" y="244" width="130" height="40" rx="7" fill="#4D7C0F"/>
+        <text class="b10rF" x="54" y="269">7 · Deprecation</text>
+        <rect x="180" y="244" width="660" height="40" rx="7" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.5"/>
+        <text class="b10rQ" x="194" y="269">Which features are we no longer using?</text>
+        <text class="b10rC" x="534" y="269">feature debt - the list never volunteers itself</text>
+
+        <rect x="40" y="290" width="130" height="40" rx="7" fill="#4D7C0F"/>
+        <text class="b10rF" x="54" y="315">The split</text>
+        <rect x="180" y="290" width="660" height="40" rx="7" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.5"/>
+        <text class="b10rQ" x="194" y="315">Does the split respect time and entities?</text>
+        <text class="b10rC" x="534" y="315">b5 families 3 and 4 are still open</text>
+
+        <text class="b10rN" x="40" y="352">The most common failure is a confident answer to field 3 that nobody ever tested at the source.</text>
+        <text class="b10rN" x="40" y="372">Do not accept "I would have to check" - every question here has cost somebody a quarter.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - field 3 is a gate, not a row: a weak answer stops the review</figcaption>
+    </figure>
 
     <table class="clean">
       <thead>

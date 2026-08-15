@@ -74,6 +74,48 @@
     </div>
 
     <figure class="zoomable">
+      <svg viewBox="0 0 880 312" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A bar showing that on a 3.2 percent conversion problem, a model that says no to every session is right 96.8 percent of the time and finds none of the converters, which is why the base rate and the held-out score have to be asked for together.">
+        <style>
+          .a6bT { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+          .a6bL { font: 600 12px Inter, sans-serif; fill: #1E293B; }
+          .a6bG { font: 600 11px Inter, sans-serif; fill: #3F6212; }
+          .a6bR { font: 600 11px Inter, sans-serif; fill: #B45309; }
+          .a6bV { font: 700 12px Inter, sans-serif; fill: #FFFFFF; }
+          .a6bH { font: 700 12px Inter, sans-serif; fill: #FFFFFF; }
+          .a6bS { font: 400 11px Inter, sans-serif; fill: rgba(255,255,255,.88); }
+          .a6bN { font: 400 12px Inter, sans-serif; fill: #64748B; }
+        </style>
+        <rect x="0" y="0" width="880" height="312" fill="#F7FEE7"/>
+        <text class="a6bT" x="40" y="26">Question 1: what the base rate does to any score you are shown</text>
+
+        <text class="a6bG" x="200" y="52">3.2% convert</text>
+        <text class="a6bR" x="800" y="52" text-anchor="end">96.8% do not</text>
+        <text class="a6bL" x="190" y="82" text-anchor="end">the data</text>
+        <rect x="200" y="60" width="600" height="34" rx="5" fill="#E2E8F0"/>
+        <rect x="200" y="60" width="19" height="34" rx="3" fill="#4D7C0F"/>
+
+        <text class="a6bL" x="190" y="136" text-anchor="end">say "no" to everyone</text>
+        <rect x="200" y="114" width="581" height="34" rx="5" fill="#4D7C0F"/>
+        <rect x="781" y="114" width="19" height="34" rx="3" fill="#B45309"/>
+        <text class="a6bV" x="212" y="136">96.8% accuracy, and it finds none of the converters</text>
+
+        <rect x="40" y="180" width="390" height="76" rx="10" fill="#3F6212"/>
+        <text class="a6bH" x="58" y="206">ASK FOR THE BASE RATE</text>
+        <text class="a6bS" x="58" y="226">3.2% conversion means 96.8% accuracy is the floor,</text>
+        <text class="a6bS" x="58" y="244">not a result you should react to.</text>
+
+        <rect x="450" y="180" width="390" height="76" rx="10" fill="#B45309"/>
+        <text class="a6bH" x="468" y="206">ASK FOR THE HELD-OUT SCORE</text>
+        <text class="a6bS" x="468" y="226">a training score only answers "did the model fit what</text>
+        <text class="a6bS" x="468" y="244">it saw" - always flattering, never sufficient.</text>
+
+        <text class="a6bN" x="40" y="284">Ask for both numbers before you react to either.</text>
+        <text class="a6bN" x="40" y="304">The base rate tells you whether the score is impressive at all.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - 96.8% accuracy here is the floor, not an achievement</figcaption>
+    </figure>
+
+    <figure class="zoomable">
       <svg viewBox="0 0 880 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A feature spec entering six review gates arranged in two rows of three, each labelled with the failure it catches, and passing out to a reviewed state.">
         <style>
           .r6T { font: 700 13px Inter, sans-serif; fill: #FFFFFF; }
@@ -189,6 +231,60 @@
       <h2>What a feature spec must contain <span class="tag concept">12 min live</span></h2>
     </div>
     <p class="lede">The six questions need somewhere to land, and that place is a feature spec: one short block per feature, written once and maintained. This is exactly the artifact the practitioner capstone produces, so if both tracks have run, your team already knows how to fill it in. Seven fields, and every one of them exists because something went wrong without it.</p>
+
+    <figure class="zoomable">
+      <svg viewBox="0 0 880 348" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The seven fields of a feature spec. Write-time relative to the outcome is drawn as the load-bearing field that prevents leakage, and the other six - name and definition, source, transformation, owner, refresh cadence and deprecation status - are hygiene fields, each labelled with the specific failure it prevents.">
+        <style>
+          .a6sT { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+          .a6sB { font: 700 13px Inter, sans-serif; fill: #FFFFFF; }
+          .a6sW { font: 400 11px Inter, sans-serif; fill: rgba(255,255,255,.9); }
+          .a6sF { font: 700 12px Inter, sans-serif; fill: #1E293B; }
+          .a6sX { font: 400 11px Inter, sans-serif; fill: #64748B; }
+          .a6sN { font: 400 12px Inter, sans-serif; fill: #64748B; }
+        </style>
+        <rect x="0" y="0" width="880" height="348" fill="#F7FEE7"/>
+        <text class="a6sT" x="40" y="26">Seven fields. Six are hygiene, one is protection.</text>
+
+        <rect x="40" y="44" width="799" height="66" rx="10" fill="#B45309"/>
+        <text class="a6sB" x="58" y="72">WRITE-TIME, relative to the outcome</text>
+        <text class="a6sW" x="821" y="72" text-anchor="end">prevents leakage</text>
+        <text class="a6sW" x="58" y="94">when the value is populated, compared to when the thing being predicted happens</text>
+
+        <rect x="40" y="128" width="253" height="76" rx="10" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.6"/>
+        <text class="a6sF" x="58" y="152">Name + definition</text>
+        <text class="a6sX" x="58" y="172">prevents two teams computing</text>
+        <text class="a6sX" x="58" y="190">"active customer" differently</text>
+
+        <rect x="313" y="128" width="253" height="76" rx="10" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.6"/>
+        <text class="a6sF" x="331" y="152">Source</text>
+        <text class="a6sX" x="331" y="172">prevents a feature nobody can</text>
+        <text class="a6sX" x="331" y="190">trace when the number is wrong</text>
+
+        <rect x="586" y="128" width="253" height="76" rx="10" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.6"/>
+        <text class="a6sF" x="604" y="152">Transformation</text>
+        <text class="a6sX" x="604" y="172">prevents silent differences</text>
+        <text class="a6sX" x="604" y="190">between training and serving</text>
+
+        <rect x="40" y="216" width="253" height="76" rx="10" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.6"/>
+        <text class="a6sF" x="58" y="240">Owner, a person not a team</text>
+        <text class="a6sX" x="58" y="260">prevents a definition drifting</text>
+        <text class="a6sX" x="58" y="278">for six months, unaccountable</text>
+
+        <rect x="313" y="216" width="253" height="76" rx="10" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.6"/>
+        <text class="a6sF" x="331" y="240">Refresh cadence</text>
+        <text class="a6sX" x="331" y="260">prevents a model served with</text>
+        <text class="a6sX" x="331" y="278">a feature current last quarter</text>
+
+        <rect x="586" y="216" width="253" height="76" rx="10" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.6"/>
+        <text class="a6sF" x="604" y="240">Deprecation status</text>
+        <text class="a6sX" x="604" y="260">prevents feature debt, and Rule</text>
+        <text class="a6sX" x="604" y="278">22 becoming a slogan</text>
+
+        <text class="a6sN" x="40" y="320">Write-time turns an abstract worry into a factual question with a checkable answer.</text>
+        <text class="a6sN" x="40" y="340">The test is not completeness: a spec must survive a team change, an incident review and an audit.</text>
+      </svg>
+      <figcaption>🔍 Click to zoom - six fields are hygiene, the seventh is why the spec exists</figcaption>
+    </figure>
 
     <table class="clean">
       <thead>

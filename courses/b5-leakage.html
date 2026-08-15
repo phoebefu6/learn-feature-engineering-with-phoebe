@@ -95,6 +95,51 @@
           <li><strong>3 · Temporal leakage.</strong> A random split on data with time order, so the model trains on next month to predict last month. <em>Tell:</em> offline results that never reproduce online. <em>Test:</em> is every training row older than every test row?</li>
           <li><strong>4 · Group leakage.</strong> The same customer, patient, or device appearing on both sides of the split. The model memorizes the entity rather than learning the pattern. <em>Tell:</em> the score drops hard on genuinely new entities. <em>Test:</em> split by group, not by row.</li>
         </ul>
+
+        <figure class="zoomable">
+          <svg viewBox="0 0 880 246" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A prediction-time line across a Lumen checkout session. To the left, available at prediction time, sit the five honest feature groups worth 0.813 held out. To the right, written only after the sale, sit post_purchase_flag, refund_amount, cancellation_reason and an account status updated on conversion. All four are filled in the historical table and empty when the model has to score.">
+            <style>
+              .b5tT { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+              .b5tG { font: 700 11px Inter, sans-serif; fill: #3F6212; letter-spacing: .04em; }
+              .b5tR { font: 700 11px Inter, sans-serif; fill: #B45309; letter-spacing: .04em; }
+              .b5tW { font: 600 12px Inter, sans-serif; fill: #FFFFFF; }
+              .b5tS { font: 400 11px Inter, sans-serif; fill: rgba(255,255,255,.86); }
+              .b5tC { font: 600 11px Inter, sans-serif; fill: #7C2D12; }
+              .b5tX { font: 400 11px Inter, sans-serif; fill: #64748B; }
+              .b5tN { font: 400 12px Inter, sans-serif; fill: #64748B; }
+            </style>
+            <rect x="0" y="0" width="880" height="246" fill="#F7FEE7"/>
+            <text class="b5tT" x="40" y="26">Family 1 is a timing question: when is each column written?</text>
+
+            <text class="b5tG" x="60" y="48">AVAILABLE AT PREDICTION TIME</text>
+            <text class="b5tR" x="840" y="48" text-anchor="end">WRITTEN LATER · NOT AVAILABLE</text>
+            <line x1="340" y1="56" x2="340" y2="170" stroke="#B45309" stroke-width="2.5" stroke-dasharray="7 5"/>
+
+            <rect x="60" y="70" width="260" height="68" rx="9" fill="#4D7C0F"/>
+            <text class="b5tW" x="76" y="98">the five honest groups</text>
+            <text class="b5tS" x="76" y="118">0.813 held out on Lumen</text>
+
+            <rect x="500" y="70" width="160" height="28" rx="7" fill="#FEF3E2" stroke="#B45309" stroke-width="1.5"/>
+            <text class="b5tC" x="514" y="89">post_purchase_flag</text>
+            <rect x="670" y="70" width="160" height="28" rx="7" fill="#FEF3E2" stroke="#B45309" stroke-width="1.5"/>
+            <text class="b5tC" x="684" y="89">refund_amount</text>
+            <rect x="500" y="106" width="160" height="28" rx="7" fill="#FEF3E2" stroke="#B45309" stroke-width="1.5"/>
+            <text class="b5tC" x="514" y="125">cancellation_reason</text>
+            <rect x="670" y="106" width="160" height="28" rx="7" fill="#FEF3E2" stroke="#B45309" stroke-width="1.5"/>
+            <text class="b5tC" x="684" y="125">account status updated</text>
+
+            <line x1="60" y1="170" x2="840" y2="170" stroke="#CBD5E1" stroke-width="2"/>
+            <circle cx="340" cy="170" r="7" fill="#B45309"/>
+            <circle cx="470" cy="170" r="7" fill="#3F6212"/>
+            <text class="b5tX" x="340" y="192" text-anchor="middle">the model must score</text>
+            <text class="b5tX" x="470" y="192" text-anchor="middle">the sale happens</text>
+
+            <text class="b5tN" x="40" y="218">The test: was this value knowable before the thing you are predicting?</text>
+            <text class="b5tN" x="40" y="238">In the historical table every right-hand column is filled in. At prediction time all of them are empty.</text>
+          </svg>
+          <figcaption>🔍 Click to zoom - the clock, not the code, is what decides this one</figcaption>
+        </figure>
+
         <div class="callout example">
           <span class="ex-pill">Real world</span>
           <p><strong>The one that is hardest to argue with.</strong> A churn model shipped with 0.94 AUC and collapsed in its first month. The culprit was a <code>last_contact_type</code> field, which the retention team filled in <em>after</em> deciding a customer was leaving. Nobody lied, nobody was careless with the split, and the code was clean. The column simply knew the future - and no amount of cross-validation can detect a feature that is contaminated in every fold.</p>
@@ -161,6 +206,47 @@ pipe = Pipeline([                                        # rule 3: structure
 pipe.fit(X_train, y_train)                               # rule 2: train only
 print(cross_val_score(pipe, X_train, y_train, cv=5).mean())</code></pre>
         <p>Note where <code>SelectKBest</code> sits. Outside the pipeline it sees every row before the split; inside it re-fits within each cross-validation fold, which is the entire difference between the two numbers in the next section.</p>
+
+        <figure class="zoomable">
+          <svg viewBox="0 0 880 306" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two orderings of the same pipeline on sklearn's pure-noise experiment. Fitting selection on all rows before the split yields 0.76 accuracy on data with no signal at all. Splitting first and fitting selection inside the Pipeline, so it re-fits in every cross-validation fold, yields 0.50 accuracy and 0.43 under cross-validation.">
+            <style>
+              .b5pT { font: 700 13px Inter, sans-serif; fill: #1E293B; }
+              .b5pR { font: 700 13px Inter, sans-serif; fill: #991B1B; }
+              .b5pG { font: 700 13px Inter, sans-serif; fill: #3F6212; }
+              .b5pS { font: 600 11px Inter, sans-serif; fill: #1E293B; }
+              .b5pV { font: 700 12px Inter, sans-serif; fill: #FFFFFF; }
+              .b5pN { font: 400 12px Inter, sans-serif; fill: #64748B; }
+            </style>
+            <rect x="0" y="0" width="880" height="306" fill="#F7FEE7"/>
+            <text class="b5pT" x="40" y="26">Where the selector sits is the whole difference</text>
+
+            <rect x="40" y="50" width="390" height="200" rx="12" fill="#FEF2F2" stroke="#FCA5A5" stroke-width="2"/>
+            <text class="b5pR" x="58" y="84">✗ Selection fitted before the split</text>
+            <rect x="58" y="96" width="354" height="28" rx="7" fill="#FFFFFF" stroke="#FCA5A5" stroke-width="1.4"/>
+            <text class="b5pS" x="72" y="115">1 · fit the selector on ALL rows</text>
+            <rect x="58" y="132" width="354" height="28" rx="7" fill="#FFFFFF" stroke="#FCA5A5" stroke-width="1.4"/>
+            <text class="b5pS" x="72" y="151">2 · train_test_split</text>
+            <rect x="58" y="168" width="354" height="28" rx="7" fill="#FFFFFF" stroke="#FCA5A5" stroke-width="1.4"/>
+            <text class="b5pS" x="72" y="187">3 · fit the model on what is left</text>
+            <rect x="58" y="204" width="354" height="38" rx="8" fill="#991B1B"/>
+            <text class="b5pV" x="72" y="228">0.76 accuracy - on data with no signal</text>
+
+            <rect x="450" y="50" width="390" height="200" rx="12" fill="#F7FEE7" stroke="#84CC16" stroke-width="2"/>
+            <text class="b5pG" x="468" y="84">✓ Selection inside the Pipeline</text>
+            <rect x="468" y="96" width="354" height="28" rx="7" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.4"/>
+            <text class="b5pS" x="482" y="115">1 · train_test_split, first line of the file</text>
+            <rect x="468" y="132" width="354" height="28" rx="7" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.4"/>
+            <text class="b5pS" x="482" y="151">2 · the selector goes inside the Pipeline</text>
+            <rect x="468" y="168" width="354" height="28" rx="7" fill="#FFFFFF" stroke="#84CC16" stroke-width="1.4"/>
+            <text class="b5pS" x="482" y="187">3 · it re-fits within every CV fold</text>
+            <rect x="468" y="204" width="354" height="38" rx="8" fill="#4D7C0F"/>
+            <text class="b5pV" x="482" y="228">0.50 accuracy, 0.43 under cross-validation</text>
+
+            <text class="b5pN" x="40" y="278">sklearn: "Always split the data into train and test subsets first, before any preprocessing."</text>
+            <text class="b5pN" x="40" y="298">Structure beats discipline - the Pipeline makes the wrong thing hard to type.</text>
+          </svg>
+          <figcaption>🔍 Click to zoom - 26 points of accuracy, manufactured by an ordering mistake</figcaption>
+        </figure>
       </div>
     </details>
 
